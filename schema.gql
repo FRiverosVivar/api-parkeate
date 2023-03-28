@@ -1,0 +1,266 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type ProductEntity {
+  """id of the product"""
+  id: String!
+
+  """stock of the product"""
+  name: String!
+
+  """description of the product"""
+  description: String!
+
+  """stock of the product"""
+  stock: Int!
+
+  """brand of the product"""
+  brand: String!
+
+  """price of the product"""
+  price: Int!
+
+  """creation date of the product"""
+  createdAt: DateTime!
+
+  """update date of the product"""
+  updatedAt: DateTime!
+
+  """stores of the product"""
+  stores: [StoreEntity!]!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type StoreEntity {
+  """id of the store"""
+  id: String!
+
+  """city of the store"""
+  city: String!
+
+  """address of the store"""
+  address: String!
+
+  """employees of the store"""
+  employees: [UserEntity!]
+
+  """creation date of the store"""
+  createdAt: DateTime!
+
+  """update date of the store"""
+  updatedAt: DateTime!
+
+  """"""
+  products: [ProductEntity!]!
+}
+
+type UserEntity {
+  """id of the user"""
+  id: String!
+
+  """type of the user"""
+  userType: UserTypesEnum!
+
+  """managerid of the user"""
+  manager: String
+
+  """stores of the employee"""
+  stores: [StoreEntity!]
+
+  """photo of the user"""
+  profilePhoto: String
+
+  """creation date of the user"""
+  createdAt: DateTime!
+
+  """creation date of the user"""
+  updatedAt: DateTime!
+
+  """name of the user"""
+  name: String!
+
+  """lastname of the user"""
+  lastname: String!
+
+  """rut of the user"""
+  rut: String!
+
+  """email of the user"""
+  email: String!
+}
+
+enum UserTypesEnum {
+  DEFAULT
+  EXECUTIVE
+  STORE_MANAGER
+  COMPANY_EXECUTIVE
+  COMPANY_MANAGER
+  ADMINISTRATOR
+}
+
+type Query {
+  users: [UserEntity!]!
+  user(rut: String!): UserEntity!
+  stores: [StoreEntity!]!
+  store(storeId: String!): StoreEntity!
+  products: [ProductEntity!]!
+  product(productId: String!): ProductEntity!
+}
+
+type Mutation {
+  createUser(createUserInput: CreateUserInput!): UserEntity!
+  updateUser(updateUserInput: UpdateUserInput!): UserEntity!
+  removeUser(userId: String!): UserEntity!
+  createStore(createStoreInput: CreateStoreInput!): StoreEntity!
+  updateStore(updateStoreInput: UpdateStoreInput!): StoreEntity!
+  removeStore(storeId: String!): StoreEntity!
+  createProduct(createProductInput: CreateProductInput!): ProductEntity!
+  updateProduct(updateProductInput: UpdateProductInput!): ProductEntity!
+  removeProduct(productId: String!): ProductEntity!
+}
+
+input CreateUserInput {
+  """type of the user"""
+  userType: Int!
+  manager: String!
+
+  """stores of the user"""
+  storesId: [String!]!
+
+  """profilePhotoid of the user"""
+  profilePhoto: String
+
+  """name of the user"""
+  name: String!
+
+  """lastname of the user"""
+  lastname: String!
+
+  """rut of the user"""
+  rut: String!
+
+  """email of the user"""
+  email: String!
+}
+
+input UpdateUserInput {
+  """type of the user"""
+  userType: Int
+  manager: String
+
+  """stores of the user"""
+  storesId: [String!]
+
+  """profilePhotoid of the user"""
+  profilePhoto: String
+
+  """name of the user"""
+  name: String
+
+  """lastname of the user"""
+  lastname: String
+
+  """rut of the user"""
+  rut: String
+
+  """email of the user"""
+  email: String
+  id: String!
+}
+
+input CreateStoreInput {
+  """city of the store"""
+  city: String!
+
+  """address of the store"""
+  address: String!
+
+  """employees of the store"""
+  employeesId: [String!]
+
+  """creation date of the store"""
+  createdAt: DateTime!
+
+  """update date of the store"""
+  updatedAt: DateTime!
+
+  """product of the store"""
+  productsId: [String!]!
+}
+
+input UpdateStoreInput {
+  """city of the store"""
+  city: String
+
+  """address of the store"""
+  address: String
+
+  """employees of the store"""
+  employeesId: [String!]
+
+  """creation date of the store"""
+  createdAt: DateTime
+
+  """update date of the store"""
+  updatedAt: DateTime
+
+  """product of the store"""
+  productsId: [String!]
+  id: String!
+}
+
+input CreateProductInput {
+  """id of the product"""
+  id: String!
+
+  """stock of the product"""
+  name: String!
+
+  """description of the product"""
+  description: String!
+
+  """stock of the product"""
+  stock: Int!
+
+  """brand of the product"""
+  brand: String!
+
+  """price of the product"""
+  price: Int!
+
+  """creation date of the product"""
+  createdAt: DateTime!
+
+  """update date of the product"""
+  updatedAt: DateTime!
+}
+
+input UpdateProductInput {
+  id: String!
+
+  """stock of the product"""
+  name: String
+
+  """description of the product"""
+  description: String
+
+  """stock of the product"""
+  stock: Int
+
+  """brand of the product"""
+  brand: String
+
+  """price of the product"""
+  price: Int
+
+  """creation date of the product"""
+  createdAt: DateTime
+
+  """update date of the product"""
+  updatedAt: DateTime
+}
