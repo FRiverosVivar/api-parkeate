@@ -1,16 +1,14 @@
 import { InputType, Int, Field, ArgsType } from '@nestjs/graphql';
-import { UserTypesEnum } from '../user.constants';
+import { Column } from 'typeorm';
+import { UserTypesEnum } from '../../constants/constants';
 
 @InputType()
 @ArgsType()
 export class CreateUserInput {
   @Field(() => Int, { description: 'type of the user' })
   userType: UserTypesEnum;
-  @Field(() => String)
+  @Field(() => String, { nullable: true})
   manager: string;
-  @Field(() => [String], { description: 'stores of the user' })
-  storesId?: string[];
-
   @Field(() => String, {
     description: 'profilePhotoid of the user',
     nullable: true,
@@ -24,4 +22,7 @@ export class CreateUserInput {
   rut: string;
   @Field(() => String, { description: 'email of the user' })
   email: string;
+  @Column()
+  @Field(() => String, { description: 'hashed password of the user' })
+  password: string;
 }

@@ -1,28 +1,30 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { UserService } from '../service/user.service';
 import { CreateUserInput } from '../model/dto/create-user.input';
 import { UpdateUserInput } from '../model/dto/update-user.input';
 import { UserEntity } from '../entity/user.entity';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { Inject, UseGuards } from '@nestjs/common';
+import { Public } from "../../auth/decorator/public.decorator";
+import { GqlAuthGuard } from "../../auth/guards/gql.guard";
 
 @Resolver(() => UserEntity)
 export class UserResolver {
   constructor(private readonly userService: UserService) {}
 
-  @Mutation(() => UserEntity)
-  createUser(@Args('createUserInput') createUserInput: CreateUserInput) {
-    return this.userService.createUser(createUserInput);
-  }
+
 
   @Query(() => [UserEntity], { name: 'users' })
-  findAll() {
+  @UseGuards(JwtAuthGuard)
+  findAll(@Context() context: any) {
     return this.userService.findAll();
   }
 
-  @Query(() => UserEntity, { name: 'user' })
+  @Query(() => UserEntity, { name: 'userById' })
   findOne(@Args('userId', { type: () => String }) userId: string) {
     return this.userService.findUserById(userId);
   }
-  @Query(() => UserEntity, { name: 'user' })
+  @Query(() => UserEntity, { name: 'userByRut' })
   findOneByRut(@Args('rut', { type: () => String }) rut: string) {
     return this.userService.findUserByRut(rut);
   }

@@ -2,20 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Equal, Repository } from 'typeorm';
 import { UserEntity } from '../entity/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '../model/user.interface';
-import {
-  from,
-  Observable,
-  switchMap,
-  map,
-  of,
-  tap,
-  catchError,
-  throwError,
-} from 'rxjs';
-import { CreateUserInput } from '../model/dto/create-user.input';
+import { from, Observable, switchMap, map } from 'rxjs';
 import { UpdateUserInput } from '../model/dto/update-user.input';
-import { ExistingRutException } from '../../utils/exceptions/ExistingRut';
+import * as uuid from 'uuid';
+import { UUIDBadFormatException } from '../../utils/exceptions/UUIDBadFormat.exception';
+import { CreateUserInput } from '../model/dto/create-user.input';
 
 @Injectable()
 export class UserService {
@@ -25,16 +16,7 @@ export class UserService {
   ) {}
   createUser(userDTO: CreateUserInput): Observable<UserEntity> {
     const user = this.userRepository.create(userDTO);
-    return from(
-      this.findUserByRut(user.rut).pipe(
-        switchMap((existingUser) => {
-          if (existingUser) {
-            throw new ExistingRutException();
-          }
-          return from(this.userRepository.save(user));
-        }),
-      ),
-    );
+    return from(this.userRepository.save(user));
   }
   updateUser(updatedUser: UpdateUserInput): Observable<UserEntity> {
     return from(
@@ -51,9 +33,11 @@ export class UserService {
     );
   }
   removeUser(userId: string): Observable<UserEntity> {
+    if (uuid.validate(userId)) {
+      throw new UUIDBadFormatException();
+    }
     return from(
       this.userRepository.findOne({
-        relations: ['store'],
         where: { id: userId },
       }),
     ).pipe(
@@ -66,6 +50,10 @@ export class UserService {
     );
   }
   findUserById(userId: string): Observable<UserEntity> {
+    if (!uuid.validate(userId)) {
+      throw new UUIDBadFormatException();
+    }
+
     return from(
       this.userRepository.findBy({
         id: Equal(userId),
@@ -82,14 +70,7 @@ export class UserService {
       );
   }
   findUserByRut(rut: string): Observable<UserEntity> {
-    return from(
-      this.userRepository.findOne({
-        relations: ['store'],
-        where: {
-          rut: rut,
-        },
-      }),
-    ).pipe(
+    return this.getUserByRut(rut).pipe(
       map((user) => {
         if (!user) {
           throw new NotFoundException();
@@ -98,7 +79,16 @@ export class UserService {
       }),
     );
   }
+  getUserByRut(rut: string): Observable<UserEntity | null> {
+    return from(
+      this.userRepository.findOne({
+        where: {
+          rut: rut,
+        },
+      }),
+    );
+  }
   findAll(): Observable<UserEntity[]> {
-    return from(this.userRepository.find({ relations: ['store'] }));
+    return from(this.userRepository.find());
   }
 }

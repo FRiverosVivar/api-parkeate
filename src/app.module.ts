@@ -3,12 +3,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserModule } from './user/user.module';
-import { StoreModule } from './store/store.module';
-import { ProductModule } from './product/product.module';
 import { GraphQLModule,  } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
+import { AuthModule } from './auth/auth.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -30,9 +28,7 @@ import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
       autoLoadEntities: true,
       synchronize: true,
     }),
-    UserModule,
-    StoreModule,
-    ProductModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

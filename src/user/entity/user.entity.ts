@@ -2,15 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinTable,
-  ManyToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { UserTypesEnum } from '../model/user.constants';
 import { Field, ObjectType } from '@nestjs/graphql';
-import { StoreEntity } from '../../store/entity/store.entity';
-import { ProductEntity } from '../../product/entity/product.entity';
+import { UserTypesEnum } from '../constants/constants';
 
 @Entity('user')
 @ObjectType()
@@ -24,13 +20,6 @@ export class UserEntity {
   @Column({ nullable: true })
   @Field(() => String, { description: 'managerid of the user', nullable: true })
   manager: string;
-  @Column({ type: 'simple-array', nullable: true, array: true })
-  @ManyToMany(() => StoreEntity, (store) => store.employees)
-  @Field(() => [StoreEntity], {
-    description: 'stores of the employee',
-    nullable: true,
-  })
-  stores: StoreEntity[];
   @Column({ nullable: true })
   @Field(() => String, { description: 'photo of the user', nullable: true })
   profilePhoto: string;
@@ -52,4 +41,7 @@ export class UserEntity {
   @Column()
   @Field(() => String, { description: 'email of the user' })
   email: string;
+  @Column()
+  @Field(() => String, { description: 'hashed password of the user' })
+  password: string;
 }
