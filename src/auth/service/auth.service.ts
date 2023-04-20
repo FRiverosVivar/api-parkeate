@@ -8,6 +8,7 @@ import { UserLoginResponse } from '../../user/model/dto/user-login.response';
 import { jwtConstants } from '../../user/constants/constants';
 import { CreateUserInput } from '../../user/model/dto/create-user.input';
 import { ExistingRutException } from '../../utils/exceptions/ExistingRut.exception';
+import { UserPayload } from "../model/user-payload.model";
 @Injectable()
 export class AuthService {
   constructor(
@@ -58,13 +59,12 @@ export class AuthService {
     } as UserLoginResponse;
   }
   refreshToken(token: string): Observable<UserLoginResponse> {
-    const user = this.jwtService.decode(token) as any;
+    const user = this.jwtService.decode(token) as UserPayload;
     if (!user) {
       throw new UnauthorizedException();
     }
     return this.userService.findUserById(user.sub).pipe(
       switchMap((userEntity) => {
-        console.log(userEntity);
         return of({
           user: userEntity,
           access_token: this.jwtService.sign(

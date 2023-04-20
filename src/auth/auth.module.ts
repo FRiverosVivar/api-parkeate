@@ -10,6 +10,7 @@ import { AuthResolver } from './resolver/auth.resolver';
 import { UserModule } from '../user/user.module';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { UserTypeGuard } from './guards/user-type.guard';
+
 @Module({
   imports: [
     PassportModule,

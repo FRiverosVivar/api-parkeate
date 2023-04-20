@@ -67,7 +67,10 @@ type Mutation {
   login(loginUserInput: LoginUserInput!): UserLoginResponse!
   refreshToken(accessToken: String!): UserLoginResponse!
   updateUser(updateUserInput: UpdateUserInput!): UserEntity!
+  setProfilePhoto(userId: String!, photo: Upload!): UserEntity!
   removeUser(userId: String!): UserEntity!
+  uploadFile(createFileInput: CreateFileInput!, file: Upload!): String!
+  deleteFile(url: String!): Boolean!
 }
 
 input CreateUserInput {
@@ -125,4 +128,23 @@ input UpdateUserInput {
   """hashed password of the user"""
   password: String
   id: String!
+}
+
+"""The `Upload` scalar type represents a file upload."""
+scalar Upload
+
+input CreateFileInput {
+  userId: String!
+  ratio: RatioEnum
+}
+
+enum RatioEnum {
+  SQUARE
+  MODERN
+  MODERN_PORTRAIT
+  OLD
+  OLD_PORTRAIT
+  BANNER
+  ULTRA_WIDE
+  SUPER_WIDE
 }

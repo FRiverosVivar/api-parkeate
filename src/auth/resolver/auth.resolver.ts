@@ -7,6 +7,7 @@ import { Public } from '../decorator/public.decorator';
 import { UserEntity } from '../../user/entity/user.entity';
 import { CreateUserInput } from '../../user/model/dto/create-user.input';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { GqlAuthGuard } from '../guards/gql.guard';
 
 @Resolver()
 export class AuthResolver {
@@ -18,8 +19,7 @@ export class AuthResolver {
   createUser(@Args('createUserInput') createUserInput: CreateUserInput) {
     return this.authService.createUser(createUserInput);
   }
-  @Public()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(GqlAuthGuard)
   @Mutation(() => UserLoginResponse, { name: 'login' })
   startSession(
     @Args('loginUserInput') loginUserInput: LoginUserInput,

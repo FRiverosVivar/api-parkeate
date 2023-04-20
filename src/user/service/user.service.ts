@@ -2,17 +2,20 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Equal, Repository } from 'typeorm';
 import { UserEntity } from '../entity/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { from, Observable, switchMap, map } from 'rxjs';
+import { from, Observable, switchMap, map, of } from 'rxjs';
 import { UpdateUserInput } from '../model/dto/update-user.input';
 import * as uuid from 'uuid';
 import { UUIDBadFormatException } from '../../utils/exceptions/UUIDBadFormat.exception';
 import { CreateUserInput } from '../model/dto/create-user.input';
+import { FileUpload } from 'graphql-upload-minimal';
+import { FileService } from '../../file/service/file.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    private fileService: FileService,
   ) {}
   createUser(userDTO: CreateUserInput): Observable<UserEntity> {
     const user = this.userRepository.create(userDTO);
@@ -90,5 +93,21 @@ export class UserService {
   }
   findAll(): Observable<UserEntity[]> {
     return from(this.userRepository.find());
+  }
+  setProfilePhoto(userId: string, file: FileUpload): Observable<UserEntity> {
+    return this.findUserById(userId).pipe(
+      switchMap((user: UserEntity) => {
+        return this.fileService.processFile(userId, file).pipe(
+          switchMap((url) => {
+            if (user.profilePhoto)
+              this.fileService.deleteFile(user.profilePhoto);
+
+            user.profilePhoto = url;
+            this.userRepository.save(user);
+            return of(user);
+          }),
+        );
+      }),
+    );
   }
 }
