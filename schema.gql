@@ -3,53 +3,27 @@
 # ------------------------------------------------------
 
 type UserEntity {
-  """id of the user"""
-  id: String!
-
   """type of the user"""
   userType: UserTypesEnum!
 
-  """managerid of the user"""
-  manager: String
+  """validated email"""
+  validatedEmail: Boolean!
 
-  """photo of the user"""
-  profilePhoto: String
-
-  """creation date of the user"""
-  createdAt: DateTime!
-
-  """creation date of the user"""
-  updatedAt: DateTime!
-
-  """name of the user"""
-  name: String!
-
-  """lastname of the user"""
-  lastname: String!
-
-  """rut of the user"""
-  rut: String!
-
-  """email of the user"""
-  email: String!
-
-  """hashed password of the user"""
-  password: String!
+  """validated phone"""
+  validatedPhone: Boolean!
 }
 
 enum UserTypesEnum {
-  DEFAULT
-  EXECUTIVE
-  STORE_MANAGER
-  COMPANY_EXECUTIVE
-  COMPANY_MANAGER
-  ADMINISTRATOR
+  ROOT
+  ADMIN
+  ROOT_MANAGER
+  MANAGER
+  USER
 }
 
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
+type ClientEntity {
+  validatedAccount: Boolean!
+}
 
 type UserLoginResponse {
   user: UserEntity!
@@ -60,15 +34,27 @@ type Query {
   users: [UserEntity!]!
   userById(userId: String!): UserEntity!
   userByRut(rut: String!): UserEntity!
+  getUserEmailCode(userId: String!): UserEntity!
+  getUserSMSCode(userId: String!): UserEntity!
+  clientById(clientId: String!): ClientEntity!
+  clients: [ClientEntity!]!
+  clientByRut(rut: String!): ClientEntity!
+  getClientEmailCode(clientId: String!): ClientEntity!
+  getClientSMSCode(clientId: String!): ClientEntity!
 }
 
 type Mutation {
   createUser(createUserInput: CreateUserInput!): UserEntity!
+  createClient(createClientInput: CreateClientInput!): UserEntity!
+  clientLogin(loginClientInput: LoginClientInput!): UserLoginResponse!
   login(loginUserInput: LoginUserInput!): UserLoginResponse!
   refreshToken(accessToken: String!): UserLoginResponse!
   updateUser(updateUserInput: UpdateUserInput!): UserEntity!
   setProfilePhoto(userId: String!, photo: Upload!): UserEntity!
   removeUser(userId: String!): UserEntity!
+  updateClient(updateClientInput: UpdateClientInput!): ClientEntity!
+  setClientProfilePhoto(clientId: String!, photo: Upload!): ClientEntity!
+  removeClient(clientId: String!): ClientEntity!
   uploadFile(createFileInput: CreateFileInput!, file: Upload!): String!
   deleteFile(url: String!): Boolean!
 }
@@ -76,24 +62,23 @@ type Mutation {
 input CreateUserInput {
   """type of the user"""
   userType: Int!
-  manager: String
 
-  """profilePhotoid of the user"""
-  profilePhoto: String
+  """validated email"""
+  validatedEmail: Boolean!
 
-  """name of the user"""
-  name: String!
+  """validated phone"""
+  validatedPhone: Boolean!
+}
 
-  """lastname of the user"""
-  lastname: String!
+input CreateClientInput {
+  validatedAccount: Boolean!
+}
 
+input LoginClientInput {
   """rut of the user"""
-  rut: String!
+  username: String!
 
-  """email of the user"""
-  email: String!
-
-  """hashed password of the user"""
+  """pw of the user"""
   password: String!
 }
 
@@ -108,30 +93,22 @@ input LoginUserInput {
 input UpdateUserInput {
   """type of the user"""
   userType: Int
-  manager: String
 
-  """profilePhotoid of the user"""
-  profilePhoto: String
+  """validated email"""
+  validatedEmail: Boolean
 
-  """name of the user"""
-  name: String
-
-  """lastname of the user"""
-  lastname: String
-
-  """rut of the user"""
-  rut: String
-
-  """email of the user"""
-  email: String
-
-  """hashed password of the user"""
-  password: String
+  """validated phone"""
+  validatedPhone: Boolean
   id: String!
 }
 
 """The `Upload` scalar type represents a file upload."""
 scalar Upload
+
+input UpdateClientInput {
+  validatedAccount: Boolean
+  id: String!
+}
 
 input CreateFileInput {
   userId: String!
