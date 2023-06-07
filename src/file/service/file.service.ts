@@ -69,7 +69,6 @@ export class FileService {
     buffer: Buffer,
     ratio?: number,
   ): Promise<Buffer> {
-    console.log(buffer.length);
     let compressBuffer: sharp.Sharp | Buffer = sharp(buffer).jpeg({
       mozjpeg: true,
       chromaSubsampling: '4:4:4',

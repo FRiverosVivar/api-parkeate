@@ -10,6 +10,7 @@ import { AuthResolver } from './resolver/auth.resolver';
 import { UserModule } from '../user/user.module';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { UserTypeGuard } from './guards/user-type.guard';
+import { ClientModule } from '../client/client.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { UserTypeGuard } from './guards/user-type.guard';
       },
     }),
     UserModule,
+    ClientModule,
   ],
   providers: [
     AuthService,

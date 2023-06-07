@@ -8,11 +8,16 @@ import { UserLoginResponse } from '../../user/model/dto/user-login.response';
 import { jwtConstants } from '../../user/constants/constants';
 import { CreateUserInput } from '../../user/model/dto/create-user.input';
 import { ExistingRutException } from '../../utils/exceptions/ExistingRut.exception';
-import { UserPayload } from "../model/user-payload.model";
+import { UserPayload } from '../model/user-payload.model';
+import { CreateClientInput } from '../../client/model/create-client.input';
+import { ClientService } from '../../client/service/client.service';
+import { ClientEntity } from '../../client/entity/client.entity';
+import { ClientLoginResponse } from '../../client/model/client-login.response';
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UserService,
+    private clientService: ClientService,
     private jwtService: JwtService,
     private bcryptService: CryptService,
   ) {}
@@ -27,6 +32,22 @@ export class AuthService {
           switchMap((hashedPassword) => {
             createUserInput.password = hashedPassword;
             return this.userService.createUser(createUserInput);
+          }),
+        );
+      }),
+    );
+  }
+  createClient(createClientInput: CreateClientInput): Observable<ClientEntity> {
+    return this.clientService.getClientByRut(createClientInput.rut).pipe(
+      switchMap((existingUser) => {
+        if (existingUser) {
+          throw new ExistingRutException();
+        }
+        const password = createClientInput.password;
+        return this.bcryptService.hash(password).pipe(
+          switchMap((hashedPassword) => {
+            createClientInput.password = hashedPassword;
+            return this.clientService.createClient(createClientInput);
           }),
         );
       }),
@@ -58,6 +79,18 @@ export class AuthService {
       ),
     } as UserLoginResponse;
   }
+  clientLogin(user: ClientEntity) {
+    return {
+      client: user,
+      access_token: this.jwtService.sign(
+        {
+          username: user.rut,
+          sub: user.id,
+        },
+        { secret: jwtConstants.secret, expiresIn: '60s' },
+      ),
+    } as ClientLoginResponse;
+  }
   refreshToken(token: string): Observable<UserLoginResponse> {
     const user = this.jwtService.decode(token) as UserPayload;
     if (!user) {
@@ -75,6 +108,26 @@ export class AuthService {
             { secret: jwtConstants.secret, expiresIn: '60s' },
           ),
         } as UserLoginResponse);
+      }),
+    );
+  }
+  refreshClientToken(token: string): Observable<ClientLoginResponse> {
+    const user = this.jwtService.decode(token) as UserPayload;
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+    return this.clientService.findClientById(user.sub).pipe(
+      switchMap((clientEntity) => {
+        return of({
+          client: clientEntity,
+          access_token: this.jwtService.sign(
+            {
+              username: user.username,
+              sub: user.sub,
+            },
+            { secret: jwtConstants.secret, expiresIn: '60s' },
+          ),
+        } as ClientLoginResponse);
       }),
     );
   }

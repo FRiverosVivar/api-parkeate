@@ -14,8 +14,8 @@ async function bootstrap() {
       configService.get<FileMiddleware>('uploader.middleware'),
     ),
   );
+  app.enableShutdownHooks();
   app.useGlobalPipes(new ValidationPipe());
-
   await app.listen(3000);
   if (module.hot) {
     module.hot.accept();

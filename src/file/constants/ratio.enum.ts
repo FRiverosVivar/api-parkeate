@@ -9,5 +9,3 @@ export enum RatioEnum {
   ULTRA_WIDE = 9 / 21, // 2560 x 1080
   SUPER_WIDE = 9 / 32, // 3840 x 1080
 }
-
-

@@ -9,10 +9,15 @@ import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
 import { AuthModule } from './auth/auth.module';
 import { FileModule } from './file/file.module';
 import FileConfig, { config } from './file/middleware/file.config';
+import { EmailService } from './utils/email/email.service';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' , load: [FileConfig]}),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+      load: [FileConfig],
+    }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: './schema.gql',
@@ -35,6 +40,6 @@ import FileConfig, { config } from './file/middleware/file.config';
     FileModule.forRoot(config()),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, EmailService],
 })
 export class AppModule {}

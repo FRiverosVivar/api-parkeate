@@ -1,0 +1,7 @@
+export enum EmailTypesEnum {
+  CODE,
+  REGISTER,
+  FORGOTTEN_PASSWORD,
+  CHANGE_PASSWORD,
+  RESERVATION_CREATED,
+}

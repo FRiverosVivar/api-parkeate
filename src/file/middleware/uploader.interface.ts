@@ -1,8 +1,12 @@
 import { BucketOptions } from './bucket.interface';
 import { FileMiddleware } from './file-middleware.interface';
 import { S3ClientConfig } from '@aws-sdk/client-s3';
+import { SNSClientConfig } from '@aws-sdk/client-sns';
+import { SESClientConfig } from '@aws-sdk/client-ses';
 
 export interface UploaderOptions {
+  sesConfig: SESClientConfig;
+  snsConfig: SNSClientConfig;
   clientConfig: S3ClientConfig;
   bucketData: BucketOptions;
   middleware: FileMiddleware;

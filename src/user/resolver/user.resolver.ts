@@ -6,8 +6,8 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { UseGuards } from '@nestjs/common';
 import { FileUpload, GraphQLUpload } from 'graphql-upload-minimal';
 import { Observable } from 'rxjs';
-import { CreateUserInput } from "../model/dto/create-user.input";
-import { UserPayload } from "../../auth/model/user-payload.model";
+import { CreateUserInput } from '../model/dto/create-user.input';
+import { UserPayload } from '../../auth/model/user-payload.model';
 
 @Resolver(() => UserEntity)
 export class UserResolver {
@@ -41,5 +41,13 @@ export class UserResolver {
   @Mutation(() => UserEntity)
   removeUser(@Args('userId', { type: () => String }) userId: string) {
     return this.userService.removeUser(userId);
+  }
+  @Query(() => UserEntity, { name: 'getUserEmailCode' })
+  getUserEmailCode(@Args('userId', { type: () => String }) userId: string) {
+    return this.userService.getUserEmailCode(userId);
+  }
+  @Query(() => UserEntity, { name: 'getUserSMSCode' })
+  getUserSMSCode(@Args('userId', { type: () => String }) userId: string) {
+    return this.userService.getUserSMSCode(userId);
   }
 }

@@ -4,10 +4,9 @@ export const jwtConstants = {
   privateKey: 'kDiq90c3IL',
 };
 export enum UserTypesEnum {
-  DEFAULT,
-  EXECUTIVE,
-  STORE_MANAGER,
-  COMPANY_EXECUTIVE,
-  COMPANY_MANAGER,
-  ADMINISTRATOR,
+  ROOT,
+  ADMIN,
+  ROOT_MANAGER,
+  MANAGER,
+  USER,
 }
