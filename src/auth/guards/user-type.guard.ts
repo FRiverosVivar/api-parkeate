@@ -20,8 +20,8 @@ export class UserTypeGuard implements CanActivate {
     }
 
     const ctx = GqlExecutionContext.create(context);
-    const request = ctx.getContext();
-    const user = ctx.getArgs().loginUserInput;
-    return this.matchesUserTypes(user.userType, type);
+    const user = ctx.getArgs().user;
+    const client = ctx.getArgs().client
+    return this.matchesUserTypes(user ? user.userType: client.userType, type);
   }
 }

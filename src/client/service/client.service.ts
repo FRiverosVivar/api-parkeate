@@ -11,10 +11,11 @@ import * as uuid from 'uuid';
 import { UUIDBadFormatException } from '../../utils/exceptions/UUIDBadFormat.exception';
 import { getCodeForRegister } from '../../utils/utils';
 import { FileUpload } from 'graphql-upload-minimal';
-import { FileService } from '../../file/service/file.service';
 import { ClientWithVerificationCode } from '../model/client-with-verification-code.response';
 import { ClientWithSmsCode } from '../model/client-with-sms-code.response';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CreatePhotoInput } from "../../photo/model/create-photo.input";
+import { PhotoService } from "../../photo/service/photo.service";
 
 @Injectable()
 export class ClientService {
@@ -23,7 +24,7 @@ export class ClientService {
     private readonly clientRepository: Repository<ClientEntity>,
     private readonly emailService: EmailService,
     private readonly smsService: SmsService,
-    private readonly fileService: FileService,
+    private readonly photoService: PhotoService,
   ) {}
   createClient(clientDTO: CreateClientInput): Observable<ClientEntity> {
     const client = this.clientRepository.create(clientDTO);
@@ -149,20 +150,16 @@ export class ClientService {
   findAll(): Observable<ClientEntity[]> {
     return from(this.clientRepository.find());
   }
-  setProfilePhoto(
-    clientId: string,
-    file: FileUpload,
-  ): Observable<ClientEntity> {
+  setProfilePhoto(clientId: string, file: FileUpload, photoInput: CreatePhotoInput): Observable<ClientEntity> {
     return this.findClientById(clientId).pipe(
       switchMap((client: ClientEntity) => {
-        return this.fileService.processFile(clientId, file).pipe(
-          switchMap((url) => {
+        return this.photoService.createPhoto(photoInput, file).pipe(
+          switchMap((photo) => {
             if (client.profilePhoto)
-              this.fileService.deleteFile(client.profilePhoto);
+              this.photoService.removePhoto(client.profilePhoto);
 
-            client.profilePhoto = url;
-            this.clientRepository.save(client);
-            return of(client);
+            client.profilePhoto = photo.url;
+            return from(this.clientRepository.save(client));
           }),
         );
       }),

@@ -24,6 +24,9 @@ import { SmsService } from '../../utils/sms/sms.service';
 import { getCodeForRegister } from '../../utils/utils';
 import { UserWithVerificationCode } from '../model/dto/user-with-verification-code.response';
 import { UserWithSmsCode } from '../model/dto/user-with-sms-code.response';
+import { ExistingRutException } from "../../utils/exceptions/ExistingRut.exception";
+import { PhotoService } from "../../photo/service/photo.service";
+import { CreatePhotoInput } from "../../photo/model/create-photo.input";
 
 @Injectable()
 export class UserService {
@@ -33,6 +36,7 @@ export class UserService {
     private fileService: FileService,
     private emailService: EmailService,
     private smsService: SmsService,
+    private photoService: PhotoService
   ) {}
   createUser(userDTO: CreateUserInput): Observable<UserEntity> {
     const user = this.userRepository.create(userDTO);
@@ -44,11 +48,20 @@ export class UserService {
       ),
     );
     const saveUserSubject = from(this.userRepository.save(user));
-    return forkJoin([emailSubject, saveUserSubject]).pipe(
-      map(([value, user]) => {
-        return user;
-      }),
-    );
+    return this.getUserByRut(user.rut).pipe(
+      switchMap((user) => {
+        if(user)
+          throw new ExistingRutException()
+
+        return forkJoin([emailSubject, saveUserSubject]).pipe(
+          map(([value, user]) => {
+            return user;
+          }),
+        );
+
+      })
+    )
+
   }
   updateUser(updatedUser: UpdateUserInput): Observable<UserEntity> {
     return from(
@@ -69,14 +82,9 @@ export class UserService {
       throw new UUIDBadFormatException();
     }
     return from(
-      this.userRepository.findOne({
-        where: { id: userId },
-      }),
+      this.findUserById(userId)
     ).pipe(
       switchMap((user) => {
-        if (!user) {
-          throw new NotFoundException();
-        }
         return from(this.userRepository.remove([user])).pipe(map((u) => u[0]));
       }),
     );
@@ -153,17 +161,16 @@ export class UserService {
   findAll(): Observable<UserEntity[]> {
     return from(this.userRepository.find());
   }
-  setProfilePhoto(userId: string, file: FileUpload): Observable<UserEntity> {
+  setProfilePhoto(userId: string, file: FileUpload, photoInput: CreatePhotoInput): Observable<UserEntity> {
     return this.findUserById(userId).pipe(
       switchMap((user: UserEntity) => {
-        return this.fileService.processFile(userId, file).pipe(
-          switchMap((url) => {
+        return this.photoService.createPhoto(photoInput, file).pipe(
+          switchMap((photo) => {
             if (user.profilePhoto)
-              this.fileService.deleteFile(user.profilePhoto);
+              this.photoService.removePhoto(user.profilePhoto);
 
-            user.profilePhoto = url;
-            this.userRepository.save(user);
-            return of(user);
+            user.profilePhoto = photo.url ;
+            return from(this.userRepository.save(user));
           }),
         );
       }),

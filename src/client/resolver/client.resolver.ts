@@ -8,6 +8,7 @@ import { ClientService } from '../service/client.service';
 import { UpdateClientInput } from '../model/update-client.input';
 import { ClientWithVerificationCode } from '../model/client-with-verification-code.response';
 import { ClientWithSmsCode } from '../model/client-with-sms-code.response';
+import { CreatePhotoInput } from "../../photo/model/create-photo.input";
 
 @Resolver(() => ClientEntity)
 export class ClientResolver {
@@ -39,9 +40,10 @@ export class ClientResolver {
   @Mutation(() => ClientEntity)
   setClientProfilePhoto(
     @Args('clientId', { type: () => String }) clientId: string,
+    @Args('photoInput', { type: () => CreatePhotoInput }) photoInput: CreatePhotoInput,
     @Args('photo', { type: () => GraphQLUpload }) photo: FileUpload,
   ): Observable<ClientEntity> {
-    return this.clientService.setProfilePhoto(clientId, photo);
+    return this.clientService.setProfilePhoto(clientId, photo, photoInput);
   }
   @Mutation(() => ClientEntity)
   removeClient(
@@ -61,4 +63,5 @@ export class ClientResolver {
   ): Observable<ClientWithSmsCode> {
     return this.clientService.getUserSMSCode(clientId);
   }
+
 }

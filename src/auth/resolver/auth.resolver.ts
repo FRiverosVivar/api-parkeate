@@ -10,6 +10,7 @@ import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { GqlAuthGuard } from '../guards/gql.guard';
 import { CreateClientInput } from '../../client/model/create-client.input';
 import { LoginClientInput } from '../../client/model/login-client.input';
+import { ClientLoginResponse } from "../../client/model/client-login.response";
 
 @Resolver()
 export class AuthResolver {
@@ -49,5 +50,10 @@ export class AuthResolver {
   @Public()
   refreshToken(@Args('accessToken') accessToken: string) {
     return this.authService.refreshToken(accessToken);
+  }
+  @Mutation(() => ClientLoginResponse)
+  @Public()
+  refreshClientToken(@Args('accessToken') accessToken: string) {
+    return this.authService.refreshClientToken(accessToken);
   }
 }

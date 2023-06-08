@@ -8,6 +8,7 @@ import { FileUpload, GraphQLUpload } from 'graphql-upload-minimal';
 import { Observable } from 'rxjs';
 import { CreateUserInput } from '../model/dto/create-user.input';
 import { UserPayload } from '../../auth/model/user-payload.model';
+import { CreatePhotoInput } from "../../photo/model/create-photo.input";
 
 @Resolver(() => UserEntity)
 export class UserResolver {
@@ -34,9 +35,10 @@ export class UserResolver {
   @Mutation(() => UserEntity)
   setProfilePhoto(
     @Args('userId', { type: () => String }) userId: string,
+    @Args('photoInput', { type: () => CreatePhotoInput }) photoInput: CreatePhotoInput,
     @Args('photo', { type: () => GraphQLUpload }) photo: FileUpload,
   ): Observable<UserEntity> {
-    return this.userService.setProfilePhoto(userId, photo);
+    return this.userService.setProfilePhoto(userId, photo, photoInput);
   }
   @Mutation(() => UserEntity)
   removeUser(@Args('userId', { type: () => String }) userId: string) {

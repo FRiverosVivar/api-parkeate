@@ -1,9 +1,9 @@
 import {
-  DeleteObjectCommand,
+  DeleteObjectCommand, GetObjectCommand,
   PutObjectCommand,
   S3Client,
-  S3ClientConfig,
-} from '@aws-sdk/client-s3';
+  S3ClientConfig
+} from "@aws-sdk/client-s3";
 import {
   BadRequestException,
   Inject,
@@ -103,7 +103,7 @@ export class FileService {
     return compressBuffer;
   }
   private uploadToS3(
-    userId: string,
+    id: string,
     fileBuffer: Buffer,
     fileExt: string,
   ): Observable<string> {
@@ -114,7 +114,7 @@ export class FileService {
     const key =
       this.bucketData?.folder +
       '/' +
-      uuidV5(this.bucketData?.appUuid, userId) +
+      uuidV5(this.bucketData?.appUuid, id) +
       '/' +
       uuidV4() +
       fileExt;

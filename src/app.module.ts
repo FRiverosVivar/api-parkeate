@@ -10,6 +10,8 @@ import { AuthModule } from './auth/auth.module';
 import { FileModule } from './file/file.module';
 import FileConfig, { config } from './file/middleware/file.config';
 import { EmailService } from './utils/email/email.service';
+import { HoldingModule } from "./holding/holding.module";
+import { PhotoModule } from "./photo/photo.module";
 
 @Module({
   imports: [
@@ -36,8 +38,10 @@ import { EmailService } from './utils/email/email.service';
       autoLoadEntities: true,
       synchronize: true,
     }),
-    AuthModule,
     FileModule.forRoot(config()),
+    PhotoModule,
+    AuthModule,
+    HoldingModule,
   ],
   controllers: [AppController],
   providers: [AppService, EmailService],
