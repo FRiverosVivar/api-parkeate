@@ -1,6 +1,7 @@
-import { Field } from "@nestjs/graphql";
+import { ArgsType, Field, InputType } from "@nestjs/graphql";
 import { PhotoEntity } from "../../photo/entity/photo.entity";
-
+@InputType()
+@ArgsType()
 export abstract class BasicProfileInputAbstract {
   @Field(() => String, { description: 'photo of the user', nullable: true })
   profilePhoto: string;
