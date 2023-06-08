@@ -3,12 +3,6 @@ import { PhotoEntity } from "../../photo/entity/photo.entity";
 @InputType()
 @ArgsType()
 export abstract class BasicProfileInputAbstract {
-  @Field(() => String, { description: 'photo of the user', nullable: true })
-  profilePhoto: string;
-  @Field(() => Date, { description: 'creation date of the user' })
-  createdAt: Date;
-  @Field(() => Date, { description: 'creation date of the user' })
-  updatedAt: Date;
   @Field(() => String, { description: 'rut of the user' })
   rut: string;
   @Field(() => String, { description: 'name of the holding' })
