@@ -12,6 +12,7 @@ import FileConfig, { config } from './file/middleware/file.config';
 import { EmailService } from './utils/email/email.service';
 import { HoldingModule } from "./holding/holding.module";
 import { PhotoModule } from "./photo/photo.module";
+import { ParkingModule } from "./parking/parking.module";
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { PhotoModule } from "./photo/photo.module";
     }),
     FileModule.forRoot(config()),
     PhotoModule,
+    ParkingModule,
     AuthModule,
     HoldingModule,
   ],

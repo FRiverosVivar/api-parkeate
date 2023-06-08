@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Equal, Repository } from 'typeorm';
+import { DataSource, Equal, Repository } from "typeorm";
 import { UserEntity } from '../entity/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
@@ -40,6 +40,7 @@ export class UserService {
   ) {}
   createUser(userDTO: CreateUserInput): Observable<UserEntity> {
     const user = this.userRepository.create(userDTO);
+    user.parkingList = [];
     const emailSubject = from(
       this.emailService.sendEmail(
         EmailTypesEnum.REGISTER,
@@ -47,6 +48,7 @@ export class UserService {
         JSON.stringify({ name: user.fullname }),
       ),
     );
+
     const saveUserSubject = from(this.userRepository.save(user));
     return this.getUserByRut(user.rut).pipe(
       switchMap((user) => {

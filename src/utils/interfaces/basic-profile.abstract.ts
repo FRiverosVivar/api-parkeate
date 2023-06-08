@@ -4,9 +4,9 @@ import { PhotoEntity } from "../../photo/entity/photo.entity";
 import { BaseEntityWithIdAbstract } from "./base-entity-with-id.abstract";
 import { ProfilePhotoEntity } from "../../photo/entity/profile-photo.entity";
 
-@ObjectType()
+@ObjectType({isAbstract: true})
 export abstract class BasicProfileAbstract extends BaseEntityWithIdAbstract{
-  @Column()
+  @Column({nullable: true})
   @Field(() => String, { description: 'photo of the user', nullable: true })
   profilePhoto: string;
   @Column({ unique: true })
