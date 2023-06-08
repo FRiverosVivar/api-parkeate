@@ -1,6 +1,7 @@
 import { CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { Field } from "@nestjs/graphql";
+import { Field, ObjectType } from "@nestjs/graphql";
 
+@ObjectType()
 export abstract class BaseEntityWithIdAbstract {
   @PrimaryGeneratedColumn('uuid')
   @Field(() => String, { description: 'id of the building' })

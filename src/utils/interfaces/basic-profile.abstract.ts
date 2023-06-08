@@ -1,9 +1,10 @@
 import { Column, OneToOne } from "typeorm";
-import { Field } from "@nestjs/graphql";
+import { Field, ObjectType } from "@nestjs/graphql";
 import { PhotoEntity } from "../../photo/entity/photo.entity";
 import { BaseEntityWithIdAbstract } from "./base-entity-with-id.abstract";
 import { ProfilePhotoEntity } from "../../photo/entity/profile-photo.entity";
 
+@ObjectType()
 export abstract class BasicProfileAbstract extends BaseEntityWithIdAbstract{
   @Column()
   @Field(() => String, { description: 'photo of the user', nullable: true })
