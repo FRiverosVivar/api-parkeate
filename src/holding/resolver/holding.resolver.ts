@@ -11,6 +11,7 @@ import { UserType } from "../../auth/decorator/user-type.decorator";
 import { UserTypesEnum } from "../../user/constants/constants";
 import { UserTypeGuard } from "../../auth/guards/user-type.guard";
 import { CreatePhotoInput } from "../../photo/model/create-photo.input";
+import { CreateHoldingInput } from "../model/create-holding.input";
 
 @Resolver(() => HoldingEntity)
 export class HoldingResolver {
@@ -31,8 +32,11 @@ export class HoldingResolver {
   @Mutation(() => HoldingEntity, { name: 'updateHolding' })
   @UserType(UserTypesEnum.ADMIN)
   @UseGuards(JwtAuthGuard, UserTypeGuard)
-  updateHolding(@Args('updateHoldingInput') updateHoldingInput: UpdateHoldingInput) {
-    return this.holdingService.updateHolding(updateHoldingInput);
+  updateHolding(
+    @Args('updateHoldingInput') updateHoldingInput: UpdateHoldingInput,
+    @Args('newClientsId', {type: () => String, nullable: true}) newClientIds?: string[]
+  ) {
+    return this.holdingService.updateHolding(updateHoldingInput, newClientIds);
   }
   @Mutation(() => HoldingEntity, { name: 'setHoldingPhoto' })
   @UserType(UserTypesEnum.ADMIN)
@@ -49,5 +53,14 @@ export class HoldingResolver {
   @UseGuards(JwtAuthGuard, UserTypeGuard)
   removeHolding(@Args('holdingId', { type: () => String }) holdingId: string) {
     return this.holdingService.removeHolding(holdingId);
+  }
+  @Mutation(() => UserEntity, { name: 'createHolding' })
+  @UserType(UserTypesEnum.ADMIN)
+  @UseGuards(JwtAuthGuard, UserTypeGuard)
+  createHolding(
+    @Args('createHoldingInput') createHoldingInput: CreateHoldingInput,
+    @Args('clientsIds', {type: () => String}) clientsIds: string[]
+  ) {
+    return this.holdingService.createHolding(createHoldingInput, clientsIds);
   }
 }

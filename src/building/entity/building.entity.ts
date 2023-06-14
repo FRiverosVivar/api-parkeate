@@ -1,16 +1,10 @@
 import {
   Column,
-  CreateDateColumn,
-  Entity,
-  JoinTable,
-  OneToMany, OneToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn
+  Entity, ManyToOne, OneToMany
 } from "typeorm";
 import { Field, ObjectType } from "@nestjs/graphql";
-import { PhotoEntity } from "../../photo/entity/photo.entity";
 import { BaseEntityWithIdAbstract } from "../../utils/interfaces/base-entity-with-id.abstract";
-import { MultiplePhotosEntity } from "../../photo/entity/multiple-photos.entity";
+import { ParkingEntity } from "../../parking/entity/parking.entity";
 
 @Entity('building')
 @ObjectType()
@@ -24,8 +18,8 @@ export class BuildingEntity extends BaseEntityWithIdAbstract {
   @Column()
   @Field(() => String, { description: 'photos of the building'})
   photos: string;
-  @Column()
-  @Field(() => String, { description: 'parkings of the building'})
-  parkingList: string;
+  @OneToMany(() => ParkingEntity, (p) => p.building, {onDelete: "CASCADE"})
+  @Field(() => ParkingEntity, { description: 'parkings of the building'})
+  parkingList: ParkingEntity[];
 }
 

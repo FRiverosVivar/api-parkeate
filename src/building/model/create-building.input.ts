@@ -14,6 +14,4 @@ export class CreateBuildingInput {
   phoneNumber: string;
   @Field(() => String, { description: 'photo of the building'})
   photo: string;
-  @Field(() => String, { description: 'parkings of the buildingr'})
-  parkingList: string;
 }

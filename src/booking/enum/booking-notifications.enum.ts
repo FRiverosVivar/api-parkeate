@@ -1,0 +1,4 @@
+export enum BookingNotificationsEnum {
+  RESERVATION_IS_GOING_TO_EXPIRE,
+  RESERVATION_IS_ALREADY_EXPIRED
+}

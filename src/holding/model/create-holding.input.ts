@@ -3,7 +3,4 @@ import { BasicProfileInputAbstract } from "../../utils/interfaces/basic-profile-
 
 @InputType()
 @ArgsType()
-export class CreateHoldingInput extends BasicProfileInputAbstract {
-  @Field(() => String, { description: 'creation date of the user' })
-  parkingList: string;
-}
+export class CreateHoldingInput extends BasicProfileInputAbstract {}

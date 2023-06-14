@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from "@nestjs/common";
 import { UserService } from './service/user.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './entity/user.entity';
@@ -13,6 +13,7 @@ import { BaseCustomer } from "../utils/interfaces/base-customer.abstract";
 registerEnumType(UserTypesEnum, {
   name: 'UserTypesEnum',
 });
+@Global()
 @Module({
   imports: [TypeOrmModule.forFeature([UserEntity, BaseCustomer])],
   providers: [UserResolver, UserService, EmailService, SmsService],

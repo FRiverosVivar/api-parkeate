@@ -1,5 +1,5 @@
 import { ArgsType, Field, InputType } from "@nestjs/graphql";
-import { BaseCustomer } from "../../utils/interfaces/base-customer.abstract";
+import { Column } from "typeorm";
 
 @InputType()
 @ArgsType()
@@ -8,14 +8,24 @@ export class CreateParkingInput {
   name: string
   @Field(() => String)
   address: string
+  @Field(() => Boolean)
+  reserved: boolean
+  @Field(() => Boolean)
+  active: boolean
+  @Field(() => Boolean)
+  blocked: boolean
   @Field(() => String)
   coords: string
-  @Field(() => [String])
-  blockedUsers: string[]
   @Field(() => String)
   tax: number
   @Field(() => String)
-  ownerId: string
-  @Field(() => BaseCustomer)
-  customer: BaseCustomer
+  buildingPositionCode: string
+  @Field(() => String, {nullable: true})
+  photo: string
+  @Field(() => String)
+  pricePerMinute: number
+  @Field(() => String)
+  priceMonthly: number
+  @Field(() => String)
+  priceYearly: number
 }

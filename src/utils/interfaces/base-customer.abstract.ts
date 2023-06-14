@@ -1,9 +1,8 @@
 import {
-  Column, Entity, JoinTable, OneToMany
+  Column
 } from "typeorm";
 import { Field, ObjectType } from "@nestjs/graphql";
 import { BasicProfileAbstract } from "./basic-profile.abstract";
-import { ParkingEntity } from "../../parking/entity/parking.entity";
 
 @ObjectType()
 export abstract class BaseCustomer extends BasicProfileAbstract {

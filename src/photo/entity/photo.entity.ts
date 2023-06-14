@@ -19,4 +19,5 @@ export class PhotoEntity {
   @Column()
   @Field(() => String)
   creatorId: string;
+
 }

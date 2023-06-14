@@ -8,6 +8,7 @@ import {
 import { LOGIN_SECOND_FACTOR_SMS_MESSAGE } from './constants/sms-messages';
 import * as lodash from 'lodash';
 import { from } from 'rxjs';
+import { BookingNotificationsEnum } from "../../booking/enum/booking-notifications.enum";
 @Injectable()
 export class SmsService {
   private readonly SNSClient: SNSClient;
@@ -26,5 +27,8 @@ export class SmsService {
         }),
       ),
     );
+  }
+  publishToArrayOfDestinations(phones: string[], type: BookingNotificationsEnum) {
+
   }
 }

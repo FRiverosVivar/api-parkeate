@@ -64,6 +64,9 @@ export class EmailService implements OnModuleInit {
       }),
     );
   }
+  publishEmailsToArrayOfDestinations(destinations: string[], emailType: EmailTypesEnum) {
+
+  }
   private async verifyListOfEmailTemplates(): Promise<void> {
     const list = await this.SESClient.send(new ListTemplatesCommand({}));
     if (!list || !list.TemplatesMetadata) {

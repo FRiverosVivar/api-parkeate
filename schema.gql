@@ -2,6 +2,40 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type HoldingEntity {
+  """id of the building"""
+  id: String!
+
+  """creation date of the building"""
+  createdAt: DateTime!
+
+  """creation date of the building"""
+  updatedAt: DateTime!
+
+  """photo of the user"""
+  profilePhoto: String
+
+  """rut of the user"""
+  rut: String!
+
+  """name of the holding"""
+  fullname: String!
+
+  """email of the user"""
+  email: String!
+
+  """phone number of the user"""
+  phoneNumber: String!
+
+  """creation date of the user"""
+  clientList: [ClientEntity!]!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
 type ClientEntity {
   """id of the building"""
   id: String!
@@ -31,12 +65,106 @@ type ClientEntity {
   password: String!
   validatedAccount: Boolean!
   parkingList: [ParkingEntity!]!
+  holding: HoldingEntity!
 }
 
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
+type ScheduleEntity {
+  """id of the building"""
+  id: String!
+
+  """creation date of the building"""
+  createdAt: DateTime!
+
+  """creation date of the building"""
+  updatedAt: DateTime!
+
+  """day of the schedule"""
+  day: ScheduleDaysEnum!
+  scheduleStart: DateTime!
+  scheduleEnd: DateTime!
+  parking: ParkingEntity!
+}
+
+enum ScheduleDaysEnum {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+type BuildingEntity {
+  """id of the building"""
+  id: String!
+
+  """creation date of the building"""
+  createdAt: DateTime!
+
+  """creation date of the building"""
+  updatedAt: DateTime!
+
+  """address of the building"""
+  address: String!
+
+  """phone number of the building"""
+  phoneNumber: String!
+
+  """photos of the building"""
+  photos: String!
+
+  """parkings of the building"""
+  parkingList: ParkingEntity!
+}
+
+type TagsEntity {
+  """id of the building"""
+  id: String!
+
+  """creation date of the building"""
+  createdAt: DateTime!
+
+  """creation date of the building"""
+  updatedAt: DateTime!
+  name: String!
+  color: String!
+  icon: String!
+  parkings: [ParkingEntity!]!
+}
+
+type BookingEntity {
+  """id of the building"""
+  id: String!
+
+  """creation date of the building"""
+  createdAt: DateTime!
+
+  """creation date of the building"""
+  updatedAt: DateTime!
+  bookingType: BookingTypes!
+  bookingState: BookingStates!
+  parking: ParkingEntity!
+  user: UserEntity!
+  initialPrice: Float!
+  dateStart: DateTime!
+  dateEnd: DateTime!
+  dateExtended: DateTime!
+  timeFinalized: DateTime!
+  finalPrice: Float!
+}
+
+enum BookingTypes {
+  NORMAL_BOOKING
+  MONTHLY_BOOKING
+  YEARLY_BOOKING
+}
+
+enum BookingStates {
+  CANCELED
+  RESERVED
+  FINALIZED
+}
 
 type ParkingEntity {
   """id of the building"""
@@ -47,13 +175,44 @@ type ParkingEntity {
 
   """creation date of the building"""
   updatedAt: DateTime!
+  active: Boolean!
+  reserved: Boolean!
   name: String!
+  blocked: Boolean!
   address: String!
   coords: String!
-  blockedUsers: String!
+  buildingPositionCode: String!
+  photo: String!
+  blockedUsers: [UserEntity!]!
   tax: String!
+  pricePerMinute: String!
+  priceMonthly: String!
+  priceYearly: String!
   userOwner: ClientEntity!
   clientOwner: ClientEntity!
+  schedule: [ScheduleEntity!]!
+  building: BuildingEntity!
+  tags: [TagsEntity!]!
+  bookings: [BookingEntity!]!
+}
+
+type VehicleEntity {
+  """id of the building"""
+  id: String!
+
+  """creation date of the building"""
+  createdAt: DateTime!
+
+  """creation date of the building"""
+  updatedAt: DateTime!
+  model: String!
+
+  """patente"""
+  carPlate: String!
+
+  """color"""
+  color: String!
+  owner: UserEntity!
 }
 
 type UserEntity {
@@ -93,6 +252,11 @@ type UserEntity {
 
   """validated phone"""
   validatedPhone: Boolean!
+
+  """validated phone"""
+  restrictedParkings: [ParkingEntity!]!
+  vehicleList: [VehicleEntity!]!
+  bookings: [BookingEntity!]!
 }
 
 enum UserTypesEnum {
@@ -113,36 +277,14 @@ type ClientLoginResponse {
   access_token: String!
 }
 
-type HoldingEntity {
-  """id of the building"""
-  id: String!
-
-  """creation date of the building"""
-  createdAt: DateTime!
-
-  """creation date of the building"""
-  updatedAt: DateTime!
-
-  """photo of the user"""
-  profilePhoto: String
-
-  """rut of the user"""
-  rut: String!
-
-  """name of the holding"""
-  fullname: String!
-
-  """email of the user"""
-  email: String!
-
-  """phone number of the user"""
-  phoneNumber: String!
-
-  """creation date of the user"""
-  parkingList: String!
-}
-
 type Query {
+  findAllParkings: [ParkingEntity!]!
+  findAllReservableParkings(userId: String!): [ParkingEntity!]!
+  findOneParkingById(parkingId: String!): ParkingEntity!
+  findOneParkingByBuildingId(buildingId: String!): ParkingEntity!
+  findOneParkingByBuildingPositionCode(buildingPositionCode: String!): ParkingEntity!
+  findTagById(tagId: String!): [TagsEntity!]!
+  findTagsByParkingId(parkingId: String!): [TagsEntity!]!
   users: [UserEntity!]!
   userById(userId: String!): UserEntity!
   userByRut(rut: String!): UserEntity!
@@ -153,6 +295,8 @@ type Query {
   clientByRut(rut: String!): ClientEntity!
   getClientEmailCode(clientId: String!): ClientEntity!
   getClientSMSCode(clientId: String!): ClientEntity!
+  findVehicleByUserId(userId: String!): [VehicleEntity!]!
+  findVehicleById(vehicleId: String!): VehicleEntity!
   getAllHoldings: [HoldingEntity!]!
   getHoldingById(holdingId: String!): HoldingEntity!
 }
@@ -160,6 +304,13 @@ type Query {
 type Mutation {
   uploadFile(createFileInput: CreateFileInput!, file: Upload!): String!
   deleteFile(url: String!): Boolean!
+  updateParking(updateParkingInput: UpdateParkingInput!, buildingId: String, tagsIds: [String!]): ParkingEntity!
+  removeParking(parkingId: String!): ParkingEntity!
+  createParking(createParkingInput: CreateParkingInput!, buildingId: String!, tagsIds: [String!]!, userId: String, clientId: String): ParkingEntity!
+  setParkingPhoto(parkingId: String!, createPhotoInput: CreatePhotoInput!, file: Upload!): ParkingEntity!
+  createTag(createTagInput: CreateTagInput!): TagsEntity!
+  updateTag(updateTagInput: UpdateTagInput!): TagsEntity!
+  removeTag(tagId: String!): TagsEntity!
   createUser(createUserInput: CreateUserInput!): UserEntity!
   createClient(createClientInput: CreateClientInput!): UserEntity!
   clientLogin(loginClientInput: LoginClientInput!): UserLoginResponse!
@@ -172,9 +323,13 @@ type Mutation {
   updateClient(updateClientInput: UpdateClientInput!): ClientEntity!
   setClientProfilePhoto(clientId: String!, photoInput: CreatePhotoInput!, photo: Upload!): ClientEntity!
   removeClient(clientId: String!): ClientEntity!
-  updateHolding(updateHoldingInput: UpdateHoldingInput!): HoldingEntity!
+  createVehicle(createVehicleInput: CreateVehicleInput!, ownerId: String!): VehicleEntity!
+  updateVehicle(updateVehicleInput: UpdateVehicleInput!): VehicleEntity!
+  removeVehicle(vehicleId: String!): VehicleEntity!
+  updateHolding(updateHoldingInput: UpdateHoldingInput!, newClientsId: String): HoldingEntity!
   setHoldingPhoto(holdingId: String!, photoInput: CreatePhotoInput!, photo: Upload!): HoldingEntity!
   removeHolding(holdingId: String!): UserEntity!
+  createHolding(createHoldingInput: CreateHoldingInput!, clientsIds: String!): UserEntity!
 }
 
 input CreateFileInput {
@@ -195,6 +350,57 @@ enum RatioEnum {
 
 """The `Upload` scalar type represents a file upload."""
 scalar Upload
+
+input UpdateParkingInput {
+  name: String
+  address: String
+  reserved: Boolean
+  active: Boolean
+  blocked: Boolean
+  coords: String
+  tax: String
+  buildingPositionCode: String
+  photo: String
+  pricePerMinute: String
+  priceMonthly: String
+  priceYearly: String
+  id: String!
+}
+
+input CreateParkingInput {
+  name: String!
+  address: String!
+  reserved: Boolean!
+  active: Boolean!
+  blocked: Boolean!
+  coords: String!
+  tax: String!
+  buildingPositionCode: String!
+  photo: String
+  pricePerMinute: String!
+  priceMonthly: String!
+  priceYearly: String!
+}
+
+input CreatePhotoInput {
+  id: String!
+  url: String
+  name: String
+  creatorId: String
+}
+
+input CreateTagInput {
+  name: String!
+  color: String!
+  icon: String!
+}
+
+input UpdateTagInput {
+  name: String
+  color: String
+  icon: String
+  id: String!
+}
 
 input CreateUserInput {
   """rut of the user"""
@@ -269,13 +475,6 @@ input UpdateUserInput {
   id: String!
 }
 
-input CreatePhotoInput {
-  id: String!
-  url: String
-  name: String
-  creatorId: String
-}
-
 input UpdateClientInput {
   id: String!
 
@@ -305,6 +504,27 @@ input UpdateClientInput {
   validatedAccount: Boolean
 }
 
+input CreateVehicleInput {
+  model: String!
+
+  """patente"""
+  carPlate: String!
+
+  """color"""
+  color: String!
+}
+
+input UpdateVehicleInput {
+  model: String
+
+  """patente"""
+  carPlate: String
+
+  """color"""
+  color: String
+  id: String!
+}
+
 input UpdateHoldingInput {
   """rut of the user"""
   rut: String
@@ -317,8 +537,19 @@ input UpdateHoldingInput {
 
   """phone number of the user"""
   phoneNumber: String
-
-  """creation date of the user"""
-  parkingList: String
   id: String!
+}
+
+input CreateHoldingInput {
+  """rut of the user"""
+  rut: String!
+
+  """name of the holding"""
+  fullname: String!
+
+  """email of the user"""
+  email: String!
+
+  """phone number of the user"""
+  phoneNumber: String!
 }

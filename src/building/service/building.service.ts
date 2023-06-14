@@ -18,6 +18,7 @@ export class BuildingService {
   }
   createBuilding(createBuildingInput: CreateBuildingInput): Observable<BuildingEntity> {
     const newBuilding = this.buildingRepository.create(createBuildingInput);
+    newBuilding.parkingList = []
     return this.getBuildingByAddress(newBuilding.address)
       .pipe(switchMap((building) => {
         if(building)
@@ -53,7 +54,7 @@ export class BuildingService {
       }),
     );
   }
-  getBuildingById(buildingId: string): Observable<BuildingEntity | null> {
+  private getBuildingById(buildingId: string): Observable<BuildingEntity | null> {
     return from(
       this.buildingRepository.findOne({
         where: {
@@ -62,7 +63,7 @@ export class BuildingService {
       }),
     );
   }
-  getBuildingByAddress(address: string): Observable<BuildingEntity | null> {
+  private getBuildingByAddress(address: string): Observable<BuildingEntity | null> {
     return from(
       this.buildingRepository.findOne({
         where: {

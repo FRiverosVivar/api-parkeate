@@ -1,7 +1,6 @@
 import { InputType, Int, Field, ArgsType } from '@nestjs/graphql';
 import { UserTypesEnum } from '../../constants/constants';
 import { BasicCustomerInputAbstract } from "../../../utils/interfaces/basic-customer-input.abstract";
-import { CreateParkingInput } from "../../../parking/model/create-parking.input";
 
 @InputType()
 @ArgsType()

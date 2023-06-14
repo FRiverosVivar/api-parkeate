@@ -13,6 +13,12 @@ import { EmailService } from './utils/email/email.service';
 import { HoldingModule } from "./holding/holding.module";
 import { PhotoModule } from "./photo/photo.module";
 import { ParkingModule } from "./parking/parking.module";
+import { ScheduleModule } from "./schedule/schedule.module";
+import { BuildingEntity } from "./building/entity/building.entity";
+import { BuildingModule } from "./building/building.module";
+import { VehicleModule } from "./vehicle/vehicle.module";
+import { TagsModule } from "./tags/tags.module";
+import { BookingModule } from "./booking/booking.module";
 
 @Module({
   imports: [
@@ -42,8 +48,13 @@ import { ParkingModule } from "./parking/parking.module";
     FileModule.forRoot(config()),
     PhotoModule,
     ParkingModule,
+    ScheduleModule,
+    BuildingModule,
+    TagsModule,
     AuthModule,
+    VehicleModule,
     HoldingModule,
+    BookingModule,
   ],
   controllers: [AppController],
   providers: [AppService, EmailService],

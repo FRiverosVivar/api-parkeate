@@ -1,12 +1,13 @@
-import { Module } from "@nestjs/common";
+import { Global, Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { PhotoEntity } from "../photo/entity/photo.entity";
-import { PhotoService } from "../photo/service/photo.service";
 import { ParkingEntity } from "./entity/parking.entity";
+import { ParkingResolver } from "./resolver/parking.resolver";
+import { ParkingService } from "./service/parking.service";
 
+@Global()
 @Module({
   imports: [TypeOrmModule.forFeature([ParkingEntity])],
-  providers: [],
-  exports: [],
+  providers: [ParkingResolver, ParkingService],
+  exports: [ParkingResolver,ParkingService],
 })
 export class ParkingModule {}

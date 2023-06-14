@@ -14,22 +14,30 @@ import { ExistingRutException } from "../../utils/exceptions/ExistingRut.excepti
 import { CreatePhotoInput } from "../../photo/model/create-photo.input";
 import { UserEntity } from "../../user/entity/user.entity";
 import { PhotoService } from "../../photo/service/photo.service";
+import { ClientService } from "../../client/service/client.service";
 
 @Injectable()
 export class HoldingService {
   constructor(
     @InjectRepository(HoldingEntity)
     private readonly holdingRepository: Repository<HoldingEntity>,
+    private readonly clientService: ClientService,
     private photoService: PhotoService,
   ) {}
-  createHolding(createHoldingInput: CreateHoldingInput): Observable<HoldingEntity> {
+  createHolding(createHoldingInput: CreateHoldingInput, clientsIds: string[]): Observable<HoldingEntity> {
+    const clients = this.clientService.findClientsByIds(clientsIds)
     const newHolding = this.holdingRepository.create(createHoldingInput);
     return this.getHoldingByRut(newHolding.rut).pipe(
       switchMap((holding) => {
         if(holding)
           throw new ExistingRutException()
 
-        return from(this.holdingRepository.save(newHolding));
+        return clients.pipe(
+          switchMap((c) => {
+            newHolding.clientList = c;
+            return from(this.holdingRepository.save(newHolding))
+          })
+        );
       })
     )
   }
@@ -45,7 +53,7 @@ export class HoldingService {
       }),
     );
   }
-  updateHolding(updateHoldingInput: UpdateHoldingInput): Observable<HoldingEntity> {
+  updateHolding(updateHoldingInput: UpdateHoldingInput, newClientIds?: string[]): Observable<HoldingEntity> {
     if (!uuid.validate(updateHoldingInput.id)) {
       throw new UUIDBadFormatException();
     }
@@ -58,6 +66,9 @@ export class HoldingService {
         if (!holding) {
           throw new NotFoundException();
         }
+        if(newClientIds)
+          return this.clientService.findClientsByIds(newClientIds).pipe(switchMap((c) => from(this.holdingRepository.save(holding))))
+
         return from(this.holdingRepository.save(holding));
       }),
     );

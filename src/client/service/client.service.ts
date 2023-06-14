@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Equal, Repository } from 'typeorm';
+import { Equal, In, Repository } from "typeorm";
 import { ClientEntity } from '../entity/client.entity';
 import { forkJoin, from, map, Observable, of, switchMap, tap } from 'rxjs';
 import { EmailTypesEnum } from '../../utils/email/enum/email-types.enum';
@@ -28,6 +28,7 @@ export class ClientService {
   ) {}
   createClient(clientDTO: CreateClientInput): Observable<ClientEntity> {
     const client = this.clientRepository.create(clientDTO);
+    client.parkingList = []
     const emailSubject = from(
       this.emailService.sendEmail(
         EmailTypesEnum.REGISTER,
@@ -72,6 +73,15 @@ export class ClientService {
         return from(this.clientRepository.remove([client])).pipe(
           map((u) => u[0]),
         );
+      }),
+    );
+  }
+  findClientsByIds(ids: string[]): Observable<ClientEntity[]> {
+    return from(
+      this.clientRepository.find({
+        where: {
+          id: In(ids),
+        },
       }),
     );
   }

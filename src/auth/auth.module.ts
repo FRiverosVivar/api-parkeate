@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from "@nestjs/common";
 import { AuthService } from './service/auth.service';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule, JwtSecretRequestType, JwtService } from '@nestjs/jwt';
@@ -12,6 +12,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { UserTypeGuard } from './guards/user-type.guard';
 import { ClientModule } from '../client/client.module';
 
+@Global()
 @Module({
   imports: [
     PassportModule,
