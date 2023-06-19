@@ -3,20 +3,21 @@ import { Field, ObjectType } from '@nestjs/graphql';
 import { BaseCustomer } from '../../utils/interfaces/base-customer.abstract';
 import { ParkingEntity } from "../../parking/entity/parking.entity";
 import { HoldingEntity } from "../../holding/entity/holding.entity";
+import { BuildingEntity } from "../../building/entity/building.entity";
 
 @Entity('client')
 @ObjectType()
 export class ClientEntity extends BaseCustomer {
-  @Column()
-  @Field(() => Boolean)
-  validatedAccount: boolean;
   @OneToMany(() => ParkingEntity, (p) => p.clientOwner)
   @Field(() => [ParkingEntity])
   parkingList: ParkingEntity[];
-  @ManyToOne(() => HoldingEntity, (h) => h.clientList)
+  @OneToMany(() => BuildingEntity, (b) => b.clientOwner)
+  @Field(() => [BuildingEntity])
+  buildings: BuildingEntity[];
+  @ManyToOne(() => HoldingEntity, (h) => h.clientList, {nullable: true})
   @JoinColumn([
     { name: "holdingId", referencedColumnName: "id" }]
   )
-  @Field(() => HoldingEntity)
+  @Field(() => HoldingEntity, {nullable: true})
   holding: HoldingEntity
 }

@@ -12,16 +12,16 @@ import { BookingEntity } from "../../booking/entity/booking.entity";
 @ObjectType()
 export class ParkingEntity extends BaseEntityWithIdAbstract{
   @Column({default: false})
-  @Field(() => Boolean, {defaultValue: false})
+  @Field(() => Boolean)
   active: boolean
   @Column({default: false})
-  @Field(() => Boolean, {defaultValue: false})
+  @Field(() => Boolean)
   reserved: boolean
   @Column()
   @Field(() => String)
   name: string
   @Column()
-  @Field(() => Boolean, { defaultValue: false })
+  @Field(() => Boolean)
   blocked: boolean
   @Column()
   @Field(() => String)

@@ -18,11 +18,11 @@ export class SmsService {
     );
     this.SNSClient = new SNSClient(SNSClientConfig);
   }
-  publishSMSToPhoneNumber(phone: string) {
+  publishSMSToPhoneNumber(phone: string, code: number) {
     return from(
       this.SNSClient.send(
         new PublishCommand({
-          Message: LOGIN_SECOND_FACTOR_SMS_MESSAGE + lodash.random(1000, 9999),
+          Message: LOGIN_SECOND_FACTOR_SMS_MESSAGE + code,
           PhoneNumber: phone,
         }),
       ),

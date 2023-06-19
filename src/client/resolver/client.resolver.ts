@@ -24,11 +24,11 @@ export class ClientResolver {
   findAll(@Context() context: any): Observable<ClientEntity[]> {
     return this.clientService.findAll();
   }
-  @Query(() => ClientEntity, { name: 'clientByRut' })
+  @Query(() => ClientEntity, { name: 'clientByRut', nullable: true })
   findClientOneByRut(
     @Args('rut', { type: () => String }) rut: string,
-  ): Observable<ClientEntity> {
-    return this.clientService.findClientByRut(rut);
+  ): Observable<ClientEntity | null> {
+    return this.clientService.getClientByRut(rut);
   }
   @Mutation(() => ClientEntity, { name: 'updateClient' })
   updateClient(
@@ -51,13 +51,13 @@ export class ClientResolver {
   ): Observable<ClientEntity> {
     return this.clientService.removeClient(clientId);
   }
-  @Query(() => ClientEntity, { name: 'getClientEmailCode' })
+  @Query(() => ClientWithVerificationCode, { name: 'getClientEmailCode' })
   getClientEmailCode(
     @Args('clientId', { type: () => String }) clientId: string,
   ): Observable<ClientWithVerificationCode> {
     return this.clientService.getUserEmailCode(clientId);
   }
-  @Query(() => ClientEntity, { name: 'getClientSMSCode' })
+  @Query(() => ClientWithSmsCode, { name: 'getClientSMSCode' })
   getClientSMSCode(
     @Args('clientId', { type: () => String }) clientId: string,
   ): Observable<ClientWithSmsCode> {

@@ -18,12 +18,6 @@ export class UserEntity extends BaseCustomer {
   @OneToMany(() => ParkingEntity, (p) => p.userOwner, {onUpdate: "CASCADE"})
   @Field(() => [ParkingEntity])
   parkingList: ParkingEntity[];
-  @Column()
-  @Field(() => Boolean, { description: 'validated email' })
-  validatedEmail: boolean;
-  @Column()
-  @Field(() => Boolean, { description: 'validated phone' })
-  validatedPhone: boolean;
   @ManyToMany(() => ParkingEntity, (p) => p.blockedUsers)
   @Field(() => [ParkingEntity], { description: 'validated phone' })
   restrictedParkings: ParkingEntity[];

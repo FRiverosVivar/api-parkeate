@@ -4,12 +4,12 @@ import { Field, ObjectType } from "@nestjs/graphql";
 @ObjectType({isAbstract: true})
 export abstract class BaseEntityWithIdAbstract {
   @PrimaryGeneratedColumn('uuid')
-  @Field(() => String, { description: 'id of the building' })
+  @Field(() => String, { description: 'id of the entity' })
   id: string;
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  @Field(() => Date, { description: 'creation date of the building' })
+  @Field(() => Date, { description: 'creation date of the entity' })
   createdAt: Date;
   @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  @Field(() => Date, { description: 'creation date of the building' })
+  @Field(() => Date, { description: 'update date of the entity' })
   updatedAt: Date;
 }

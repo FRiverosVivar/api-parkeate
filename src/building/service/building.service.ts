@@ -2,28 +2,32 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { BuildingEntity } from "../entity/building.entity";
-import { from, map, Observable, switchMap } from "rxjs";
+import { forkJoin, from, map, Observable, switchMap } from "rxjs";
 import { CreateBuildingInput } from "../model/create-building.input";
 import { UpdateBuildingInput } from "../model/update-building.input";
 import { ExistingIdException } from "../../utils/exceptions/existing-id.exception";
 import * as uuid from "uuid";
 import { UUIDBadFormatException } from "../../utils/exceptions/UUIDBadFormat.exception";
+import { ClientService } from "../../client/service/client.service";
 
 @Injectable()
 export class BuildingService {
   constructor(
     @InjectRepository(BuildingEntity)
     private readonly buildingRepository: Repository<BuildingEntity>,
+    private readonly clientService: ClientService,
   ) {
   }
-  createBuilding(createBuildingInput: CreateBuildingInput): Observable<BuildingEntity> {
+  createBuilding(createBuildingInput: CreateBuildingInput, ownerId: string): Observable<BuildingEntity> {
+    const client = this.clientService.findClientById(ownerId);
     const newBuilding = this.buildingRepository.create(createBuildingInput);
     newBuilding.parkingList = []
-    return this.getBuildingByAddress(newBuilding.address)
-      .pipe(switchMap((building) => {
+    const subject = forkJoin([client,this.getBuildingByAddress(newBuilding.address)])
+    return subject
+      .pipe(switchMap(([client, building]) => {
         if(building)
           throw new ExistingIdException()
-
+        newBuilding.clientOwner = client;
         return from(this.buildingRepository.save(newBuilding));
       }))
   }

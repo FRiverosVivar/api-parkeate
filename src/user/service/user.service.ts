@@ -113,7 +113,7 @@ export class UserService {
     const code = getCodeForRegister();
     return this.findUserById(id).pipe(
       tap((u) => {
-        this.smsService.publishSMSToPhoneNumber(u.phoneNumber);
+        this.smsService.publishSMSToPhoneNumber(u.phoneNumber, code);
       }),
       switchMap((u) => {
         const response = { user: u, smsCode: code } as UserWithSmsCode;

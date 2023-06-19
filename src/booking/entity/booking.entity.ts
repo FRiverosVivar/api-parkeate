@@ -13,7 +13,7 @@ export class BookingEntity extends BaseEntityWithIdAbstract {
   @Field(() => BookingTypesEnum)
   bookingType: BookingTypesEnum
   @Column()
-  @Field(() => BookingStatesEnum, {defaultValue: BookingStatesEnum.RESERVED})
+  @Field(() => BookingStatesEnum)
   bookingState: BookingStatesEnum
   @ManyToOne(() => ParkingEntity, (p) => p.bookings, {eager: true}  )
   @JoinColumn({name: 'parkingId', referencedColumnName: 'id'})

@@ -7,7 +7,7 @@ import { BookingStatesEnum } from "../enum/booking-states.enum";
 export class CreateBookingInput {
   @Field(() => BookingTypesEnum)
   bookingType: BookingTypesEnum
-  @Field(() => BookingStatesEnum, {defaultValue: BookingStatesEnum.RESERVED})
+  @Field(() => BookingStatesEnum)
   bookingState: BookingStatesEnum
   @Field(() => Number)
   initialPrice: number

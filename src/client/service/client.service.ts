@@ -29,6 +29,7 @@ export class ClientService {
   createClient(clientDTO: CreateClientInput): Observable<ClientEntity> {
     const client = this.clientRepository.create(clientDTO);
     client.parkingList = []
+    client.buildings = []
     const emailSubject = from(
       this.emailService.sendEmail(
         EmailTypesEnum.REGISTER,
@@ -110,7 +111,7 @@ export class ClientService {
     const code = getCodeForRegister();
     return this.findClientById(id).pipe(
       tap((u) => {
-        this.smsService.publishSMSToPhoneNumber(u.phoneNumber);
+        this.smsService.publishSMSToPhoneNumber(u.phoneNumber, code);
       }),
       switchMap((u) => {
         const response = { client: u, smsCode: code } as ClientWithSmsCode;

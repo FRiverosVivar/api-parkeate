@@ -11,6 +11,8 @@ import { GqlAuthGuard } from '../guards/gql.guard';
 import { CreateClientInput } from '../../client/model/create-client.input';
 import { LoginClientInput } from '../../client/model/login-client.input';
 import { ClientLoginResponse } from "../../client/model/client-login.response";
+import { Observable } from "rxjs";
+import { ClientEntity } from "../../client/entity/client.entity";
 
 @Resolver()
 export class AuthResolver {
@@ -27,11 +29,11 @@ export class AuthResolver {
   @UseGuards(JwtAuthGuard)
   createClient(
     @Args('createClientInput') createClientInput: CreateClientInput,
-  ) {
+  ): Observable<ClientEntity> {
     return this.authService.createClient(createClientInput);
   }
   @UseGuards(GqlAuthGuard)
-  @Mutation(() => UserLoginResponse, { name: 'clientLogin' })
+  @Mutation(() => ClientLoginResponse, { name: 'clientLogin' })
   clientLogin(
     @Args('loginClientInput') loginInput: LoginClientInput,
     @Context() context: any,

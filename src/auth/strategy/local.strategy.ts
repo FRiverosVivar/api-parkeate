@@ -17,11 +17,11 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     return this.authService
       .validateCredentials(username, password)
       .pipe(
-        map((user) => {
-          if (!user) {
+        map((userOrClient) => {
+          if (!userOrClient) {
             throw new UnauthorizedException();
           }
-          return user;
+          return userOrClient;
         }),
       )
       .toPromise();

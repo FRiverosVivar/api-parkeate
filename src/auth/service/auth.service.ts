@@ -1,6 +1,6 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { CryptService } from '../../utils/crypt/crypt.service';
-import { map, Observable, switchMap, of } from 'rxjs';
+import { map, Observable, switchMap, of, forkJoin } from "rxjs";
 import { UserEntity } from '../../user/entity/user.entity';
 import { UserService } from '../../user/service/user.service';
 import { JwtService } from '@nestjs/jwt';
@@ -43,6 +43,7 @@ export class AuthService {
         if (existingUser) {
           throw new ExistingRutException();
         }
+
         const password = createClientInput.password;
         return this.bcryptService.hash(password).pipe(
           switchMap((hashedPassword) => {
@@ -56,14 +57,29 @@ export class AuthService {
   validateCredentials(
     username: string,
     password: string,
-  ): Observable<UserEntity | undefined> {
-    return this.userService.findUserByRut(username).pipe(
-      switchMap((user) => {
-        return this.bcryptService.compare(password, user.password).pipe(
-          map((areSamePassword) => {
-            return areSamePassword ? user : undefined;
-          }),
-        );
+  ): Observable<UserEntity | ClientEntity | undefined> {
+    const login = forkJoin(
+      [
+        this.userService.getUserByRut(username),
+        this.clientService.getClientByRut(username)
+      ]
+    )
+    return login.pipe(
+      switchMap(([user, client]) => {
+        if(user)
+          return this.bcryptService.compare(password, user.password).pipe(
+            map((areSamePassword) => {
+              return areSamePassword ? user : undefined;
+            }),
+          );
+        else if(client)
+          return this.bcryptService.compare(password, client.password).pipe(
+            map((areSamePassword) => {
+              return areSamePassword ? client : undefined;
+            }),
+          );
+
+        return of(undefined)
       }),
     );
   }
