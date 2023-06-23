@@ -7,6 +7,7 @@ import { UseGuards } from '@nestjs/common';
 import { FileUpload, GraphQLUpload } from 'graphql-upload-minimal';
 import { Observable } from 'rxjs';
 import { CreatePhotoInput } from "../../photo/model/create-photo.input";
+import { ClientEntity } from "../../client/entity/client.entity";
 
 @Resolver(() => UserEntity)
 export class UserResolver {
@@ -22,9 +23,9 @@ export class UserResolver {
   findOne(@Args('userId', { type: () => String }) userId: string) {
     return this.userService.findUserById(userId);
   }
-  @Query(() => UserEntity, { name: 'userByRut' })
-  findOneByRut(@Args('rut', { type: () => String }) rut: string) {
-    return this.userService.findUserByRut(rut);
+  @Query(() => UserEntity, { name: 'userByRut', nullable: true })
+  findOneByRut(@Args('rut', { type: () => String }) rut: string): Observable< UserEntity | null> {
+    return this.userService.getUserByRut(rut);
   }
   @Mutation(() => UserEntity)
   updateUser(@Args('updateUserInput') updateUserInput: UpdateUserInput) {

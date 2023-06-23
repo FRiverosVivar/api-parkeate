@@ -13,6 +13,7 @@ import { CreateClientInput } from '../../client/model/create-client.input';
 import { ClientService } from '../../client/service/client.service';
 import { ClientEntity } from '../../client/entity/client.entity';
 import { ClientLoginResponse } from '../../client/model/client-login.response';
+import { NotValidatedAccountException } from "../../utils/exceptions/not-validated-account.exception";
 @Injectable()
 export class AuthService {
   constructor(
@@ -96,6 +97,9 @@ export class AuthService {
     } as UserLoginResponse;
   }
   clientLogin(user: ClientEntity) {
+    if(!user.validatedAccount)
+      throw new NotValidatedAccountException()
+
     return {
       client: user,
       access_token: this.jwtService.sign(
