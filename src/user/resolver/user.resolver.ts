@@ -7,7 +7,8 @@ import { UseGuards } from '@nestjs/common';
 import { FileUpload, GraphQLUpload } from 'graphql-upload-minimal';
 import { Observable } from 'rxjs';
 import { CreatePhotoInput } from "../../photo/model/create-photo.input";
-import { ClientEntity } from "../../client/entity/client.entity";
+import { UserWithVerificationCode } from "../model/dto/user-with-verification-code.response";
+import { UserWithSmsCode } from "../model/dto/user-with-sms-code.response";
 
 @Resolver(() => UserEntity)
 export class UserResolver {
@@ -43,12 +44,12 @@ export class UserResolver {
   removeUser(@Args('userId', { type: () => String }) userId: string) {
     return this.userService.removeUser(userId);
   }
-  @Query(() => UserEntity, { name: 'getUserEmailCode' })
-  getUserEmailCode(@Args('userId', { type: () => String }) userId: string) {
+  @Query(() => UserWithVerificationCode, { name: 'getUserEmailCode' })
+  getUserEmailCode(@Args('userId', { type: () => String }) userId: string): Observable<UserWithVerificationCode> {
     return this.userService.getUserEmailCode(userId);
   }
-  @Query(() => UserEntity, { name: 'getUserSMSCode' })
-  getUserSMSCode(@Args('userId', { type: () => String }) userId: string) {
+  @Query(() => UserWithSmsCode, { name: 'getUserSMSCode' })
+  getUserSMSCode(@Args('userId', { type: () => String }) userId: string): Observable<UserWithSmsCode> {
     return this.userService.getUserSMSCode(userId);
   }
 }

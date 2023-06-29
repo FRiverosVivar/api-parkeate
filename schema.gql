@@ -53,7 +53,7 @@ type BuildingEntity {
   phoneNumber: String!
 
   """photos of the building"""
-  photos: String!
+  photo: String!
   clientOwner: ClientEntity!
 
   """parkings of the building"""
@@ -188,7 +188,7 @@ type ParkingEntity {
   name: String!
   blocked: Boolean!
   address: String!
-  coords: String!
+  location: Geometry!
   buildingPositionCode: String!
   photo: String!
   blockedUsers: [UserEntity!]!
@@ -196,13 +196,16 @@ type ParkingEntity {
   pricePerMinute: String!
   priceMonthly: String!
   priceYearly: String!
-  userOwner: ClientEntity!
-  clientOwner: ClientEntity!
+  userOwner: UserEntity
+  clientOwner: ClientEntity
   schedule: [ScheduleEntity!]!
   building: BuildingEntity!
   tags: [TagsEntity!]!
   bookings: [BookingEntity!]!
 }
+
+"""Geometry scalar type"""
+scalar Geometry
 
 type VehicleEntity {
   """id of the entity"""
@@ -286,6 +289,16 @@ type ClientLoginResponse {
   access_token: String!
 }
 
+type UserWithVerificationCode {
+  user: UserEntity!
+  code: Float!
+}
+
+type UserWithSmsCode {
+  user: UserEntity!
+  smsCode: Float!
+}
+
 type ClientWithVerificationCode {
   client: ClientEntity!
   code: Float!
@@ -298,19 +311,20 @@ type ClientWithSmsCode {
 
 type Query {
   findAllParkings: [ParkingEntity!]!
-  findAllReservableParkings(userId: String!): [ParkingEntity!]!
+  findAllReservableParkings: [ParkingEntity!]!
   findOneParkingById(parkingId: String!): ParkingEntity!
   findOneParkingByBuildingId(buildingId: String!): ParkingEntity!
   findOneParkingByBuildingPositionCode(buildingPositionCode: String!): ParkingEntity!
+  getAllNearbyAndReservableParkings(distance: Float!, point: PointInput!): [ParkingEntity!]!
   findBuildingById(buildingId: String!): BuildingEntity!
   findBuildingByAddress(buildingId: String!): BuildingEntity!
   findTagById(tagId: String!): [TagsEntity!]!
   findTagsByParkingId(parkingId: String!): [TagsEntity!]!
   users: [UserEntity!]!
   userById(userId: String!): UserEntity!
-  userByRut(rut: String!): UserEntity!
-  getUserEmailCode(userId: String!): UserEntity!
-  getUserSMSCode(userId: String!): UserEntity!
+  userByRut(rut: String!): UserEntity
+  getUserEmailCode(userId: String!): UserWithVerificationCode!
+  getUserSMSCode(userId: String!): UserWithSmsCode!
   clientById(clientId: String!): ClientEntity!
   clients: [ClientEntity!]!
   clientByRut(rut: String!): ClientEntity
@@ -322,12 +336,17 @@ type Query {
   getHoldingById(holdingId: String!): HoldingEntity!
 }
 
+input PointInput {
+  type: String!
+  coordinates: [Float!]!
+}
+
 type Mutation {
   uploadFile(createFileInput: CreateFileInput!, file: Upload!): String!
   deleteFile(url: String!): Boolean!
   updateParking(updateParkingInput: UpdateParkingInput!, buildingId: String, tagsIds: [String!]): ParkingEntity!
   removeParking(parkingId: String!): ParkingEntity!
-  createParking(createParkingInput: CreateParkingInput!, buildingId: String!, tagsIds: [String!]!, userId: String, clientId: String): ParkingEntity!
+  createParking(createParkingInput: CreateParkingInput!, buildingId: String!, tagsIds: [String!], userId: String, clientId: String): ParkingEntity!
   setParkingPhoto(parkingId: String!, createPhotoInput: CreatePhotoInput!, file: Upload!): ParkingEntity!
   createBuilding(createBuildingEntity: CreateBuildingInput!, ownerId: String!): BuildingEntity!
   updateBuilding(updateBuildingInput: UpdateBuildingInput!): BuildingEntity!
@@ -380,7 +399,7 @@ input UpdateParkingInput {
   reserved: Boolean
   active: Boolean
   blocked: Boolean
-  coords: String
+  location: PointInput
   tax: String
   buildingPositionCode: String
   photo: String
@@ -396,7 +415,7 @@ input CreateParkingInput {
   reserved: Boolean!
   active: Boolean!
   blocked: Boolean!
-  coords: String!
+  location: PointInput!
   tax: String!
   buildingPositionCode: String!
   photo: String
@@ -413,12 +432,6 @@ input CreatePhotoInput {
 }
 
 input CreateBuildingInput {
-  """creation date of the building"""
-  createdAt: DateTime!
-
-  """creation date of the building"""
-  updatedAt: DateTime!
-
   """address of the building"""
   address: String!
 
@@ -430,12 +443,6 @@ input CreateBuildingInput {
 }
 
 input UpdateBuildingInput {
-  """creation date of the building"""
-  createdAt: DateTime
-
-  """creation date of the building"""
-  updatedAt: DateTime
-
   """address of the building"""
   address: String
 

@@ -18,14 +18,14 @@ export class BuildingEntity extends BaseEntityWithIdAbstract {
   phoneNumber: string;
   @Column()
   @Field(() => String, { description: 'photos of the building'})
-  photos: string;
+  photo: string;
   @ManyToOne(() => ClientEntity, (c) => c.buildings, {})
   @JoinColumn([
     { name: "clientId", referencedColumnName: "id" }]
   )
   @Field(() => ClientEntity)
   clientOwner: ClientEntity;
-  @OneToMany(() => ParkingEntity, (p) => p.building, {onDelete: "CASCADE"})
+  @OneToMany(() => ParkingEntity, (p) => p.building, {nullable: true})
   @Field(() => ParkingEntity, { description: 'parkings of the building'})
   parkingList: ParkingEntity[];
 }

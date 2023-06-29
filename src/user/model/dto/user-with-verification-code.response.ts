@@ -1,6 +1,10 @@
 import { UserEntity } from '../../entity/user.entity';
+import { Field, ObjectType } from "@nestjs/graphql";
 
-export interface UserWithVerificationCode {
+@ObjectType()
+export class UserWithVerificationCode {
+  @Field(() => UserEntity)
   user: UserEntity;
+  @Field(() => Number)
   code: number;
 }

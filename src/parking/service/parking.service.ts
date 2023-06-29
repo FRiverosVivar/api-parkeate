@@ -1,8 +1,8 @@
 import { InjectRepository } from "@nestjs/typeorm";
 import { ParkingEntity } from "../entity/parking.entity";
-import { Not, Repository } from "typeorm";
+import { And, Equal, IsNull, Not, Repository } from "typeorm";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { combineLatest, forkJoin, from, map, Observable, switchMap, tap } from "rxjs";
+import { combineLatest, forkJoin, from, isEmpty, map, Observable, of, switchMap, tap } from "rxjs";
 import { CreateParkingInput } from "../model/create-parking.input";
 import * as uuid from "uuid";
 import { UUIDBadFormatException } from "../../utils/exceptions/UUIDBadFormat.exception";
@@ -16,6 +16,8 @@ import { ClientEntity } from "../../client/entity/client.entity";
 import { PhotoService } from "../../photo/service/photo.service";
 import { CreatePhotoInput } from "../../photo/model/create-photo.input";
 import { FileUpload } from "graphql-upload-minimal";
+import { UserEntity } from "../../user/entity/user.entity";
+import { PointInput } from "../model/point.input";
 
 @Injectable()
 export class ParkingService {
@@ -29,27 +31,28 @@ export class ParkingService {
     private readonly photoService: PhotoService
   ) {
   }
-  createParking(createParkingInput: CreateParkingInput, buildingId: string, tagsIds: string[], clientId?: string, userId?: string): Observable<ParkingEntity> {
+  createParking(createParkingInput: CreateParkingInput, buildingId: string, tagsIds?: string[], clientId?: string, userId?: string): Observable<ParkingEntity> {
     const parking = this.parkingRepository.create(createParkingInput)
-    const tags = this.tagsService.findAllTagsByIds(tagsIds);
     const building = this.buildingService.findBuildingById(buildingId);
     const owner = clientId ? this.clientService.findClientById(clientId) : userId ? this.userService.findUserById(userId) : undefined;
     if(!owner)throw new BadRequestException();
 
-    return this.findParkingByBuildingPositionCode(parking.buildingPositionCode).pipe(
+    return this.getParkingByBuildingPositionCode(parking.buildingPositionCode).pipe(
       switchMap((p) => {
         if(p)
           throw new DuplicatedParkingInBuildingException()
 
         return forkJoin(
           [
-            tags,
+            tagsIds ? this.tagsService.findAllTagsByIds(tagsIds): of(undefined),
             building,
             owner
           ]
         ).pipe(
           switchMap(([t, b, o]) => {
-            parking.tags = t;
+            if(t)
+              parking.tags = t;
+
             parking.building = b;
             if(o instanceof ClientEntity)
               parking.clientOwner = o;
@@ -120,12 +123,17 @@ export class ParkingService {
     return from(
       this.parkingRepository.find(
         {
+          relations: {
+            blockedUsers: true
+          },
           where: {
-            blockedUsers : {
-              id: Not(userId)
-            },
+            blockedUsers: [
+              { id: IsNull() },
+              { id: Not(userId) },
+            ],
+            active: true,
             blocked: false
-          }
+          },
         }
       )
     )
@@ -214,5 +222,13 @@ export class ParkingService {
         },
       }),
     );
+  }
+  getAllNearbyAndReservableParkings(user: UserEntity, point: PointInput, distance: number): Observable<ParkingEntity[]> {
+    return from(this.parkingRepository.query(
+      `
+      select * from
+      get_nearby_and_available_parkings(${user.id}, ${point.coordinates[1]}, ${point.coordinates[0]}, ${distance})
+      `
+    ))
   }
 }

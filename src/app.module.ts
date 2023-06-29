@@ -19,6 +19,8 @@ import { BuildingModule } from "./building/building.module";
 import { VehicleModule } from "./vehicle/vehicle.module";
 import { TagsModule } from "./tags/tags.module";
 import { BookingModule } from "./booking/booking.module";
+import { PlacesService } from "./utils/places/places.service";
+import { PlacesModule } from "./utils/places/places.module";
 
 @Module({
   imports: [
@@ -44,6 +46,8 @@ import { BookingModule } from "./booking/booking.module";
       database: process.env.PG_DB,
       autoLoadEntities: true,
       synchronize: true,
+      logging: true,
+      logger: "simple-console",
     }),
     FileModule.forRoot(config()),
     PhotoModule,
@@ -55,8 +59,9 @@ import { BookingModule } from "./booking/booking.module";
     VehicleModule,
     HoldingModule,
     BookingModule,
+    PlacesModule,
   ],
   controllers: [AppController],
-  providers: [AppService, EmailService],
+  providers: [AppService, EmailService, PlacesService],
 })
 export class AppModule {}

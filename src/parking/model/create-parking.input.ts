@@ -1,5 +1,8 @@
-import { ArgsType, Field, InputType } from "@nestjs/graphql";
-import { Column } from "typeorm";
+import { ArgsType, Field, Float, InputType } from "@nestjs/graphql";
+import { GeometryGQL } from "../scalar/point.scalar";
+import { Point } from "typeorm";
+import { Geometry } from "geojson";
+import { PointInput } from "./point.input";
 
 @InputType()
 @ArgsType()
@@ -14,18 +17,18 @@ export class CreateParkingInput {
   active: boolean
   @Field(() => Boolean)
   blocked: boolean
+  @Field(() => PointInput)
+  location: PointInput
   @Field(() => String)
-  coords: string
-  @Field(() => String)
-  tax: number
+  tax: string
   @Field(() => String)
   buildingPositionCode: string
   @Field(() => String, {nullable: true})
   photo: string
   @Field(() => String)
-  pricePerMinute: number
+  pricePerMinute: string
   @Field(() => String)
-  priceMonthly: number
+  priceMonthly: string
   @Field(() => String)
-  priceYearly: number
+  priceYearly: string
 }

@@ -12,6 +12,10 @@ import { CreateFileInput } from "../../file/model/dto/create-file.input";
 import { FileUpload, GraphQLUpload } from "graphql-upload-minimal";
 import { CreatePhotoInput } from "../../photo/model/create-photo.input";
 import { Observable } from "rxjs";
+import { PointInput } from "../model/point.input";
+import { CurrentUser } from "../../auth/decorator/current-user.decorator";
+import { ClientEntity } from "../../client/entity/client.entity";
+import { UserEntity } from "../../user/entity/user.entity";
 
 @Resolver(() => ParkingEntity)
 export class ParkingResolver {
@@ -28,8 +32,8 @@ export class ParkingResolver {
   @Query(() => [ParkingEntity], { name: 'findAllReservableParkings' })
   @UserType(UserTypesEnum.USER)
   @UseGuards(JwtAuthGuard, UserTypeGuard)
-  findAllReservableParkings(@Args('userId', { type: () => String }) userId: string) {
-    return this.parkingService.findAllReservableParkings(userId);
+  findAllReservableParkings(@CurrentUser() user: UserEntity) {
+    return this.parkingService.findAllReservableParkings(user.id);
   }
   @Query(() => ParkingEntity, { name: 'findOneParkingById' })
   findOneParkingById(@Args('parkingId', { type: () => String }) parkingId: string) {
@@ -59,7 +63,7 @@ export class ParkingResolver {
   createParking(
     @Args('createParkingInput') createParkingInput: CreateParkingInput,
     @Args('buildingId') buildingId: string,
-    @Args('tagsIds', {type: () => [String]}) tagsIds: string[],
+    @Args('tagsIds', {type: () => [String], nullable: true}) tagsIds?: string[],
     @Args('userId', { nullable: true}) userId?: string,
     @Args('clientId', { nullable: true}) clientId?: string,
   ) {
@@ -72,5 +76,15 @@ export class ParkingResolver {
     @Args('file', { type: () => GraphQLUpload }) file: FileUpload,
   ): Observable<ParkingEntity> {
     return this.parkingService.setParkingPhoto(parkingId, createPhotoInput, file);
+  }
+  @Query(() => [ParkingEntity], { name: 'getAllNearbyAndReservableParkings' })
+  @UserType(UserTypesEnum.USER)
+  @UseGuards(JwtAuthGuard, UserTypeGuard)
+  getAllNearbyAndReservableParkings(
+    @Args('distance') distance: number,
+    @Args( 'point') point: PointInput,
+    @CurrentUser() user: UserEntity
+  ): any {
+    return this.parkingService.getAllNearbyAndReservableParkings(user, point, distance)
   }
 }

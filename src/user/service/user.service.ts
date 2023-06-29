@@ -27,6 +27,8 @@ import { UserWithSmsCode } from '../model/dto/user-with-sms-code.response';
 import { ExistingRutException } from "../../utils/exceptions/ExistingRut.exception";
 import { PhotoService } from "../../photo/service/photo.service";
 import { CreatePhotoInput } from "../../photo/model/create-photo.input";
+import { PlacesService } from "../../utils/places/places.service";
+import { SearchByTextOptions } from "../../utils/places/places.types";
 
 @Injectable()
 export class UserService {
@@ -36,7 +38,8 @@ export class UserService {
     private fileService: FileService,
     private emailService: EmailService,
     private smsService: SmsService,
-    private photoService: PhotoService
+    private photoService: PhotoService,
+    private placesService: PlacesService,
   ) {}
   createUser(userDTO: CreateUserInput): Observable<UserEntity> {
     const user = this.userRepository.create(userDTO);
@@ -177,5 +180,8 @@ export class UserService {
         );
       }),
     );
+  }
+  getAddressesForGivenText(text: string, options: SearchByTextOptions) {
+    return this.placesService.getPlacesByText(text, options)
   }
 }

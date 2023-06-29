@@ -1,5 +1,5 @@
-import { Field, ObjectType } from "@nestjs/graphql";
-import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany } from "typeorm";
+import { Field, Float, ObjectType } from "@nestjs/graphql";
+import { Column, Entity, Index, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, Point } from "typeorm";
 import { BaseEntityWithIdAbstract } from "../../utils/interfaces/base-entity-with-id.abstract";
 import { UserEntity } from "../../user/entity/user.entity";
 import { ClientEntity } from "../../client/entity/client.entity";
@@ -7,6 +7,8 @@ import { ScheduleEntity } from "../../schedule/entity/schedule.entity";
 import { BuildingEntity } from "../../building/entity/building.entity";
 import { TagsEntity } from "../../tags/entity/tags.entity";
 import { BookingEntity } from "../../booking/entity/booking.entity";
+import { GeometryGQL } from "../scalar/point.scalar";
+import { Geometry } from "geojson";
 
 @Entity('parking')
 @ObjectType()
@@ -26,16 +28,22 @@ export class ParkingEntity extends BaseEntityWithIdAbstract{
   @Column()
   @Field(() => String)
   address: string
-  @Column()
-  @Field(() => String)
-  coords: string
+  @Index({ spatial: true })
+  @Column({
+    type: 'geography',
+    spatialFeatureType: 'Point',
+    srid: 4326,
+    nullable: true,
+  })
+  @Field(() => GeometryGQL)
+  location: Point
   @Column()
   @Field(() => String)
   buildingPositionCode: string
   @Column()
   @Field(() => String)
   photo: string
-  @ManyToMany(() => UserEntity, (u) => u.restrictedParkings, {eager: true})
+  @ManyToMany(() => UserEntity, (u) => u.restrictedParkings)
   @JoinTable(
     {
       name: 'blocked_user_parkings',
@@ -53,27 +61,27 @@ export class ParkingEntity extends BaseEntityWithIdAbstract{
   blockedUsers: UserEntity[]
   @Column()
   @Field(() => String)
-  tax: number
+  tax: string
   @Column()
   @Field(() => String)
-  pricePerMinute: number
+  pricePerMinute: string
   @Column()
   @Field(() => String)
-  priceMonthly: number
+  priceMonthly: string
   @Column()
   @Field(() => String)
-  priceYearly: number
-  @ManyToOne(() => UserEntity, (u) => u.parkingList, {eager: true})
+  priceYearly: string
+  @ManyToOne(() => UserEntity, (u) => u.parkingList, {eager: true, nullable: true})
   @JoinColumn([
     { name: "userId", referencedColumnName: "id" }]
   )
-  @Field(() => ClientEntity)
+  @Field(() => UserEntity, {nullable: true})
   userOwner: UserEntity
-  @ManyToOne(() => ClientEntity, (c) => c.parkingList, {eager: true})
+  @ManyToOne(() => ClientEntity, (c) => c.parkingList, {eager: true, nullable: true})
   @JoinColumn([
     { name: "clientId", referencedColumnName: "id" }]
   )
-  @Field(() => ClientEntity)
+  @Field(() => ClientEntity, {nullable: true})
   clientOwner: ClientEntity
   @OneToMany(() => ScheduleEntity, (p) => p.parking)
   @Field(() => [ScheduleEntity])
@@ -81,7 +89,7 @@ export class ParkingEntity extends BaseEntityWithIdAbstract{
   @ManyToOne(() => BuildingEntity, (b) => b.parkingList, {eager: true})
   @Field(() => BuildingEntity)
   building: BuildingEntity
-  @ManyToMany(() => TagsEntity, (t) => t.parkings, {eager: true})
+  @ManyToMany(() => TagsEntity, (t) => t.parkings, {eager: true, nullable: true})
   @Field(() => [TagsEntity])
   tags: TagsEntity[]
   @OneToMany(() => BookingEntity, (b) => b.parking)

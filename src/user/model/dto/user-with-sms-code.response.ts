@@ -1,6 +1,10 @@
 import { UserEntity } from '../../entity/user.entity';
+import { Field, ObjectType } from "@nestjs/graphql";
 
-export interface UserWithSmsCode {
+@ObjectType()
+export class UserWithSmsCode {
+  @Field(() => UserEntity)
   user: UserEntity;
+  @Field(() => Number)
   smsCode: number;
 }

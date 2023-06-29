@@ -85,11 +85,15 @@ export class AuthService {
     );
   }
   login(user: UserEntity) {
+    if(!user.validatedAccount)
+      throw new NotValidatedAccountException()
+
     return {
       user: user,
       access_token: this.jwtService.sign(
         {
           username: user.rut,
+          userType: user.userType,
           sub: user.id,
         },
         { secret: jwtConstants.secret, expiresIn: '60s' },
