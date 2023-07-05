@@ -18,6 +18,8 @@ import { CreatePhotoInput } from "../../photo/model/create-photo.input";
 import { FileUpload } from "graphql-upload-minimal";
 import { UserEntity } from "../../user/entity/user.entity";
 import { PointInput } from "../model/point.input";
+import { FiltersInput } from "../model/filters.input";
+import { ParkingOutput } from "../model/parking.output";
 
 @Injectable()
 export class ParkingService {
@@ -68,7 +70,7 @@ export class ParkingService {
     )
   }
   removeParking(parkingId: string): Observable<ParkingEntity> {
-    if (uuid.validate(parkingId)) {
+    if (!uuid.validate(parkingId)) {
       throw new UUIDBadFormatException();
     }
     return this.findParkingById(parkingId).pipe(
@@ -155,7 +157,7 @@ export class ParkingService {
     )
   }
   findParkingById(parkingId: string): Observable<ParkingEntity> {
-    if (uuid.validate(parkingId)) {
+    if (!uuid.validate(parkingId)) {
       throw new UUIDBadFormatException();
     }
 
@@ -169,7 +171,7 @@ export class ParkingService {
     )
   }
   findParkingByBuildingId(buildingId: string): Observable<ParkingEntity> {
-    if (uuid.validate(buildingId)) {
+    if (!uuid.validate(buildingId)) {
       throw new UUIDBadFormatException();
     }
 
@@ -182,7 +184,10 @@ export class ParkingService {
       })
     )
   }
-  setParkingPhoto(parkingId: string, createPhotoInput: CreatePhotoInput, file: FileUpload) : Observable<ParkingEntity> {
+  setParkingPhoto(parkingId: string, createPhotoInput: CreatePhotoInput, file: FileUpload | undefined) : Observable<ParkingEntity> {
+    if(!file)
+      throw new BadRequestException()
+
     return this.findParkingById(parkingId).pipe(
       switchMap((p) => {
         return this.photoService.createPhoto(createPhotoInput, file).pipe(
@@ -223,12 +228,38 @@ export class ParkingService {
       }),
     );
   }
-  getAllNearbyAndReservableParkings(user: UserEntity, point: PointInput, distance: number): Observable<ParkingEntity[]> {
-    return from(this.parkingRepository.query(
-      `
+  getAllNearbyAndReservableParkings(user: UserEntity, point: PointInput, distance: number, filters?: FiltersInput): Observable<ParkingOutput[]> {
+    const where = this.createWhereClause(filters)
+    const query = `
       select * from
-      get_nearby_and_available_parkings(${user.id}, ${point.coordinates[1]}, ${point.coordinates[0]}, ${distance})
+      get_nearby_and_available_parkings('${user.id}', ${point.coordinates[0]}, ${point.coordinates[1]}, ${distance})
+      ${where}
       `
-    ))
+    console.log(query)
+    console.log(where)
+    return from(this.parkingRepository.query(query))
+  }
+  private createWhereClause(filters?: FiltersInput): string {
+    if(!filters) return '';
+    const conditions = [];
+
+    if (filters.priceMonthly !== undefined) {
+      conditions.push(`priceMonthly = ${filters.priceMonthly}`);
+    }
+
+    if (filters.pricePerMinute !== undefined) {
+      conditions.push(`pricePerMinute = ${filters.pricePerMinute}`);
+    }
+
+    if (filters.parkingType !== undefined) {
+      conditions.push(`type = ${filters.parkingType}`);
+    }
+
+    if (conditions.length === 0) {
+      return '';
+    }
+
+    const whereClause = conditions.join(' AND ');
+    return `WHERE ${whereClause}`;
   }
 }

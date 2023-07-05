@@ -118,7 +118,7 @@ export class AuthService {
   refreshToken(token: string): Observable<UserLoginResponse> {
     const user = this.jwtService.decode(token) as UserPayload;
     if (!user) {
-      throw new UnauthorizedException();
+      throw new NotFoundException();
     }
     return this.userService.findUserById(user.sub).pipe(
       switchMap((userEntity) => {
@@ -138,7 +138,7 @@ export class AuthService {
   refreshClientToken(token: string): Observable<ClientLoginResponse> {
     const user = this.jwtService.decode(token) as UserPayload;
     if (!user) {
-      throw new UnauthorizedException();
+      throw new NotFoundException();
     }
     return this.clientService.findClientById(user.sub).pipe(
       switchMap((clientEntity) => {

@@ -11,6 +11,9 @@ import { ClientEntity } from "../../client/entity/client.entity";
 @ObjectType()
 export class BuildingEntity extends BaseEntityWithIdAbstract {
   @Column()
+  @Field(() => String, { description: 'name of the building' })
+  name: string;
+  @Column()
   @Field(() => String, { description: 'address of the building' })
   address: string;
   @Column()

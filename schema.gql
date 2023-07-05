@@ -190,6 +190,7 @@ type ParkingEntity {
   address: String!
   location: Geometry!
   buildingPositionCode: String!
+  type: ParkingType!
   photo: String!
   blockedUsers: [UserEntity!]!
   tax: String!
@@ -206,6 +207,12 @@ type ParkingEntity {
 
 """Geometry scalar type"""
 scalar Geometry
+
+enum ParkingType {
+  PER_MINUTE
+  MONTHLY
+  YEARLY
+}
 
 type VehicleEntity {
   """id of the entity"""
@@ -309,13 +316,45 @@ type ClientWithSmsCode {
   smsCode: Float!
 }
 
+type ParkingOutput {
+  """id of the entity"""
+  id: String!
+
+  """creation date of the entity"""
+  createdAt: DateTime!
+
+  """update date of the entity"""
+  updatedAt: DateTime!
+  active: Boolean!
+  reserved: Boolean!
+  name: String!
+  blocked: Boolean!
+  address: String!
+  location: Geometry!
+  buildingPositionCode: String!
+  type: ParkingType!
+  photo: String!
+  blockedUsers: [UserEntity!]!
+  tax: String!
+  pricePerMinute: String!
+  priceMonthly: String!
+  priceYearly: String!
+  userOwner: UserEntity
+  clientOwner: ClientEntity
+  schedule: [ScheduleEntity!]!
+  building: BuildingEntity!
+  tags: [TagsEntity!]!
+  bookings: [BookingEntity!]!
+  coords: String!
+}
+
 type Query {
   findAllParkings: [ParkingEntity!]!
   findAllReservableParkings: [ParkingEntity!]!
   findOneParkingById(parkingId: String!): ParkingEntity!
   findOneParkingByBuildingId(buildingId: String!): ParkingEntity!
   findOneParkingByBuildingPositionCode(buildingPositionCode: String!): ParkingEntity!
-  getAllNearbyAndReservableParkings(distance: Float!, point: PointInput!): [ParkingEntity!]!
+  getAllNearbyAndReservableParkings(distance: Float!, point: PointInput!, filters: FiltersInput): [ParkingOutput!]!
   findBuildingById(buildingId: String!): BuildingEntity!
   findBuildingByAddress(buildingId: String!): BuildingEntity!
   findTagById(tagId: String!): [TagsEntity!]!
@@ -341,13 +380,19 @@ input PointInput {
   coordinates: [Float!]!
 }
 
+input FiltersInput {
+  priceMonthly: Float
+  pricePerMinute: Float
+  parkingType: Int
+}
+
 type Mutation {
   uploadFile(createFileInput: CreateFileInput!, file: Upload!): String!
   deleteFile(url: String!): Boolean!
   updateParking(updateParkingInput: UpdateParkingInput!, buildingId: String, tagsIds: [String!]): ParkingEntity!
   removeParking(parkingId: String!): ParkingEntity!
   createParking(createParkingInput: CreateParkingInput!, buildingId: String!, tagsIds: [String!], userId: String, clientId: String): ParkingEntity!
-  setParkingPhoto(parkingId: String!, createPhotoInput: CreatePhotoInput!, file: Upload!): ParkingEntity!
+  setParkingPhoto(parkingId: String!, createPhotoInput: CreatePhotoInput!, file: Upload): ParkingEntity!
   createBuilding(createBuildingEntity: CreateBuildingInput!, ownerId: String!): BuildingEntity!
   updateBuilding(updateBuildingInput: UpdateBuildingInput!): BuildingEntity!
   removeTag(tagId: String!): TagsEntity!
@@ -406,6 +451,7 @@ input UpdateParkingInput {
   pricePerMinute: String
   priceMonthly: String
   priceYearly: String
+  type: ParkingType
   id: String!
 }
 
@@ -422,6 +468,7 @@ input CreateParkingInput {
   pricePerMinute: String!
   priceMonthly: String!
   priceYearly: String!
+  type: ParkingType!
 }
 
 input CreatePhotoInput {

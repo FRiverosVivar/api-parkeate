@@ -1,5 +1,5 @@
 import { ArgsType, Field, InputType } from "@nestjs/graphql";
-export type Coordinates = [Lng, Lat]
+export type Coordinates = [Lat, Lng]
 export type Lng = number;
 export type Lat = number;
 @InputType()

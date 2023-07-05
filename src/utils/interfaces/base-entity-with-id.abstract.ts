@@ -6,10 +6,10 @@ export abstract class BaseEntityWithIdAbstract {
   @PrimaryGeneratedColumn('uuid')
   @Field(() => String, { description: 'id of the entity' })
   id: string;
-  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   @Field(() => Date, { description: 'creation date of the entity' })
   createdAt: Date;
-  @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @UpdateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   @Field(() => Date, { description: 'update date of the entity' })
   updatedAt: Date;
 }

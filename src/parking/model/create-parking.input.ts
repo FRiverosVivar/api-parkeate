@@ -3,6 +3,7 @@ import { GeometryGQL } from "../scalar/point.scalar";
 import { Point } from "typeorm";
 import { Geometry } from "geojson";
 import { PointInput } from "./point.input";
+import { ParkingType } from "./parking-type.enum";
 
 @InputType()
 @ArgsType()
@@ -31,4 +32,6 @@ export class CreateParkingInput {
   priceMonthly: string
   @Field(() => String)
   priceYearly: string
+  @Field(() => ParkingType)
+  type: ParkingType;
 }

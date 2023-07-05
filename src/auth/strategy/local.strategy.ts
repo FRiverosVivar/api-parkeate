@@ -1,6 +1,6 @@
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-local';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { map, Observable } from 'rxjs';
 import { UserEntity } from '../../user/entity/user.entity';
 import { AuthService } from '../service/auth.service';
@@ -19,7 +19,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
       .pipe(
         map((userOrClient) => {
           if (!userOrClient) {
-            throw new UnauthorizedException();
+            throw new NotFoundException();
           }
           return userOrClient;
         }),

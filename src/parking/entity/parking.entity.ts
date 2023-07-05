@@ -9,14 +9,15 @@ import { TagsEntity } from "../../tags/entity/tags.entity";
 import { BookingEntity } from "../../booking/entity/booking.entity";
 import { GeometryGQL } from "../scalar/point.scalar";
 import { Geometry } from "geojson";
+import { ParkingType } from "../model/parking-type.enum";
 
 @Entity('parking')
 @ObjectType()
 export class ParkingEntity extends BaseEntityWithIdAbstract{
-  @Column({default: false})
+  @Column()
   @Field(() => Boolean)
   active: boolean
-  @Column({default: false})
+  @Column()
   @Field(() => Boolean)
   reserved: boolean
   @Column()
@@ -40,6 +41,9 @@ export class ParkingEntity extends BaseEntityWithIdAbstract{
   @Column()
   @Field(() => String)
   buildingPositionCode: string
+  @Column()
+  @Field(() => ParkingType)
+  type: ParkingType
   @Column()
   @Field(() => String)
   photo: string

@@ -16,6 +16,8 @@ import { PointInput } from "../model/point.input";
 import { CurrentUser } from "../../auth/decorator/current-user.decorator";
 import { ClientEntity } from "../../client/entity/client.entity";
 import { UserEntity } from "../../user/entity/user.entity";
+import { FiltersInput } from "../model/filters.input";
+import { ParkingOutput } from "../model/parking.output";
 
 @Resolver(() => ParkingEntity)
 export class ParkingResolver {
@@ -73,18 +75,20 @@ export class ParkingResolver {
   setParkingPhoto(
     @Args('parkingId') parkingId: string,
     @Args('createPhotoInput') createPhotoInput: CreatePhotoInput,
-    @Args('file', { type: () => GraphQLUpload }) file: FileUpload,
+    @Args('file', { type: () => GraphQLUpload , nullable: true}) file?: FileUpload,
   ): Observable<ParkingEntity> {
+    console.log(file);
     return this.parkingService.setParkingPhoto(parkingId, createPhotoInput, file);
   }
-  @Query(() => [ParkingEntity], { name: 'getAllNearbyAndReservableParkings' })
+  @Query(() => [ParkingOutput], { name: 'getAllNearbyAndReservableParkings' })
   @UserType(UserTypesEnum.USER)
   @UseGuards(JwtAuthGuard, UserTypeGuard)
   getAllNearbyAndReservableParkings(
     @Args('distance') distance: number,
     @Args( 'point') point: PointInput,
-    @CurrentUser() user: UserEntity
+    @CurrentUser() user: UserEntity,
+    @Args('filters', { nullable: true}) filters?: FiltersInput,
   ): any {
-    return this.parkingService.getAllNearbyAndReservableParkings(user, point, distance)
+    return this.parkingService.getAllNearbyAndReservableParkings(user, point, distance, filters)
   }
 }

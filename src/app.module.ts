@@ -46,8 +46,6 @@ import { PlacesModule } from "./utils/places/places.module";
       database: process.env.PG_DB,
       autoLoadEntities: true,
       synchronize: true,
-      logging: true,
-      logger: "simple-console",
     }),
     FileModule.forRoot(config()),
     PhotoModule,
