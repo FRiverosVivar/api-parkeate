@@ -42,7 +42,7 @@ export class HoldingService {
     )
   }
   removeHolding(holdingId: string): Observable<HoldingEntity> {
-    if (uuid.validate(holdingId)) {
+    if (!uuid.validate(holdingId)) {
       throw new UUIDBadFormatException();
     }
     return from(

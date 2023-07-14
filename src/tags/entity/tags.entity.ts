@@ -2,6 +2,7 @@ import { Column, Entity, JoinTable, ManyToMany } from "typeorm";
 import { Field, ObjectType } from "@nestjs/graphql";
 import { BaseEntityWithIdAbstract } from "../../utils/interfaces/base-entity-with-id.abstract";
 import { ParkingEntity } from "../../parking/entity/parking.entity";
+import { BuildingEntity } from "../../building/entity/building.entity";
 
 @Entity('tags')
 @ObjectType()
@@ -15,20 +16,20 @@ export class TagsEntity extends BaseEntityWithIdAbstract {
   @Column()
   @Field(() => String)
   icon: string
-  @ManyToMany(() => ParkingEntity, (p) => p.tags)
+  @ManyToMany(() => BuildingEntity, (b) => b.tags)
   @JoinTable(
     {
-      name: 'tags_parkings',
+      name: 'tags_and_buildings',
       joinColumn: {
-        name: "parkingId",
+        name: "tagsId",
         referencedColumnName: "id"
       },
       inverseJoinColumn: {
-        name: "tagsId",
+        name: "buildingId",
         referencedColumnName: "id"
       }
     }
   )
-  @Field(() => [ParkingEntity])
-  parkings: ParkingEntity[]
+  @Field(() => [BuildingEntity])
+  buildings: BuildingEntity[]
 }

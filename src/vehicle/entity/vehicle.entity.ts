@@ -15,10 +15,7 @@ export class VehicleEntity extends BaseEntityWithIdAbstract {
   @Column()
   @Field(() => String, { description: 'color'})
   color: string
-  @ManyToOne(() => UserEntity, (u) => u.vehicleList, {eager: true})
-  @JoinColumn([
-    { name: "userId", referencedColumnName: "id" }]
-  )
+  @ManyToOne(() => UserEntity, (u) => u.vehicleList)
   @Field(() => UserEntity)
   owner: UserEntity;
 }

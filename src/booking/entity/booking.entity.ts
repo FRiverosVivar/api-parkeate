@@ -16,11 +16,9 @@ export class BookingEntity extends BaseEntityWithIdAbstract {
   @Field(() => BookingStatesEnum)
   bookingState: BookingStatesEnum
   @ManyToOne(() => ParkingEntity, (p) => p.bookings, {eager: true}  )
-  @JoinColumn({name: 'parkingId', referencedColumnName: 'id'})
   @Field(() => ParkingEntity)
   parking: ParkingEntity
   @ManyToOne(() => UserEntity, (p) => p.bookings, {eager: true}  )
-  @JoinColumn({name: 'userId', referencedColumnName: 'id'})
   @Field(() => UserEntity)
   user: UserEntity
   @Column()

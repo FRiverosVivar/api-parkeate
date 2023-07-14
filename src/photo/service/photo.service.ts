@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { PhotoEntity } from "../entity/photo.entity";
@@ -9,6 +9,7 @@ import * as uuid from "uuid";
 import { UUIDBadFormatException } from "../../utils/exceptions/UUIDBadFormat.exception";
 import { FileService } from "../../file/service/file.service";
 import { FileUpload } from "graphql-upload-minimal";
+import { FileConstants } from "../../file/constants/file.constants";
 
 @Injectable()
 export class PhotoService {
@@ -30,8 +31,8 @@ export class PhotoService {
       }),
     );
   }
-  removePhoto(photoId: string): Observable<PhotoEntity> {
-    return this.findPhotoById(photoId).pipe(
+  removePhoto(photoUrl: string): Observable<PhotoEntity> {
+    return this.findPhotoByUrl(photoUrl).pipe(
       switchMap((p) => {
         return forkJoin(
           [this.photoRepository.remove(p), this.fileService.deleteFile(p.url)]
@@ -73,6 +74,19 @@ export class PhotoService {
       })
     )
   }
+  findPhotoByUrl(url: string): Observable<PhotoEntity> {
+    if (url === '' || !url.includes(FileConstants.BUCKET_NAME)) {
+      throw new BadRequestException();
+    }
+    return this.getPhotoByUrl(url).pipe(
+      map((p) => {
+        if(!p)
+          throw new NotFoundException()
+
+        return p;
+      })
+    )
+  }
   getPhotoById(photoId: string): Observable<PhotoEntity | null> {
     return from(
       this.photoRepository.findOne({
@@ -82,6 +96,7 @@ export class PhotoService {
       }),
     );
   }
+
   getPhotoByUrl(url: string): Observable<PhotoEntity | null> {
     return from(
       this.photoRepository.findOne({

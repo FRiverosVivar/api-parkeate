@@ -56,7 +56,7 @@ export class VehicleService {
     );
   }
   removeVehicle(vehicleId: string): Observable<VehicleEntity> {
-    if (uuid.validate(vehicleId)) {
+    if (!uuid.validate(vehicleId)) {
       throw new UUIDBadFormatException();
     }
     return from(
@@ -68,7 +68,7 @@ export class VehicleService {
     );
   }
   findVehicleById(vehicleId: string): Observable<VehicleEntity> {
-    if (uuid.validate(vehicleId)) {
+    if (!uuid.validate(vehicleId)) {
       throw new UUIDBadFormatException();
     }
     return this.getVehicleById(vehicleId).pipe(
@@ -80,7 +80,7 @@ export class VehicleService {
     )
   }
   findVehiclesByUserId(userId: string): Observable<VehicleEntity[]> {
-    if (uuid.validate(userId)) {
+    if (!uuid.validate(userId)) {
       throw new UUIDBadFormatException();
     }
     return this.getVehiclesByUserId(userId).pipe(

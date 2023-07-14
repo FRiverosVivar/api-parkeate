@@ -24,9 +24,9 @@ export class TagsResolver {
   findTagById(@Args('tagId', { type: () => String }) tagId: string) {
     return this.tagsService.findTagById(tagId);
   }
-  @Query(() => [TagsEntity], { name: 'findTagsByParkingId' })
-  findTagsByParkingId(@Args('parkingId', { type: () => String }) parkingId: string) {
-    return this.tagsService.findTagsByParkingId(parkingId);
+  @Query(() => [TagsEntity], { name: 'findTagsByBuildingId' })
+  findTagsByParkingId(@Args('buildingId', { type: () => String }) buildingId: string) {
+    return this.tagsService.findTagsByBuildingId(buildingId);
   }
   @Mutation(() => TagsEntity)
   updateTag(

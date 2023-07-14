@@ -5,7 +5,7 @@ import { UserEntity } from '../entity/user.entity';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { UseGuards } from '@nestjs/common';
 import { FileUpload, GraphQLUpload } from 'graphql-upload-minimal';
-import { Observable } from 'rxjs';
+import { Observable, tap } from "rxjs";
 import { CreatePhotoInput } from "../../photo/model/create-photo.input";
 import { UserWithVerificationCode } from "../model/dto/user-with-verification-code.response";
 import { UserWithSmsCode } from "../model/dto/user-with-sms-code.response";
@@ -22,7 +22,7 @@ export class UserResolver {
 
   @Query(() => UserEntity, { name: 'userById' })
   findOne(@Args('userId', { type: () => String }) userId: string) {
-    return this.userService.findUserById(userId);
+    return this.userService.findUserById(userId).pipe(tap((b) => console.log(b)))
   }
   @Query(() => UserEntity, { name: 'userByRut', nullable: true })
   findOneByRut(@Args('rut', { type: () => String }) rut: string): Observable< UserEntity | null> {

@@ -42,7 +42,11 @@ export class BookingService implements OnModuleInit {
     this.findBookingsThatExpiresTodayAndUpdateTheirStatus(shouldNotify);
     this.findBookingsThatAreGoingToExpireIn3Days(shouldNotify);
   }
-
+  getBookingCountForOrderNumber(): Observable<number> {
+    return from(
+      this.bookingRepository.query(`select count(id)+1 as order_number from booking`)
+    ).pipe(map((b) => +b[0].order_number))
+  }
   createBooking(createBookingInput: CreateBookingInput, parkingId: string, userId: string): Observable<BookingEntity> {
     const booking = this.bookingRepository.create(createBookingInput);
     const parking = this.parkingService.findParkingById(parkingId)
@@ -93,7 +97,7 @@ export class BookingService implements OnModuleInit {
     );
   }
   removeBooking(bookingId: string): Observable<BookingEntity> {
-    if (uuid.validate(bookingId)) {
+    if (!uuid.validate(bookingId)) {
       throw new UUIDBadFormatException();
     }
     return from(
@@ -105,7 +109,7 @@ export class BookingService implements OnModuleInit {
     );
   }
   findBookingById(bookingId: string): Observable<BookingEntity> {
-    if (uuid.validate(bookingId)) {
+    if (!uuid.validate(bookingId)) {
       throw new UUIDBadFormatException();
     }
     return this.getBookingById(bookingId).pipe(
@@ -132,12 +136,10 @@ export class BookingService implements OnModuleInit {
   }
 
   private findBookingsThatAreGoingToExpireIn3Days(shouldNotify: boolean) {
-    const today = new Date();
     return from(
       this.bookingRepository.createQueryBuilder('bookingEntity')
-        .where('DATEDIFF(day, bookingEntity.dateEnd, :today) = 3')
+        .where(`DATE_PART('DAY', bookingEntity.dateEnd :: DATE) - DATE_PART('DAY', now() :: DATE) = 3`)
         .andWhere('bookingEntity.bookingType >= 1')
-        .setParameter('today', today)
         .getMany()
     ).pipe(
       tap((b) => {
@@ -146,18 +148,15 @@ export class BookingService implements OnModuleInit {
           const usersEmails = b.map((b) => b.user.email)
           this.smsService.publishToArrayOfDestinations(usersPhones, BookingNotificationsEnum.RESERVATION_IS_GOING_TO_EXPIRE)
           this.emailService.publishEmailsToArrayOfDestinations(usersEmails, EmailTypesEnum.RESERVATION_IS_GOING_TO_EXPIRE)
-
         }
       })
     )
   }
   private findBookingsThatExpiresTodayAndUpdateTheirStatus(shouldNotify: boolean) {
-    const today = new Date();
     return from(
       this.bookingRepository.createQueryBuilder('bookingEntity')
-        .where('DATEDIFF(day, bookingEntity.dateEnd, :today) = 0')
+        .where(`DATE_PART('DAY', bookingEntity.dateEnd :: DATE) - DATE_PART('DAY', now() :: DATE) <= 0`)
         .andWhere('bookingEntity.bookingType >= 1')
-        .setParameter('today', today)
         .getMany()
     ).pipe(
       tap((b) => {

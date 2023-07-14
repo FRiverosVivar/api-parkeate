@@ -11,13 +11,10 @@ export class ClientEntity extends BaseCustomer {
   @OneToMany(() => ParkingEntity, (p) => p.clientOwner)
   @Field(() => [ParkingEntity])
   parkingList: ParkingEntity[];
-  @OneToMany(() => BuildingEntity, (b) => b.clientOwner)
+  @OneToMany(() => BuildingEntity, (b) => b.client)
   @Field(() => [BuildingEntity])
   buildings: BuildingEntity[];
   @ManyToOne(() => HoldingEntity, (h) => h.clientList, {nullable: true})
-  @JoinColumn([
-    { name: "holdingId", referencedColumnName: "id" }]
-  )
   @Field(() => HoldingEntity, {nullable: true})
   holding: HoldingEntity
 }

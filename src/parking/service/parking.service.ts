@@ -11,15 +11,10 @@ import { DuplicatedParkingInBuildingException } from "../../utils/exceptions/dup
 import { ClientService } from "../../client/service/client.service";
 import { UserService } from "../../user/service/user.service";
 import { BuildingService } from "../../building/service/building.service";
-import { TagsService } from "../../tags/service/tags.service";
 import { ClientEntity } from "../../client/entity/client.entity";
 import { PhotoService } from "../../photo/service/photo.service";
 import { CreatePhotoInput } from "../../photo/model/create-photo.input";
 import { FileUpload } from "graphql-upload-minimal";
-import { UserEntity } from "../../user/entity/user.entity";
-import { PointInput } from "../model/point.input";
-import { FiltersInput } from "../model/filters.input";
-import { ParkingOutput } from "../model/parking.output";
 
 @Injectable()
 export class ParkingService {
@@ -29,31 +24,27 @@ export class ParkingService {
     private readonly clientService: ClientService,
     private readonly userService: UserService,
     private readonly buildingService: BuildingService,
-    private readonly tagsService: TagsService,
     private readonly photoService: PhotoService
   ) {
   }
-  createParking(createParkingInput: CreateParkingInput, buildingId: string, tagsIds?: string[], clientId?: string, userId?: string): Observable<ParkingEntity> {
+  createParking(createParkingInput: CreateParkingInput, buildingId: string, clientId?: string, userId?: string): Observable<ParkingEntity> {
     const parking = this.parkingRepository.create(createParkingInput)
     const building = this.buildingService.findBuildingById(buildingId);
     const owner = clientId ? this.clientService.findClientById(clientId) : userId ? this.userService.findUserById(userId) : undefined;
     if(!owner)throw new BadRequestException();
 
-    return this.getParkingByBuildingPositionCode(parking.buildingPositionCode).pipe(
+    return this.getParkingByBuildingPositionCode(parking.code, parking.floor, parking.section).pipe(
       switchMap((p) => {
         if(p)
           throw new DuplicatedParkingInBuildingException()
 
         return forkJoin(
           [
-            tagsIds ? this.tagsService.findAllTagsByIds(tagsIds): of(undefined),
             building,
             owner
           ]
         ).pipe(
-          switchMap(([t, b, o]) => {
-            if(t)
-              parking.tags = t;
+          switchMap(([ b, o]) => {
 
             parking.building = b;
             if(o instanceof ClientEntity)
@@ -79,7 +70,7 @@ export class ParkingService {
       })
     )
   }
-  updateParking(updateParkingInput: UpdateParkingInput, buildingId?: string, tagsIds?: string[]): Observable<ParkingEntity> {
+  updateParking(updateParkingInput: UpdateParkingInput, buildingId?: string): Observable<ParkingEntity> {
     return from(
       this.parkingRepository.preload({
         ...updateParkingInput,
@@ -90,28 +81,12 @@ export class ParkingService {
           throw new NotFoundException();
         }
 
-        if (buildingId && tagsIds) {
+        if (buildingId) {
           const building$ = this.buildingService.findBuildingById(buildingId);
-          const tags$ = this.tagsService.findAllTagsByIds(tagsIds);
 
-          return combineLatest([building$, tags$]).pipe(
-            tap(([building, tags]) => {
-              parking.building = building;
-              parking.tags = tags;
-            }),
-            switchMap(() => from(this.parkingRepository.save(parking)))
-          );
-        } else if (buildingId) {
-          return this.buildingService.findBuildingById(buildingId).pipe(
+          return building$.pipe(
             tap((building) => {
               parking.building = building;
-            }),
-            switchMap(() => from(this.parkingRepository.save(parking)))
-          );
-        } else if (tagsIds) {
-          return this.tagsService.findAllTagsByIds(tagsIds).pipe(
-            tap((tags) => {
-              parking.tags = tags;
             }),
             switchMap(() => from(this.parkingRepository.save(parking)))
           );
@@ -121,14 +96,18 @@ export class ParkingService {
       }),
     );
   }
-  findAllReservableParkings(userId: string): Observable<ParkingEntity[]> {
+  findAllReservableParkingsByBuildingId(userId: string, buildingId: string): Observable<ParkingEntity[]> {
     return from(
       this.parkingRepository.find(
         {
           relations: {
-            blockedUsers: true
+            blockedUsers: true,
+            building: true
           },
           where: {
+            building: {
+              id: buildingId
+            },
             blockedUsers: [
               { id: IsNull() },
               { id: Not(userId) },
@@ -143,11 +122,11 @@ export class ParkingService {
   findAllParkings(): Observable<ParkingEntity[]> {
     return from(this.parkingRepository.find());
   }
-  findParkingByBuildingPositionCode(code: string): Observable<ParkingEntity> {
+  findParkingByBuildingPositionCode(code: string, floor: number, section: string): Observable<ParkingEntity> {
     if(code === '')
       throw new BadRequestException()
 
-    return this.getParkingByBuildingPositionCode(code).pipe(
+    return this.getParkingByBuildingPositionCode(code, floor, section).pipe(
       map((p) => {
         if(!p)
           throw new NotFoundException()
@@ -199,11 +178,13 @@ export class ParkingService {
       })
     )
   }
-  private getParkingByBuildingPositionCode(code: string): Observable<ParkingEntity | null> {
+  private getParkingByBuildingPositionCode(code: string, floor: number, section: string ): Observable<ParkingEntity | null> {
     return from(
       this.parkingRepository.findOne({
         where: {
-          buildingPositionCode: code,
+          floor: floor,
+          code: code,
+          section: section
         },
       }),
     );
@@ -228,38 +209,6 @@ export class ParkingService {
       }),
     );
   }
-  getAllNearbyAndReservableParkings(user: UserEntity, point: PointInput, distance: number, filters?: FiltersInput): Observable<ParkingOutput[]> {
-    const where = this.createWhereClause(filters)
-    const query = `
-      select * from
-      get_nearby_and_available_parkings('${user.id}', ${point.coordinates[0]}, ${point.coordinates[1]}, ${distance})
-      ${where}
-      `
-    console.log(query)
-    console.log(where)
-    return from(this.parkingRepository.query(query))
-  }
-  private createWhereClause(filters?: FiltersInput): string {
-    if(!filters) return '';
-    const conditions = [];
 
-    if (filters.priceMonthly !== undefined) {
-      conditions.push(`priceMonthly = ${filters.priceMonthly}`);
-    }
 
-    if (filters.pricePerMinute !== undefined) {
-      conditions.push(`pricePerMinute = ${filters.pricePerMinute}`);
-    }
-
-    if (filters.parkingType !== undefined) {
-      conditions.push(`type = ${filters.parkingType}`);
-    }
-
-    if (conditions.length === 0) {
-      return '';
-    }
-
-    const whereClause = conditions.join(' AND ');
-    return `WHERE ${whereClause}`;
-  }
 }

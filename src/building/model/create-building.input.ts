@@ -1,6 +1,5 @@
 import { ArgsType, Field, InputType } from "@nestjs/graphql";
-import { PhotoEntity } from "../../photo/entity/photo.entity";
-import { Column } from "typeorm";
+import { PointInput } from "../../parking/model/point.input";
 
 @InputType()
 @ArgsType()
@@ -9,8 +8,14 @@ export class CreateBuildingInput {
   address: string;
   @Field(() => String, { description: 'phone number of the building' })
   phoneNumber: string;
-  @Field(() => String, { description: 'photo of the building'})
+  @Field(() => String, { description: 'photo of the building', nullable: true})
   photo: string;
   @Field(() => String, { description: 'name of the building' })
   name: string;
+  @Field(() => PointInput)
+  location: PointInput
+  @Field(() => String)
+  floors: string
+  @Field(() => String, {nullable: true})
+  description?: string
 }

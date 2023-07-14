@@ -83,7 +83,7 @@ export class UserService {
     );
   }
   removeUser(userId: string): Observable<UserEntity> {
-    if (uuid.validate(userId)) {
+    if (!uuid.validate(userId)) {
       throw new UUIDBadFormatException();
     }
     return from(

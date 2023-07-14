@@ -38,7 +38,7 @@ export class ScheduleService {
     return this.parkingService.findParkingById(parkingId).pipe(switchMap(() => createSchedule))
   }
   removeSchedule(scheduleId: string): Observable<ScheduleEntity> {
-    if (uuid.validate(scheduleId)) {
+    if (!uuid.validate(scheduleId)) {
       throw new UUIDBadFormatException();
     }
     return this.findScheduleById(scheduleId).pipe(

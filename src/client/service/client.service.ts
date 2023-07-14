@@ -59,7 +59,7 @@ export class ClientService {
     );
   }
   removeClient(clientId: string): Observable<ClientEntity> {
-    if (uuid.validate(clientId)) {
+    if (!uuid.validate(clientId)) {
       throw new UUIDBadFormatException();
     }
     return from(

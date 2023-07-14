@@ -24,7 +24,7 @@ export class AuthResolver {
   createUser(@Args('createUserInput') createUserInput: CreateUserInput) {
     return this.authService.createUser(createUserInput);
   }
-  @Mutation(() => UserEntity)
+  @Mutation(() => ClientEntity)
   @Public()
   @UseGuards(JwtAuthGuard)
   createClient(

@@ -4,12 +4,10 @@ import { BaseEntityWithIdAbstract } from "../../utils/interfaces/base-entity-wit
 @InputType()
 @ArgsType()
 export class CreatePhotoInput {
-  @Field(() => String)
-  id: string;
   @Field(() => String, { nullable: true})
   url?: string;
-  @Field(() => String, { nullable: true})
-  name?: string;
-  @Field(() => String, { nullable: true })
+  @Field(() => String)
+  name: string;
+  @Field(() => String)
   creatorId: string;
 }

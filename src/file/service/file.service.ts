@@ -80,10 +80,10 @@ export class FileService {
         width: MAX_WIDTH,
         height: Math.round(MAX_WIDTH * ratio),
         fit: 'cover',
-      });
+      })
     }
 
-    compressBuffer = await compressBuffer.toBuffer();
+    compressBuffer = await compressBuffer.rotate().toBuffer();
     for (let i = 0; i < QUALITY_ARRAY.length; i++) {
       const quality = QUALITY_ARRAY[i];
       const smallerBuffer = await sharp(compressBuffer)

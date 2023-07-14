@@ -1,4 +1,4 @@
-import { Args, Context, Mutation, Query, Resolver } from "@nestjs/graphql";
+import { Args, Context, Int, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { ParkingEntity } from "../entity/parking.entity";
 import { UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
@@ -18,6 +18,7 @@ import { ClientEntity } from "../../client/entity/client.entity";
 import { UserEntity } from "../../user/entity/user.entity";
 import { FiltersInput } from "../model/filters.input";
 import { ParkingOutput } from "../model/parking.output";
+import { BuildingEntity } from "../../building/entity/building.entity";
 
 @Resolver(() => ParkingEntity)
 export class ParkingResolver {
@@ -31,11 +32,13 @@ export class ParkingResolver {
   findAllParkings() {
     return this.parkingService.findAllParkings();
   }
-  @Query(() => [ParkingEntity], { name: 'findAllReservableParkings' })
+  @Query(() => [ParkingEntity], { name: 'findAllReservableParkingsByBuildingId' })
   @UserType(UserTypesEnum.USER)
   @UseGuards(JwtAuthGuard, UserTypeGuard)
-  findAllReservableParkings(@CurrentUser() user: UserEntity) {
-    return this.parkingService.findAllReservableParkings(user.id);
+  findAllReservableParkingsByBuildingId(
+    @Args('buildingId', { type: () => String }) buildingId: string,
+    @CurrentUser() user: UserEntity) {
+    return this.parkingService.findAllReservableParkingsByBuildingId(user.id, buildingId);
   }
   @Query(() => ParkingEntity, { name: 'findOneParkingById' })
   findOneParkingById(@Args('parkingId', { type: () => String }) parkingId: string) {
@@ -46,8 +49,13 @@ export class ParkingResolver {
     return this.parkingService.findParkingByBuildingId(buildingId);
   }
   @Query(() => ParkingEntity, { name: 'findOneParkingByBuildingPositionCode' })
-  findOneParkingByBuildingPositionCode(@Args('buildingPositionCode', { type: () => String }) buildingPositionCode: string) {
-    return this.parkingService.findParkingByBuildingPositionCode(buildingPositionCode);
+  findOneParkingByBuildingPositionCode(
+    @Args('code', { type: () => String }) code: string,
+    @Args('floor', { type: () => Int }) floor: number,
+    @Args('section', { type: () => String }) section: string
+
+  ) {
+    return this.parkingService.findParkingByBuildingPositionCode(code, floor, section);
   }
   @Mutation(() => ParkingEntity, {name: 'updateParking'})
   updateParking(
@@ -65,11 +73,10 @@ export class ParkingResolver {
   createParking(
     @Args('createParkingInput') createParkingInput: CreateParkingInput,
     @Args('buildingId') buildingId: string,
-    @Args('tagsIds', {type: () => [String], nullable: true}) tagsIds?: string[],
     @Args('userId', { nullable: true}) userId?: string,
     @Args('clientId', { nullable: true}) clientId?: string,
   ) {
-    return this.parkingService.createParking(createParkingInput, buildingId, tagsIds, clientId, userId);
+    return this.parkingService.createParking(createParkingInput, buildingId, clientId, userId);
   }
   @Mutation(() => ParkingEntity)
   setParkingPhoto(
@@ -77,18 +84,17 @@ export class ParkingResolver {
     @Args('createPhotoInput') createPhotoInput: CreatePhotoInput,
     @Args('file', { type: () => GraphQLUpload , nullable: true}) file?: FileUpload,
   ): Observable<ParkingEntity> {
-    console.log(file);
     return this.parkingService.setParkingPhoto(parkingId, createPhotoInput, file);
   }
-  @Query(() => [ParkingOutput], { name: 'getAllNearbyAndReservableParkings' })
-  @UserType(UserTypesEnum.USER)
-  @UseGuards(JwtAuthGuard, UserTypeGuard)
-  getAllNearbyAndReservableParkings(
-    @Args('distance') distance: number,
-    @Args( 'point') point: PointInput,
-    @CurrentUser() user: UserEntity,
-    @Args('filters', { nullable: true}) filters?: FiltersInput,
-  ): any {
-    return this.parkingService.getAllNearbyAndReservableParkings(user, point, distance, filters)
-  }
+  // @Query(() => [ParkingOutput], { name: 'getAllNearbyAndReservableParkings' })
+  // @UserType(UserTypesEnum.USER)
+  // @UseGuards(JwtAuthGuard, UserTypeGuard)
+  // getAllNearbyAndReservableParkings(
+  //   @Args('distance') distance: number,
+  //   @Args( 'point') point: PointInput,
+  //   @CurrentUser() user: UserEntity,
+  //   @Args('filters', { nullable: true}) filters?: FiltersInput,
+  // ): any {
+  //   return this.parkingService.getAllNearbyAndReservableParkings(user, point, distance, filters)
+  // }
 }

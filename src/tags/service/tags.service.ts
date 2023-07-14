@@ -26,7 +26,7 @@ export class TagsService {
     )
   }
   removeTag(tagId: string): Observable<TagsEntity> {
-    if (uuid.validate(tagId)) {
+    if (!uuid.validate(tagId)) {
       throw new UUIDBadFormatException();
     }
     return from(
@@ -52,7 +52,7 @@ export class TagsService {
     );
   }
   findTagById(tagId: string): Observable<TagsEntity> {
-    if (uuid.validate(tagId)) {
+    if (!uuid.validate(tagId)) {
       throw new UUIDBadFormatException();
     }
     return this.getTagById(tagId).pipe(
@@ -63,11 +63,11 @@ export class TagsService {
       })
     )
   }
-  findTagsByParkingId(parkingId: string): Observable<TagsEntity[]> {
-    if (uuid.validate(parkingId)) {
+  findTagsByBuildingId(buildingId: string): Observable<TagsEntity[]> {
+    if (!uuid.validate(buildingId)) {
       throw new UUIDBadFormatException();
     }
-    return this.getTagsByParkingId(parkingId).pipe(
+    return this.getTagsByBuildingId(buildingId).pipe(
       map((t) => {
         if(!t)
           throw new NotFoundException()
@@ -77,19 +77,19 @@ export class TagsService {
   }
   findAllTagsByIds(tagsIds: string[]): Observable<TagsEntity[]> {
     tagsIds.forEach((id) => {
-      if (uuid.validate(id)) {
+      if (!uuid.validate(id)) {
         throw new UUIDBadFormatException();
       }
     })
     return this.getTagsByIds(tagsIds);
   }
-  private getTagsByParkingId(parkingId: string) : Observable<TagsEntity[]> {
+  private getTagsByBuildingId(buildingId: string) : Observable<TagsEntity[]> {
     return from(
       this.tagsRepository.find(
         {
           where: {
-            parkings: {
-              id: parkingId
+            buildings: {
+              id: buildingId
             }
           }
         }

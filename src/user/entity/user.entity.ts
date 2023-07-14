@@ -15,16 +15,16 @@ export class UserEntity extends BaseCustomer {
   @Column({ type: 'enum', enum: UserTypesEnum })
   @Field(() => UserTypesEnum, { description: 'type of the user' })
   userType: UserTypesEnum;
-  @OneToMany(() => ParkingEntity, (p) => p.userOwner, {onUpdate: "CASCADE"})
-  @Field(() => [ParkingEntity])
+  @OneToMany(() => ParkingEntity, (p) => p.userOwner, {onUpdate: "CASCADE", nullable: true})
+  @Field(() => [ParkingEntity], {nullable: true})
   parkingList: ParkingEntity[];
-  @ManyToMany(() => ParkingEntity, (p) => p.blockedUsers)
-  @Field(() => [ParkingEntity], { description: 'validated phone' })
+  @ManyToMany(() => ParkingEntity, (p) => p.blockedUsers , {nullable: true})
+  @Field(() => [ParkingEntity], { description: 'validated phone' , nullable: true})
   restrictedParkings: ParkingEntity[];
-  @OneToMany(() => VehicleEntity, (v) => v.owner, {onUpdate: "CASCADE"})
-  @Field(() => [VehicleEntity])
+  @OneToMany(() => VehicleEntity, (v) => v.owner, {onUpdate: "CASCADE", nullable: true, eager: true})
+  @Field(() => [VehicleEntity], {nullable: true})
   vehicleList: VehicleEntity[]
-  @OneToMany(() => BookingEntity, (b) => b.user, {onUpdate: "CASCADE"})
-  @Field(() => [BookingEntity])
+  @OneToMany(() => BookingEntity, (b) => b.user, {onUpdate: "CASCADE", nullable: true})
+  @Field(() => [BookingEntity], {nullable: true})
   bookings: BookingEntity[]
 }

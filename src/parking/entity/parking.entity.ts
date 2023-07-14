@@ -1,4 +1,4 @@
-import { Field, Float, ObjectType } from "@nestjs/graphql";
+import { Field, Float, Int, ObjectType } from "@nestjs/graphql";
 import { Column, Entity, Index, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, Point } from "typeorm";
 import { BaseEntityWithIdAbstract } from "../../utils/interfaces/base-entity-with-id.abstract";
 import { UserEntity } from "../../user/entity/user.entity";
@@ -29,34 +29,31 @@ export class ParkingEntity extends BaseEntityWithIdAbstract{
   @Column()
   @Field(() => String)
   address: string
-  @Index({ spatial: true })
-  @Column({
-    type: 'geography',
-    spatialFeatureType: 'Point',
-    srid: 4326,
-    nullable: true,
-  })
-  @Field(() => GeometryGQL)
-  location: Point
+  @Column()
+  @Field(() => Int)
+  floor: number
   @Column()
   @Field(() => String)
-  buildingPositionCode: string
+  section: string
   @Column()
-  @Field(() => ParkingType)
+  @Field(() => String)
+  code: string
+  @Column()
+  @Field(() => Int)
   type: ParkingType
-  @Column()
-  @Field(() => String)
+  @Column({nullable: true})
+  @Field(() => String, {nullable: true})
   photo: string
   @ManyToMany(() => UserEntity, (u) => u.restrictedParkings)
   @JoinTable(
     {
       name: 'blocked_user_parkings',
       joinColumn: {
-        name: "userId",
+        name: "parkingId",
         referencedColumnName: "id"
       },
       inverseJoinColumn: {
-        name: "parkingId",
+        name: "userId",
         referencedColumnName: "id"
       }
     }
@@ -76,26 +73,17 @@ export class ParkingEntity extends BaseEntityWithIdAbstract{
   @Field(() => String)
   priceYearly: string
   @ManyToOne(() => UserEntity, (u) => u.parkingList, {eager: true, nullable: true})
-  @JoinColumn([
-    { name: "userId", referencedColumnName: "id" }]
-  )
   @Field(() => UserEntity, {nullable: true})
   userOwner: UserEntity
   @ManyToOne(() => ClientEntity, (c) => c.parkingList, {eager: true, nullable: true})
-  @JoinColumn([
-    { name: "clientId", referencedColumnName: "id" }]
-  )
   @Field(() => ClientEntity, {nullable: true})
   clientOwner: ClientEntity
-  @OneToMany(() => ScheduleEntity, (p) => p.parking)
+  @OneToMany(() => ScheduleEntity, (p) => p.parking, {eager: true, nullable: true})
   @Field(() => [ScheduleEntity])
-  schedule: ScheduleEntity[];
-  @ManyToOne(() => BuildingEntity, (b) => b.parkingList, {eager: true})
+  schedule?: ScheduleEntity[];
+  @ManyToOne(() => BuildingEntity, (b) => b.parkingList)
   @Field(() => BuildingEntity)
   building: BuildingEntity
-  @ManyToMany(() => TagsEntity, (t) => t.parkings, {eager: true, nullable: true})
-  @Field(() => [TagsEntity])
-  tags: TagsEntity[]
   @OneToMany(() => BookingEntity, (b) => b.parking)
   @Field(() => [BookingEntity])
   bookings: BookingEntity[]
