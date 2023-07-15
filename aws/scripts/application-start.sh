@@ -2,4 +2,4 @@
 set -xe
 
 # Start Tomcat, the application server.
-npm run start
+npm start
