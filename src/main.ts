@@ -16,7 +16,7 @@ async function bootstrap() {
   );
   app.enableShutdownHooks();
   app.useGlobalPipes(new ValidationPipe());
-  await app.listen(3000);
+  await app.listen(8080);
   if (module.hot) {
     module.hot.accept();
     module.hot.dispose(() => app.close());
