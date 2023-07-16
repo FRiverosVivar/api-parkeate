@@ -21,7 +21,7 @@ import { TagsModule } from "./tags/tags.module";
 import { BookingModule } from "./booking/booking.module";
 import { PlacesService } from "./utils/places/places.service";
 import { PlacesModule } from "./utils/places/places.module";
-
+import * as fs from 'fs'
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -46,6 +46,14 @@ import { PlacesModule } from "./utils/places/places.module";
       database: process.env.PG_DB,
       autoLoadEntities: true,
       synchronize: true,
+      ssl: {
+        ca: fs.readFileSync('./develop.pem')
+      },
+      extra: {
+        ssl: {
+          rejectUnauthorized: false
+        }
+      }
     }),
     FileModule.forRoot(config()),
     PhotoModule,
