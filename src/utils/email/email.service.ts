@@ -33,7 +33,7 @@ export class EmailService implements OnModuleInit {
     const template = readFileSync(
       path.resolve(
         __dirname +
-          '\\templates\\' +
+          '\/templates\/' +
           EmailTypesCode[emailType] +
           '.template.html',
       ),
