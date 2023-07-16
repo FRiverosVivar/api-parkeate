@@ -30,6 +30,10 @@ export class EmailService implements OnModuleInit {
     await this.verifyListOfEmailTemplates();
   }
   private getEmailTemplate(emailType: EmailTypesEnum): string | undefined {
+    console.log(__dirname +
+      '/templates/' +
+      EmailTypesCode[emailType] +
+      '.template.html')
     const template = readFileSync(
       path.resolve(
         __dirname +
