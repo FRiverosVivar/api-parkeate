@@ -48,7 +48,7 @@ export class EmailService implements OnModuleInit {
   ) {
     return this.SESClient.send(
       new SendTemplatedEmailCommand({
-        Source: 'no-reply@parkeate.app',
+        Source: 'francoriverosvivar@gmail.com',
         Destination: {
           ToAddresses: [destination],
         },
