@@ -30,10 +30,6 @@ export class EmailService implements OnModuleInit {
     await this.verifyListOfEmailTemplates();
   }
   private getEmailTemplate(emailType: EmailTypesEnum): string | undefined {
-    console.log(__dirname +
-      '/templates/' +
-      EmailTypesCode[emailType] +
-      '.template.html')
     const template = readFileSync(
       path.resolve(
         __dirname +
@@ -52,15 +48,14 @@ export class EmailService implements OnModuleInit {
   ) {
     return this.SESClient.send(
       new SendTemplatedEmailCommand({
-        // SendTemplatedEmailRequest
-        Source: 'francoriverosvivar@gmail.com',
+        Source: 'no-reply@parkeate.app',
         Destination: {
           ToAddresses: [destination],
         },
         Tags: [
           {
-            Name: 'Prueba',
-            Value: 'Test',
+            Name: EmailTypesCode[emailType],
+            Value: EmailTypesCode[emailType],
           },
         ],
         Template: EmailTypesCode[emailType],
