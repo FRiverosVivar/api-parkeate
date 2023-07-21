@@ -296,7 +296,6 @@ export class BookingService implements OnModuleInit {
     this.scheduler.addCronJob(bookingId, job)
   }
   async executeStateChangeFromBooking(cron: CronEntity, dateExtended?: boolean) {
-    console.log('executing CHANGE')
     const updateBookingInput: UpdateBookingInput = {
       id: cron.bookingId,
       bookingState: cron.stateWhenEnd

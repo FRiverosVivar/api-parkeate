@@ -121,7 +121,6 @@ export class BuildingService {
       map((v) => {
         if(!v)
           throw new NotFoundException()
-        console.log(v)
         return v;
       })
     )
@@ -150,7 +149,6 @@ export class BuildingService {
       select * from
       get_nearby_and_available_buildings('${user.id}', ${point.coordinates[0]}, ${point.coordinates[1]}, ${distance} , ${parkingType ? parkingType: -1})
       `
-    console.log(query)
     return from(this.buildingRepository.query(query))
   }
   // private createWhereClause(filters?: FiltersInput): string {
