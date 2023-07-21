@@ -7,4 +7,6 @@ import { BasicCustomerInputAbstract } from "../../../utils/interfaces/basic-cust
 export class CreateUserInput extends BasicCustomerInputAbstract {
   @Field(() => Int, { description: 'type of the user' })
   userType: UserTypesEnum;
+  @Field(() => Int, { nullable: true})
+  wallet: number
 }

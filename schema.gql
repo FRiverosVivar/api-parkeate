@@ -157,9 +157,9 @@ type BookingEntity {
   initialPrice: Float!
   dateStart: DateTime!
   dateEnd: DateTime!
-  dateExtended: DateTime!
-  timeFinalized: DateTime!
-  finalPrice: Float!
+  dateExtended: DateTime
+  timeFinalized: DateTime
+  finalPrice: Float
 }
 
 enum BookingTypes {
@@ -170,6 +170,7 @@ enum BookingTypes {
 
 enum BookingStates {
   CANCELED
+  PAYMENT_REQUIRED
   RESERVED
   FINALIZED
 }
@@ -267,6 +268,7 @@ type UserEntity {
   restrictedParkings: [ParkingEntity!]
   vehicleList: [VehicleEntity!]
   bookings: [BookingEntity!]
+  wallet: Int
 }
 
 enum UserTypesEnum {
@@ -367,6 +369,8 @@ type Query {
   getHoldingById(holdingId: String!): HoldingEntity!
   getOrderNumberByCountingBookings: Int!
   findBookingById(bookingId: String!): BookingEntity!
+  updateBookingParking(bookingId: String!, parkingId: String!): BookingEntity!
+  updateBookingUser(bookingId: String!, userId: String!): BookingEntity!
 }
 
 input PointInput {
@@ -409,8 +413,8 @@ type Mutation {
   setHoldingPhoto(holdingId: String!, photoInput: CreatePhotoInput!, photo: Upload!): HoldingEntity!
   removeHolding(holdingId: String!): UserEntity!
   createHolding(createHoldingInput: CreateHoldingInput!, clientsIds: String!): UserEntity!
-  createBooking(createBookingInput: CreateBookingInput!, parkingId: String!, userId: String!): BookingEntity!
-  updateBooking(updateBookingInput: UpdateBookingInput!, parkingId: String!, userId: String!): BookingEntity!
+  createBooking(createBookingInput: CreateBookingInput!, parkingId: String!): BookingEntity!
+  updateBooking(updateBookingInput: UpdateBookingInput!): BookingEntity!
   removeBooking(bookingId: String!): BookingEntity!
 }
 
@@ -576,6 +580,7 @@ input CreateUserInput {
 
   """type of the user"""
   userType: Int!
+  wallet: Int
 }
 
 input CreateClientInput {
@@ -643,6 +648,7 @@ input UpdateUserInput {
 
   """type of the user"""
   userType: Int
+  wallet: Int
   id: String!
 }
 
@@ -722,24 +728,21 @@ input CreateHoldingInput {
 }
 
 input CreateBookingInput {
-  bookingType: BookingTypes!
-  bookingState: BookingStates!
+  bookingType: Int!
+  bookingState: Int!
   initialPrice: Float!
-  dateStart: DateTime!
-  dateEnd: DateTime!
-  dateExtended: DateTime!
-  timeFinalized: DateTime!
-  finalPrice: Float!
+  dateStart: String!
+  dateEnd: String
 }
 
 input UpdateBookingInput {
-  bookingType: BookingTypes
-  bookingState: BookingStates
+  bookingType: Int
+  bookingState: Int
   initialPrice: Float
-  dateStart: DateTime
-  dateEnd: DateTime
+  dateStart: String
+  dateEnd: String
+  id: String!
   dateExtended: DateTime
   timeFinalized: DateTime
   finalPrice: Float
-  id: String!
 }

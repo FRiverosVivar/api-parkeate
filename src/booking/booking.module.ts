@@ -1,4 +1,4 @@
-import { Global, Module } from "@nestjs/common";
+import { forwardRef, Global, Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { BookingEntity } from "./entity/booking.entity";
 import { registerEnumType } from "@nestjs/graphql";
@@ -9,6 +9,8 @@ import { BookingResolver } from "./resolver/booking.resolver";
 import { EmailService } from "../utils/email/email.service";
 import { SmsService } from "../utils/sms/sms.service";
 import { SchedulerRegistry } from "@nestjs/schedule";
+import { CronService } from "../utils/cron/cron.service";
+import { CronModule } from "../utils/cron/cron.module";
 registerEnumType(BookingTypesEnum,{
   name: 'BookingTypes'
 })

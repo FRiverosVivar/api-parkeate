@@ -9,26 +9,27 @@ import { UserTypeGuard } from "../../auth/guards/user-type.guard";
 import { UserTypesEnum } from "../../user/constants/constants";
 import { UserType } from "../../auth/decorator/user-type.decorator";
 import { Observable } from "rxjs";
+import { CurrentUser } from "../../auth/decorator/current-user.decorator";
+import { UserEntity } from "../../user/entity/user.entity";
 
 @Resolver(BookingEntity)
 export class BookingResolver {
   constructor(private readonly bookingService: BookingService) {}
 
   @Mutation(() => BookingEntity)
+  @UseGuards(JwtAuthGuard)
   createBooking(
     @Args('createBookingInput') createBookingInput: CreateBookingInput,
     @Args('parkingId') parkingId: string,
-    @Args('userId') userId: string,
+    @CurrentUser() user: UserEntity,
   ) {
-    return this.bookingService.createBooking(createBookingInput, parkingId, userId);
+    return this.bookingService.createBooking(createBookingInput, parkingId, user.id);
   }
   @Mutation(() => BookingEntity)
   updateBooking(
     @Args('updateBookingInput') updateBookingInput: UpdateBookingInput,
-    @Args('parkingId') parkingId: string,
-    @Args('userId') userId: string,
   ) {
-    return this.bookingService.updateBooking(updateBookingInput, parkingId, userId);
+    return this.bookingService.updateBooking(updateBookingInput);
   }
   @Mutation(() => BookingEntity)
   @UserType(UserTypesEnum.ADMIN)
@@ -47,5 +48,18 @@ export class BookingResolver {
     @Args('bookingId') bookingId: string,
   ) {
     return this.bookingService.findBookingById(bookingId);
+  }
+  @Query(() => BookingEntity)
+  updateBookingParking(
+    @Args('bookingId') bookingId: string,
+    @Args('parkingId') parkingId: string) {
+    return this.bookingService.changeBookingParking(bookingId,parkingId)
+  }
+  @Query(() => BookingEntity)
+  updateBookingUser(
+    @Args('bookingId') bookingId: string,
+    @Args('userId') userId: string
+  ) {
+    return this.bookingService.changeBookingUser(bookingId, userId)
   }
 }

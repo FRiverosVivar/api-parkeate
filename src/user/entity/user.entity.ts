@@ -2,7 +2,7 @@ import {
   Column,
   Entity, ManyToMany, OneToMany
 } from "typeorm";
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, Int, ObjectType } from "@nestjs/graphql";
 import { UserTypesEnum } from '../constants/constants';
 import { BaseCustomer } from '../../utils/interfaces/base-customer.abstract';
 import { ParkingEntity } from "../../parking/entity/parking.entity";
@@ -27,4 +27,7 @@ export class UserEntity extends BaseCustomer {
   @OneToMany(() => BookingEntity, (b) => b.user, {onUpdate: "CASCADE", nullable: true})
   @Field(() => [BookingEntity], {nullable: true})
   bookings: BookingEntity[]
+  @Column({ nullable: true})
+  @Field(() => Int, { nullable: true})
+  wallet: number
 }

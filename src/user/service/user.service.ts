@@ -42,6 +42,7 @@ export class UserService {
     private placesService: PlacesService,
   ) {}
   createUser(userDTO: CreateUserInput): Observable<UserEntity> {
+    userDTO.wallet = 0;
     const user = this.userRepository.create(userDTO);
     user.parkingList = [];
     const emailSubject = from(

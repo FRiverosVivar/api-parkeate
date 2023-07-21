@@ -1,24 +1,18 @@
-import { ArgsType, Field, InputType } from "@nestjs/graphql";
+import { ArgsType, Field, InputType, Int } from "@nestjs/graphql";
 import { BookingTypesEnum } from "../enum/booking-types.enum";
 import { BookingStatesEnum } from "../enum/booking-states.enum";
 
 @InputType()
 @ArgsType()
 export class CreateBookingInput {
-  @Field(() => BookingTypesEnum)
+  @Field(() => Int)
   bookingType: BookingTypesEnum
-  @Field(() => BookingStatesEnum)
+  @Field(() => Int)
   bookingState: BookingStatesEnum
   @Field(() => Number)
   initialPrice: number
-  @Field(() => Date)
-  dateStart: Date
-  @Field(() => Date)
-  dateEnd: Date
-  @Field(() => Date)
-  dateExtended: Date
-  @Field(() => Date)
-  timeFinalized: Date
-  @Field(() => Number)
-  finalPrice: number
+  @Field(() => String)
+  dateStart: string
+  @Field(() => String, {nullable: true})
+  dateEnd: string
 }

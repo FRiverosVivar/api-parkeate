@@ -24,19 +24,19 @@ export class BookingEntity extends BaseEntityWithIdAbstract {
   @Column()
   @Field(() => Number)
   initialPrice: number
-  @Column({type: 'timestamptz'})
+  @Column({type: 'timestamptz', nullable: true})
   @Field(() => Date)
   dateStart: Date
-  @Column({type: 'timestamptz'})
+  @Column({type: 'timestamptz', nullable: true})
   @Field(() => Date)
   dateEnd: Date
-  @Column({type: 'timestamptz'})
-  @Field(() => Date)
+  @Column({type: 'timestamptz', nullable: true})
+  @Field(() => Date, {nullable: true})
   dateExtended: Date
-  @Column({type: 'timestamptz'})
-  @Field(() => Date)
+  @Column({type: 'timestamptz', nullable: true})
+  @Field(() => Date, {nullable: true})
   timeFinalized: Date
-  @Column()
-  @Field(() => Number)
+  @Column({nullable: true})
+  @Field(() => Number,{nullable: true})
   finalPrice: number
 }

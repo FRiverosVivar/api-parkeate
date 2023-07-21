@@ -14,4 +14,4 @@ registerEnumType(ScheduleDaysEnum, {
   providers: [ScheduleService, ScheduleResolver],
   exports: [ScheduleService, ScheduleResolver],
 })
-export class ScheduleModule {}
+export class SchedulesModule {}
