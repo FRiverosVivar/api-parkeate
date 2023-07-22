@@ -58,6 +58,14 @@ import { ScheduleModule } from "@nestjs/schedule";
       //     rejectUnauthorized: false
       //   }
       // }
+      ssl: {
+        ca: fs.readFileSync('./develop.pem')
+      },
+      extra: {
+        ssl: {
+          rejectUnauthorized: false
+        }
+      }
     }),
     FileModule.forRoot(config()),
     PhotoModule,
