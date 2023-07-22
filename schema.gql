@@ -2,6 +2,84 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type VehicleEntity {
+  """id of the entity"""
+  id: String!
+
+  """creation date of the entity"""
+  createdAt: DateTime!
+
+  """update date of the entity"""
+  updatedAt: DateTime!
+  model: String!
+
+  """patente"""
+  carPlate: String!
+
+  """color"""
+  color: String!
+  owner: UserEntity!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type UserEntity {
+  """id of the entity"""
+  id: String!
+
+  """creation date of the entity"""
+  createdAt: DateTime!
+
+  """update date of the entity"""
+  updatedAt: DateTime!
+
+  """photo of the user"""
+  profilePhoto: String
+
+  """rut of the user"""
+  rut: String!
+
+  """name of the holding"""
+  fullname: String!
+
+  """email of the user"""
+  email: String!
+
+  """phone number of the user"""
+  phoneNumber: String!
+
+  """hashed password of the user"""
+  password: String!
+
+  """validated email"""
+  validatedEmail: Boolean!
+
+  """validated phone"""
+  validatedPhone: Boolean!
+  validatedAccount: Boolean!
+
+  """type of the user"""
+  userType: UserTypesEnum!
+  parkingList: [ParkingEntity!]
+
+  """validated phone"""
+  restrictedParkings: [ParkingEntity!]
+  vehicleList: [VehicleEntity!]
+  bookings: [BookingEntity!]
+  wallet: Int
+}
+
+enum UserTypesEnum {
+  ROOT
+  ADMIN
+  ROOT_MANAGER
+  MANAGER
+  USER
+}
+
 type HoldingEntity {
   """id of the entity"""
   id: String!
@@ -30,11 +108,6 @@ type HoldingEntity {
   """creation date of the user"""
   clientList: [ClientEntity!]!
 }
-
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
 
 type TagsEntity {
   """id of the entity"""
@@ -141,6 +214,37 @@ type ScheduleEntity {
   parking: ParkingEntity!
 }
 
+type ParkingEntity {
+  """id of the entity"""
+  id: String!
+
+  """creation date of the entity"""
+  createdAt: DateTime!
+
+  """update date of the entity"""
+  updatedAt: DateTime!
+  active: Boolean!
+  reserved: Boolean!
+  name: String!
+  blocked: Boolean!
+  address: String!
+  floor: Int!
+  section: String!
+  code: String!
+  type: Int!
+  photo: String
+  blockedUsers: [UserEntity!]!
+  tax: String!
+  pricePerMinute: String!
+  priceMonthly: String!
+  priceYearly: String!
+  userOwner: UserEntity
+  clientOwner: ClientEntity
+  schedule: [ScheduleEntity!]!
+  building: BuildingEntity!
+  bookings: [BookingEntity!]!
+}
+
 type BookingEntity {
   """id of the entity"""
   id: String!
@@ -173,110 +277,6 @@ enum BookingStates {
   PAYMENT_REQUIRED
   RESERVED
   FINALIZED
-}
-
-type ParkingEntity {
-  """id of the entity"""
-  id: String!
-
-  """creation date of the entity"""
-  createdAt: DateTime!
-
-  """update date of the entity"""
-  updatedAt: DateTime!
-  active: Boolean!
-  reserved: Boolean!
-  name: String!
-  blocked: Boolean!
-  address: String!
-  floor: Int!
-  section: String!
-  code: String!
-  type: Int!
-  photo: String
-  blockedUsers: [UserEntity!]!
-  tax: String!
-  pricePerMinute: String!
-  priceMonthly: String!
-  priceYearly: String!
-  userOwner: UserEntity
-  clientOwner: ClientEntity
-  schedule: [ScheduleEntity!]!
-  building: BuildingEntity!
-  bookings: [BookingEntity!]!
-}
-
-type VehicleEntity {
-  """id of the entity"""
-  id: String!
-
-  """creation date of the entity"""
-  createdAt: DateTime!
-
-  """update date of the entity"""
-  updatedAt: DateTime!
-  model: String!
-
-  """patente"""
-  carPlate: String!
-
-  """color"""
-  color: String!
-  owner: UserEntity!
-}
-
-type UserEntity {
-  """id of the entity"""
-  id: String!
-
-  """creation date of the entity"""
-  createdAt: DateTime!
-
-  """update date of the entity"""
-  updatedAt: DateTime!
-
-  """photo of the user"""
-  profilePhoto: String
-
-  """rut of the user"""
-  rut: String!
-
-  """name of the holding"""
-  fullname: String!
-
-  """email of the user"""
-  email: String!
-
-  """phone number of the user"""
-  phoneNumber: String!
-
-  """hashed password of the user"""
-  password: String!
-
-  """validated email"""
-  validatedEmail: Boolean!
-
-  """validated phone"""
-  validatedPhone: Boolean!
-  validatedAccount: Boolean!
-
-  """type of the user"""
-  userType: UserTypesEnum!
-  parkingList: [ParkingEntity!]
-
-  """validated phone"""
-  restrictedParkings: [ParkingEntity!]
-  vehicleList: [VehicleEntity!]
-  bookings: [BookingEntity!]
-  wallet: Int
-}
-
-enum UserTypesEnum {
-  ROOT
-  ADMIN
-  ROOT_MANAGER
-  MANAGER
-  USER
 }
 
 type UserLoginResponse {

@@ -15,10 +15,10 @@ export class BookingEntity extends BaseEntityWithIdAbstract {
   @Column()
   @Field(() => BookingStatesEnum)
   bookingState: BookingStatesEnum
-  @ManyToOne(() => ParkingEntity, (p) => p.bookings, {eager: true}  )
+  @ManyToOne(() => ParkingEntity, (p) => p.bookings, {eager: true})
   @Field(() => ParkingEntity)
   parking: ParkingEntity
-  @ManyToOne(() => UserEntity, (p) => p.bookings, {eager: true}  )
+  @ManyToOne(() => UserEntity, (p) => p.bookings, {eager: true})
   @Field(() => UserEntity)
   user: UserEntity
   @Column()

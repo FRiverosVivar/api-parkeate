@@ -52,6 +52,13 @@ export class CronService{
     }
     return this.cronRepository.save(this.cronRepository.create(input))
   }
+  deleteCronByBookingId(bookingId: string) {
+    return this.cronRepository.delete(
+      {
+        bookingId: bookingId
+      }
+    )
+  }
   saveCron(cron: CronEntity) {
     return this.cronRepository.save(cron)
   }

@@ -22,7 +22,7 @@ export class UserResolver {
 
   @Query(() => UserEntity, { name: 'userById' })
   findOne(@Args('userId', { type: () => String }) userId: string) {
-    return this.userService.findUserById(userId).pipe(tap((b) => console.log(b)))
+    return this.userService.findUserById(userId)
   }
   @Query(() => UserEntity, { name: 'userByRut', nullable: true })
   findOneByRut(@Args('rut', { type: () => String }) rut: string): Observable< UserEntity | null> {
