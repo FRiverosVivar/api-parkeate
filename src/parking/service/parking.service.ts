@@ -33,7 +33,7 @@ export class ParkingService {
     const owner = clientId ? this.clientService.findClientById(clientId) : userId ? this.userService.findUserById(userId) : undefined;
     if(!owner)throw new BadRequestException();
 
-    return this.getParkingByBuildingPositionCode(parking.code, parking.floor, parking.section).pipe(
+    return this.getParkingByBuildingPositionCode(parking.code, parking.floor, parking.section, buildingId).pipe(
       switchMap((p) => {
         if(p)
           throw new DuplicatedParkingInBuildingException()
@@ -122,11 +122,11 @@ export class ParkingService {
   findAllParkings(): Observable<ParkingEntity[]> {
     return from(this.parkingRepository.find());
   }
-  findParkingByBuildingPositionCode(code: string, floor: number, section: string): Observable<ParkingEntity> {
+  findParkingByBuildingPositionCode(code: string, floor: number, section: string, buildingId: string): Observable<ParkingEntity> {
     if(code === '')
       throw new BadRequestException()
 
-    return this.getParkingByBuildingPositionCode(code, floor, section).pipe(
+    return this.getParkingByBuildingPositionCode(code, floor, section, buildingId).pipe(
       map((p) => {
         if(!p)
           throw new NotFoundException()
@@ -178,10 +178,13 @@ export class ParkingService {
       })
     )
   }
-  private getParkingByBuildingPositionCode(code: string, floor: number, section: string ): Observable<ParkingEntity | null> {
+  private getParkingByBuildingPositionCode(code: string, floor: number, section: string, buildingId: string ): Observable<ParkingEntity | null> {
     return from(
       this.parkingRepository.findOne({
         where: {
+          building: {
+            id: buildingId
+          },
           floor: floor,
           code: code,
           section: section

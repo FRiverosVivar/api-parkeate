@@ -121,9 +121,31 @@ export class BuildingService {
       map((v) => {
         if(!v)
           throw new NotFoundException()
+
         return v;
       })
     )
+  }
+  findBuildingsByClientId(clientId: string): Observable<BuildingEntity[]> {
+      if (!uuid.validate(clientId)) {
+        throw new UUIDBadFormatException();
+      }
+      return this.getBuildingsByClientId(clientId).pipe(
+        map((v) => {
+          if(!v)
+            throw new NotFoundException()
+          return v;
+        })
+      )
+  }
+  getBuildingsByClientId(clientId: string): Observable<BuildingEntity[] | null> {
+    return from(this.buildingRepository.find({
+      where: {
+        client: {
+          id: clientId
+        }
+      }
+    }))
   }
   setBuildingPhoto(buildingId: string, createPhotoInput: CreatePhotoInput, file: FileUpload | undefined) : Observable<BuildingEntity> {
     if(!file)
@@ -149,6 +171,7 @@ export class BuildingService {
       select * from
       get_nearby_and_available_buildings('${user.id}', ${point.coordinates[0]}, ${point.coordinates[1]}, ${distance} , ${parkingType ? parkingType: -1})
       `
+    console.log(query)
     return from(this.buildingRepository.query(query))
   }
   // private createWhereClause(filters?: FiltersInput): string {

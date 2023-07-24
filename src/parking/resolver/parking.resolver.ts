@@ -52,10 +52,10 @@ export class ParkingResolver {
   findOneParkingByBuildingPositionCode(
     @Args('code', { type: () => String }) code: string,
     @Args('floor', { type: () => Int }) floor: number,
-    @Args('section', { type: () => String }) section: string
-
+    @Args('section', { type: () => String }) section: string,
+    @Args('buildingId', { type: () => String }) buildingId: string
   ) {
-    return this.parkingService.findParkingByBuildingPositionCode(code, floor, section);
+    return this.parkingService.findParkingByBuildingPositionCode(code, floor, section, buildingId);
   }
   @Mutation(() => ParkingEntity, {name: 'updateParking'})
   updateParking(
