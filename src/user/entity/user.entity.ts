@@ -28,6 +28,6 @@ export class UserEntity extends BaseCustomer {
   @Field(() => [BookingEntity], {nullable: true})
   bookings: BookingEntity[]
   @Column({ nullable: true})
-  @Field(() => Int, { nullable: true})
+  @Field(() => Int)
   wallet: number
 }

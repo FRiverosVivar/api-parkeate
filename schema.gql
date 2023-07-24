@@ -69,7 +69,7 @@ type UserEntity {
   restrictedParkings: [ParkingEntity!]
   vehicleList: [VehicleEntity!]
   bookings: [BookingEntity!]
-  wallet: Int
+  wallet: Int!
 }
 
 enum UserTypesEnum {
@@ -347,7 +347,7 @@ type Query {
   findAllReservableParkingsByBuildingId(buildingId: String!): [ParkingEntity!]!
   findOneParkingById(parkingId: String!): ParkingEntity!
   findOneParkingByBuildingId(buildingId: String!): ParkingEntity!
-  findOneParkingByBuildingPositionCode(code: String!, floor: Int!, section: String!): ParkingEntity!
+  findOneParkingByBuildingPositionCode(code: String!, floor: Int!, section: String!, buildingId: String!): ParkingEntity!
   findBuildingById(buildingId: String!): BuildingEntity!
   findBuildingByAddress(buildingId: String!): BuildingEntity!
   getAllNearbyAndReservableBuildings(distance: Float!, point: PointInput!, parkingType: Float): [BuildingOutput!]!

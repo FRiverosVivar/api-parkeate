@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { GraphQLModule, registerEnumType } from '@nestjs/graphql';
+import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
 import { AuthModule } from './auth/auth.module';
@@ -13,17 +13,17 @@ import { EmailService } from './utils/email/email.service';
 import { HoldingModule } from "./holding/holding.module";
 import { PhotoModule } from "./photo/photo.module";
 import { ParkingModule } from "./parking/parking.module";
-import { SchedulesModule } from "./schedule/schedulesModule";
-import { BuildingEntity } from "./building/entity/building.entity";
 import { BuildingModule } from "./building/building.module";
 import { VehicleModule } from "./vehicle/vehicle.module";
 import { TagsModule } from "./tags/tags.module";
 import { BookingModule } from "./booking/booking.module";
 import { PlacesService } from "./utils/places/places.service";
 import { PlacesModule } from "./utils/places/places.module";
-import * as fs from 'fs'
 import { CronModule } from "./utils/cron/cron.module";
 import { ScheduleModule } from "@nestjs/schedule";
+import { SchedulesModule } from "./schedule/schedulesModule";
+import * as fs from 'fs'
+
 @Module({
   imports: [
     ConfigModule.forRoot({

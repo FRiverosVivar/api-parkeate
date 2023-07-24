@@ -121,10 +121,31 @@ export class BuildingService {
       map((v) => {
         if(!v)
           throw new NotFoundException()
-        console.log(v)
+
         return v;
       })
     )
+  }
+  findBuildingsByClientId(clientId: string): Observable<BuildingEntity[]> {
+      if (!uuid.validate(clientId)) {
+        throw new UUIDBadFormatException();
+      }
+      return this.getBuildingsByClientId(clientId).pipe(
+        map((v) => {
+          if(!v)
+            throw new NotFoundException()
+          return v;
+        })
+      )
+  }
+  getBuildingsByClientId(clientId: string): Observable<BuildingEntity[] | null> {
+    return from(this.buildingRepository.find({
+      where: {
+        client: {
+          id: clientId
+        }
+      }
+    }))
   }
   setBuildingPhoto(buildingId: string, createPhotoInput: CreatePhotoInput, file: FileUpload | undefined) : Observable<BuildingEntity> {
     if(!file)
