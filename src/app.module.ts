@@ -48,16 +48,16 @@ import * as fs from 'fs'
       database: process.env.PG_DB,
       autoLoadEntities: true,
       synchronize: true,
-      logger: "simple-console",
-      logging: ["query"],
-      // ssl: {
-      //   ca: fs.readFileSync('./develop.pem')
-      // },
-      // extra: {
-      //   ssl: {
-      //     rejectUnauthorized: false
-      //   }
-      // }
+      // logger: "simple-console",
+      // logging: ["query"],
+      ssl: {
+        ca: fs.readFileSync('./develop.pem')
+      },
+      extra: {
+        ssl: {
+          rejectUnauthorized: false
+        }
+      }
     }),
     FileModule.forRoot(config()),
     PhotoModule,
