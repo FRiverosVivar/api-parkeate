@@ -28,7 +28,7 @@ import * as fs from 'fs'
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: `${process.cwd()}/src/environments/${process.env.NODE_ENV}.env`,
       load: [FileConfig],
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
@@ -48,8 +48,8 @@ import * as fs from 'fs'
       database: process.env.PG_DB,
       autoLoadEntities: true,
       synchronize: true,
-      // logger: "simple-console",
-      // logging: ["query"],
+      logger: "simple-console",
+      logging: ["query"],
       // ssl: {
       //   ca: fs.readFileSync('./develop.pem')
       // },
@@ -58,14 +58,6 @@ import * as fs from 'fs'
       //     rejectUnauthorized: false
       //   }
       // }
-      ssl: {
-        ca: fs.readFileSync('./develop.pem')
-      },
-      extra: {
-        ssl: {
-          rejectUnauthorized: false
-        }
-      }
     }),
     FileModule.forRoot(config()),
     PhotoModule,

@@ -15,6 +15,7 @@ import * as path from 'path';
 import { NoEmailTemplatesException } from '../exceptions/no-email-templates.exception';
 import { EmailTypesCode } from './constants/email-types-code';
 import { readFileSync } from 'fs';
+import { noReplyEmail } from "./constants/no-reply-email";
 
 @Injectable()
 export class EmailService implements OnModuleInit {
@@ -48,7 +49,7 @@ export class EmailService implements OnModuleInit {
   ) {
     return this.SESClient.send(
       new SendTemplatedEmailCommand({
-        Source: 'francoriverosvivar@gmail.com',
+        Source: noReplyEmail,
         Destination: {
           ToAddresses: [destination],
         },

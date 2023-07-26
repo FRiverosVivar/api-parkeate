@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, OnModuleInit } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { BookingEntity } from "../entity/booking.entity";
-import { Between, Repository } from "typeorm";
+import { Between, LessThan, MoreThan, Repository } from "typeorm";
 import { combineLatestWith, forkJoin, from, map, Observable, of, switchMap, tap } from "rxjs";
 import * as uuid from "uuid";
 import { UUIDBadFormatException } from "../../utils/exceptions/UUIDBadFormat.exception";
@@ -23,7 +23,6 @@ import { UpdateUserInput } from "../../user/model/dto/update-user.input";
 import { CronService } from "../../utils/cron/cron.service";
 import { CronEntity } from "../../utils/cron/entity/cron.entity";
 import { UpdateParkingInput } from "../../parking/model/update-parking.input";
-import { combineLatest } from "rxjs/internal/operators/combineLatest";
 
 @Injectable()
 export class BookingService implements OnModuleInit {
@@ -252,6 +251,32 @@ export class BookingService implements OnModuleInit {
         })
         this.bookingRepository.save(bookings).then();
       })
+    )
+  }
+  findActiveBookingByUserId(userId: string) {
+    if (!uuid.validate(userId)) {
+      throw new UUIDBadFormatException();
+    }
+    return this.getActiveBookingByUserId(userId)
+  }
+  getActiveBookingByUserId(userId: string) {
+    let iso = DateTime.now().toISO()
+    if(!iso) return of(null);
+
+    iso = iso.replace('T', ' ')
+    iso = iso.replace('Z', '-04')
+    return from(
+      this.bookingRepository.findOne(
+        {
+          where: {
+            user: {
+              id: userId,
+            },
+            dateStart: LessThan(DateTime.fromISO(iso).toJSDate()),
+            dateEnd: MoreThan(DateTime.fromISO(iso).toJSDate())
+          }
+        }
+      )
     )
   }
   private getBookingsForParkingIdByDateRange(parkingId: string, dateStart: Date, dateEnd: Date) : Observable<BookingEntity[] | null> {
