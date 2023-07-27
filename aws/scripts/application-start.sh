@@ -1,5 +1,6 @@
 #!/bin/bash
 set -xe
+
 if [ "$APPLICATION_NAME" == "api-dev" ]
 then
   npm run start:development
