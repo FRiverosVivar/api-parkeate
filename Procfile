@@ -1,1 +1,4 @@
-web: npm run deploy
+hooks
+    postdeploy/
+        ./aws/scripts/application-start.sh
+
