@@ -1,6 +1,17 @@
 #!/bin/bash
 set -xe
 app = $(/opt/elasticbeanstalk/bin/get-config environment -k APPLICATION_NAME)
+echo app
+echo app
+echo app
+echo app
+echo app
+echo app
+echo app
+echo app
+echo app
+echo app
+
 if [ app == "api-dev" ]
 then
   npm run start:development
