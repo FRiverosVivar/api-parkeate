@@ -50,14 +50,14 @@ import * as fs from 'fs'
       synchronize: true,
       // logger: "simple-console",
       // logging: ["query"],
-      // ssl: {
-      //   ca: fs.readFileSync('./develop.pem')
-      // },
-      // extra: {
-      //   ssl: {
-      //     rejectUnauthorized: false
-      //   }
-      // }
+      ssl: {
+        ca: fs.readFileSync('./develop.pem')
+      },
+      extra: {
+        ssl: {
+          rejectUnauthorized: false
+        }
+      }
     }),
     FileModule.forRoot(config()),
     PhotoModule,
