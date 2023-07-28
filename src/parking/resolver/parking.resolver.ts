@@ -73,10 +73,9 @@ export class ParkingResolver {
   createParking(
     @Args('createParkingInput') createParkingInput: CreateParkingInput,
     @Args('buildingId') buildingId: string,
-    @Args('userId', { nullable: true}) userId?: string,
-    @Args('clientId', { nullable: true}) clientId?: string,
+    @Args('clientId' ) clientId: string,
   ) {
-    return this.parkingService.createParking(createParkingInput, buildingId, clientId, userId);
+    return this.parkingService.createParking(createParkingInput, buildingId, clientId);
   }
   @Mutation(() => ParkingEntity)
   setParkingPhoto(

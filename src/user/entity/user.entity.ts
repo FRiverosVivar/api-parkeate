@@ -15,9 +15,6 @@ export class UserEntity extends BaseCustomer {
   @Column({ type: 'enum', enum: UserTypesEnum })
   @Field(() => UserTypesEnum, { description: 'type of the user' })
   userType: UserTypesEnum;
-  @OneToMany(() => ParkingEntity, (p) => p.userOwner, {onUpdate: "CASCADE", nullable: true})
-  @Field(() => [ParkingEntity], {nullable: true})
-  parkingList: ParkingEntity[];
   @ManyToMany(() => ParkingEntity, (p) => p.blockedUsers , {nullable: true})
   @Field(() => [ParkingEntity], { description: 'validated phone' , nullable: true})
   restrictedParkings: ParkingEntity[];

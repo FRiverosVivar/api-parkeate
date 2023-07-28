@@ -8,7 +8,7 @@ export class UserTypeGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
   matchesUserTypes(userType: UserTypesEnum, types: number[]) {
 
-    return types.some((type) => userType <= type);
+    return types.some((type) => userType >= type);
   }
   canActivate(context: ExecutionContext): boolean {
     const type = this.reflector.get<UserTypesEnum[]>(

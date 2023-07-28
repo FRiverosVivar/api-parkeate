@@ -16,10 +16,10 @@ export class TagsService {
   ) {}
   createTag(createTagInput: CreateTagInput): Observable<TagsEntity> {
     const tag = this.tagsRepository.create(createTagInput)
-    return this.getTagById(tag.id).pipe(
+    return this.getTagByName(tag.name).pipe(
       switchMap((t) => {
         if(t)
-          throw new BadRequestException('This tag with this id already exists')
+          throw new BadRequestException('This tag with this name already exists')
 
         return from(this.tagsRepository.save(tag))
       })
@@ -50,6 +50,18 @@ export class TagsService {
         return from(this.tagsRepository.save(tags));
       }),
     );
+  }
+  findTagByName(name: string): Observable<TagsEntity> {
+    if (name === '') {
+      throw new UUIDBadFormatException();
+    }
+    return this.getTagByName(name).pipe(
+      map((t) => {
+        if(!t)
+          throw new NotFoundException()
+        return t;
+      })
+    )
   }
   findTagById(tagId: string): Observable<TagsEntity> {
     if (!uuid.validate(tagId)) {
@@ -102,6 +114,17 @@ export class TagsService {
         {
           where: {
             id: tagId
+          }
+        }
+      )
+    )
+  }
+  private getTagByName(name: string) : Observable<TagsEntity | null> {
+    return from(
+      this.tagsRepository.findOne(
+        {
+          where: {
+            name: name
           }
         }
       )

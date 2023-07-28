@@ -72,12 +72,9 @@ export class ParkingEntity extends BaseEntityWithIdAbstract{
   @Column()
   @Field(() => String)
   priceYearly: string
-  @ManyToOne(() => UserEntity, (u) => u.parkingList, {eager: true, nullable: true})
-  @Field(() => UserEntity, {nullable: true})
-  userOwner: UserEntity
-  @ManyToOne(() => ClientEntity, (c) => c.parkingList, {eager: true, nullable: true})
-  @Field(() => ClientEntity, {nullable: true})
-  clientOwner: ClientEntity
+  @ManyToOne(() => ClientEntity, (c) => c.parkingList, {eager: true})
+  @Field(() => ClientEntity)
+  client: ClientEntity
   @OneToMany(() => ScheduleEntity, (p) => p.parking, {eager: true, nullable: true})
   @Field(() => [ScheduleEntity])
   schedule?: ScheduleEntity[];

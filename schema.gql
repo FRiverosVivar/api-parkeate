@@ -63,7 +63,6 @@ type UserEntity {
 
   """type of the user"""
   userType: UserTypesEnum!
-  parkingList: [ParkingEntity!]
 
   """validated phone"""
   restrictedParkings: [ParkingEntity!]
@@ -73,11 +72,11 @@ type UserEntity {
 }
 
 enum UserTypesEnum {
-  ROOT
-  ADMIN
-  ROOT_MANAGER
-  MANAGER
   USER
+  MANAGER
+  ROOT_MANAGER
+  ADMIN
+  ROOT
 }
 
 type HoldingEntity {
@@ -192,6 +191,9 @@ type ClientEntity {
   """validated phone"""
   validatedPhone: Boolean!
   validatedAccount: Boolean!
+
+  """type of the user"""
+  userType: UserTypesEnum!
   parkingList: [ParkingEntity!]!
   buildings: [BuildingEntity!]!
   holding: HoldingEntity
@@ -238,8 +240,7 @@ type ParkingEntity {
   pricePerMinute: String!
   priceMonthly: String!
   priceYearly: String!
-  userOwner: UserEntity
-  clientOwner: ClientEntity
+  client: ClientEntity!
   schedule: [ScheduleEntity!]!
   building: BuildingEntity!
   bookings: [BookingEntity!]!
@@ -384,7 +385,7 @@ type Mutation {
   deleteFile(url: String!): Boolean!
   updateParking(updateParkingInput: UpdateParkingInput!, buildingId: String, tagsIds: [String!]): ParkingEntity!
   removeParking(parkingId: String!): ParkingEntity!
-  createParking(createParkingInput: CreateParkingInput!, buildingId: String!, userId: String, clientId: String): ParkingEntity!
+  createParking(createParkingInput: CreateParkingInput!, buildingId: String!, clientId: String!): ParkingEntity!
   setParkingPhoto(parkingId: String!, createPhotoInput: CreatePhotoInput!, file: Upload): ParkingEntity!
   createSchedule(createScheduleInput: CreateScheduleInput!, parkingId: String!): ScheduleEntity!
   removeSchedule(scheduleId: String!): ScheduleEntity!

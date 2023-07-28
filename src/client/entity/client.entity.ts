@@ -4,11 +4,15 @@ import { BaseCustomer } from '../../utils/interfaces/base-customer.abstract';
 import { ParkingEntity } from "../../parking/entity/parking.entity";
 import { HoldingEntity } from "../../holding/entity/holding.entity";
 import { BuildingEntity } from "../../building/entity/building.entity";
+import { UserTypesEnum } from "../../user/constants/constants";
 
 @Entity('client')
 @ObjectType()
 export class ClientEntity extends BaseCustomer {
-  @OneToMany(() => ParkingEntity, (p) => p.clientOwner)
+  @Column({ type: 'enum', enum: UserTypesEnum , nullable: true})
+  @Field(() => UserTypesEnum, { description: 'type of the user' })
+  userType: UserTypesEnum;
+  @OneToMany(() => ParkingEntity, (p) => p.client)
   @Field(() => [ParkingEntity])
   parkingList: ParkingEntity[];
   @OneToMany(() => BuildingEntity, (b) => b.client)
