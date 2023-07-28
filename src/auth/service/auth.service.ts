@@ -14,6 +14,7 @@ import { ClientService } from '../../client/service/client.service';
 import { ClientEntity } from '../../client/entity/client.entity';
 import { ClientLoginResponse } from '../../client/model/client-login.response';
 import { NotValidatedAccountException } from "../../utils/exceptions/not-validated-account.exception";
+import { LoginClientInput } from "../../client/model/login-client.input";
 @Injectable()
 export class AuthService {
   constructor(
@@ -103,8 +104,12 @@ export class AuthService {
       ),
     } as UserLoginResponse;
   }
-  clientLogin(user: ClientEntity) {
-    if(!user.validatedAccount)
+  async clientLogin(loginInput: LoginClientInput) {
+    const user = await this.clientService.findClientByRut(loginInput.username).toPromise()
+    if(!user)
+      throw new NotFoundException();
+
+    if (!user.validatedAccount)
       throw new NotValidatedAccountException()
 
     return {
@@ -112,6 +117,7 @@ export class AuthService {
       access_token: this.jwtService.sign(
         {
           username: user.rut,
+          userType: user.userType,
           sub: user.id,
         },
         { secret: jwtConstants.secret, expiresIn: '60s' },
