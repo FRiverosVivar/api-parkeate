@@ -8,7 +8,6 @@ export const FileConstants = {
   SERVICE_ID: 'test',
   MAX_FILE_SIZE: '100000000', //100mb
   MAX_FILES: '1',
-  
 };
 export const MAX_WIDTH = 2160;
 export const QUALITY_ARRAY = [
