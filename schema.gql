@@ -372,7 +372,7 @@ type Query {
   findBookingById(bookingId: String!): BookingEntity!
   updateBookingParking(bookingId: String!, parkingId: String!): BookingEntity!
   updateBookingUser(bookingId: String!, userId: String!): BookingEntity!
-  getActiveBookingByUserId: BookingEntity!
+  getActiveBookingByUserId: BookingEntity
 }
 
 input PointInput {

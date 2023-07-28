@@ -266,18 +266,11 @@ export class BookingService implements OnModuleInit {
     iso = iso.replace('T', ' ')
     iso = iso.replace('Z', '-04')
     return from(
-      this.bookingRepository.findOne(
-        {
-          where: {
-            user: {
-              id: userId,
-            },
-            dateStart: LessThan(DateTime.fromISO(iso).toJSDate()),
-            dateEnd: MoreThan(DateTime.fromISO(iso).toJSDate())
-          }
-        }
-      )
-    )
+      this.bookingRepository.createQueryBuilder('bookingEntity')
+        .where(`bookingEntity.userId = '${userId}':: uuid`)
+        .andWhere(`bookingEntity.dateStart < '${iso}' ::timestamptz`)
+        .andWhere(`bookingEntity.dateEnd > '${iso}' ::timestamptz`)
+        .getOne())
   }
   private getBookingsForParkingIdByDateRange(parkingId: string, dateStart: Date, dateEnd: Date) : Observable<BookingEntity[] | null> {
     return from(
