@@ -4,7 +4,7 @@ import { SES_REGION } from '../../utils/email/constants/email-region';
 import { SNS_REGION } from '../../utils/sms/constants/sms-region';
 
 export function config(): FileConfig {
-  const bucketBase = `baseapi-bucket.s3.amazonaws.com/`;
+  const bucketBase = `api-photos.s3.sa-east-1.amazonaws.com/`;
 
   return {
     uploader: {

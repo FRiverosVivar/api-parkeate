@@ -1,9 +1,9 @@
 export const FileConstants = {
-  BUCKET_REGION: 'us-east-1',
-  BUCKET_HOST: 's3-website-us-east-1.amazonaws',
-  BUCKET_SECRET_KEY: 'w5R3P7kbk/2lkugqh9v0EZZ5qm0zSX12bSW657IT',
-  BUCKET_NAME: 'baseapi-bucket',
-  BUCKET_ACCESS_KEY: 'AKIATVSX5A77PYXXD4XU',
+  BUCKET_REGION: 'sa-east-1',
+  BUCKET_HOST: 's3.sa-east-1.amazonaws',
+  BUCKET_SECRET_KEY: '19s43DsL2rPJC3OIz/4a5i0CzmpZ8AAJrk/4mX/m',
+  BUCKET_NAME: 'api-photos',
+  BUCKET_ACCESS_KEY: 'AKIASRWKYELIBKACY673',
   FILE_FOLDER: 'files',
   SERVICE_ID: 'test',
   MAX_FILE_SIZE: '100000000', //100mb
