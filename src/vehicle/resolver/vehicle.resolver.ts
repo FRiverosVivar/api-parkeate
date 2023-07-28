@@ -37,7 +37,7 @@ export class VehicleResolver {
   removeVehicle(@Args('vehicleId') vehicleId: string) {
     return this.vehicleService.removeVehicle(vehicleId);
   }
-  @Query(() => VehicleEntity, { name: 'findVehiclesByUserId' })
+  @Query(() => [VehicleEntity], { name: 'findVehiclesByUserId' })
   findVehiclesByUserId(@CurrentUser() user: UserEntity) {
     return this.vehicleService.findVehiclesByUserId(user.id);
   }

@@ -364,8 +364,8 @@ type Query {
   clientByRut(rut: String!): ClientEntity
   getClientEmailCode(clientId: String!): ClientWithVerificationCode!
   getClientSMSCode(clientId: String!): ClientWithSmsCode!
-  findVehicleByUserId(userId: String!): [VehicleEntity!]!
   findVehicleById(vehicleId: String!): VehicleEntity!
+  findVehiclesByUserId: [VehicleEntity!]!
   getAllHoldings: [HoldingEntity!]!
   getHoldingById(holdingId: String!): HoldingEntity!
   getOrderNumberByCountingBookings: Int!
