@@ -267,6 +267,7 @@ export class BookingService implements OnModuleInit {
     iso = iso.replace('Z', '-04')
     return from(
       this.bookingRepository.createQueryBuilder('bookingEntity')
+        .leftJoin('bookingEntity.parking', 'parkingEntity')
         .where(`bookingEntity.userId = '${userId}':: uuid`)
         .andWhere(`bookingEntity.dateStart < '${iso}' ::timestamptz`)
         .andWhere(`bookingEntity.dateEnd > '${iso}' ::timestamptz`)
