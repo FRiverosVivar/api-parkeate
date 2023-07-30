@@ -47,7 +47,7 @@ export class UserService {
     const emailSubject = from(
       this.emailService.sendEmail(
         EmailTypesEnum.REGISTER,
-        'zekropls@gmail.com',
+        'no-reply@parkeateapp.com',
         JSON.stringify({ name: user.fullname }),
       ),
     );
@@ -101,7 +101,7 @@ export class UserService {
         from(
           this.emailService.sendEmail(
             EmailTypesEnum.CODE,
-            'zekropls@gmail.com',
+            'no-reply@parkeateapp.com',
             JSON.stringify({ code: code }),
           ),
         );

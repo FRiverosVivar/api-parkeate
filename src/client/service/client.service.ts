@@ -33,7 +33,7 @@ export class ClientService {
     const emailSubject = from(
       this.emailService.sendEmail(
         EmailTypesEnum.REGISTER,
-        'zekropls@gmail.com',
+        'no-reply@parkeateapp.com',
         JSON.stringify({ name: client.fullname }),
       ),
     );
@@ -93,7 +93,7 @@ export class ClientService {
         from(
           this.emailService.sendEmail(
             EmailTypesEnum.CODE,
-            'zekropls@gmail.com',
+            'no-reply@parkeateapp.com',
             JSON.stringify({ code: code }),
           ),
         );
