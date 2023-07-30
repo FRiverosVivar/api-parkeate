@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException, OnModuleInit } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { BookingEntity } from "../entity/booking.entity";
-import { Between, LessThan, MoreThan, Repository } from "typeorm";
-import { combineLatestWith, forkJoin, from, map, Observable, of, switchMap, tap } from "rxjs";
+import { Between, Repository } from "typeorm";
+import { forkJoin, from, map, Observable, of, switchMap, tap } from "rxjs";
 import * as uuid from "uuid";
 import { UUIDBadFormatException } from "../../utils/exceptions/UUIDBadFormat.exception";
 import { UpdateBookingInput } from "../model/update-booking.input";
@@ -94,56 +94,83 @@ export class BookingService implements OnModuleInit {
             }
             const parking = previousBooking.parking;
             if(booking.bookingState === BookingStatesEnum.FINALIZED) {
-              const job = this.scheduler.getCronJob(booking.id)
+              if(booking.bookingType === BookingTypesEnum.NORMAL_BOOKING) {
+                const isoExtendedDate = DateTime.fromISO(booking.dateExtended as any as string)
+                const diff = isoExtendedDate.diffNow(['minutes'], {conversionAccuracy: "casual"})
+                booking.finalPrice = diff.minutes * +parking.pricePerMinute
+              }
               booking.dateEnd = DateTime.now().toJSDate();
               parking.reserved = false;
-              if(job.running) {
+              if(this.scheduler.doesExist("cron",booking.id)) {
+                const job = this.scheduler.getCronJob(booking.id)
                 job.stop();
-                return this.cronService.findCronByBookingIdAndExecuteFalse(booking.id)
+                this.cronService.findCronByBookingIdAndExecuteFalse(booking.id)
                   .pipe(
                     switchMap((c) => {
+                      if(!c)
+                        return of(null)
                       c.executed = true
                       return this.cronService.saveCron(c)
-                    }),
-                    switchMap((c) => {
-                      return from(this.bookingRepository.save(booking))
-                    })
-                  )
+                    })).toPromise().then()
+                    // switchMap((c) => {
+                    //   const updateParking: UpdateParkingInput = {
+                    //     id: parking.id,
+                    //     reserved: parking.reserved,
+                    //   }
+                    //   return from(this.parkingService.updateParking(updateParking)).pipe(switchMap(() => from(this.bookingRepository.save(booking))))
+                    //
+                    // })
+                  // )
               }
             }
 
             if(previousBooking.bookingState === BookingStatesEnum.PAYMENT_REQUIRED && booking.bookingState === BookingStatesEnum.RESERVED) {
 
-              if(booking.bookingType === BookingTypesEnum.MONTHLY_BOOKING)
+              if(booking.bookingType === BookingTypesEnum.MONTHLY_BOOKING){
                 booking.dateEnd = DateTime.now().plus({days: 30}).toJSDate()
-              else {
+                booking.paid = true
+              }else {
                 booking.dateEnd = DateTime.now().plus({hour: 1, minutes: 5}).toJSDate()
                 this.createBookingCronJobForOneHourStartPlus5Minutes(booking);
               }
 
               booking.dateStart = DateTime.now().toJSDate()
               parking.reserved = true;
+
+              const updateParking: UpdateParkingInput = {
+                id: parking.id,
+                reserved: parking.reserved,
+              }
+              return from(this.parkingService.updateParking(updateParking)).pipe(switchMap(() => from(this.bookingRepository.save(booking))))
             }
 
             if(previousBooking.bookingState === BookingStatesEnum.RESERVED && booking.bookingState === BookingStatesEnum.FINALIZED && booking.bookingType === BookingTypesEnum.NORMAL_BOOKING) {
-              if(!booking.dateExtended){
-                const extendedMinutes = DateTime.fromJSDate(booking.dateExtended).diff(DateTime.fromJSDate(booking.dateEnd)).minutes
+              if(booking.dateExtended){
+                const extendedMinutes = DateTime.fromJSDate(booking.dateEnd).diff(DateTime.fromJSDate(booking.dateExtended), ['minutes']).minutes
                 booking.finalPrice = booking.initialPrice + (extendedMinutes * +booking.parking.pricePerMinute)
               }else {
-                const minutesStayed = DateTime.fromJSDate(booking.dateEnd).diff(DateTime.fromJSDate(booking.dateStart)).minutes
-                booking.finalPrice = (minutesStayed * +booking.parking.pricePerMinute)
+                const minutesStayed = DateTime.fromJSDate(booking.dateEnd).diff(DateTime.fromJSDate(booking.dateStart), ['minutes']).minutes
+                booking.finalPrice = Math.round(minutesStayed * +parking.pricePerMinute)
                 const updateUser: UpdateUserInput = {
-                  id: booking.user.id,
-                  wallet: booking.user.wallet + (booking.initialPrice - booking.finalPrice)
+                  id: previousBooking.user.id,
+                  wallet: Math.round(previousBooking.user.wallet + (booking.initialPrice - booking.finalPrice))
                 }
                 this.userService.updateUser(updateUser).toPromise().then()
               }
+              const updateParking: UpdateParkingInput = {
+                id: parking.id,
+                reserved: parking.reserved,
+              }
+              return from(this.parkingService.updateParking(updateParking)).pipe(switchMap(() => from(this.bookingRepository.save(booking))))
             }
-            const updateParking: UpdateParkingInput = {
-              id: parking.id,
-              reserved: parking.reserved,
+            if(updateBookingInput.mountPaid) {
+              const updateUser: UpdateUserInput = {
+                id: previousBooking.user.id,
+                wallet: previousBooking.user.wallet + updateBookingInput.mountPaid
+              }
+              this.userService.updateUser(updateUser).toPromise().then()
             }
-            return from(this.parkingService.updateParking(updateParking)).pipe(switchMap(() => from(this.bookingRepository.save(booking))))
+            return from(this.bookingRepository.save(booking))
           }),
         );
       })
@@ -199,12 +226,12 @@ export class BookingService implements OnModuleInit {
     )
   }
   private createBookingCronJobForOneHourStartPlus5Minutes(booking: BookingEntity): void {
-    const firstHourEnd = DateTime.fromJSDate(booking.dateStart).plus({hour:1,minute: 5})
-    this.createCron(DateTime.now(), firstHourEnd, BookingStatesEnum.RESERVED, booking.id)
+    const firstHourEnd = DateTime.fromJSDate(booking.dateStart).plus({hour: 1, minute: 5})
+    this.createNewCron(DateTime.now(), firstHourEnd, BookingStatesEnum.RESERVED, booking.id)
   }
   private createBookingCronJobForPaying(booking: BookingEntity): void {
     const fiveMinutesToPay = DateTime.now().plus({minute: 5})
-    this.createCron(DateTime.now(), fiveMinutesToPay, BookingStatesEnum.CANCELED, booking.id)
+    this.createNewCron(DateTime.now(), fiveMinutesToPay, BookingStatesEnum.CANCELED, booking.id)
   }
   private findBookingsThatAreGoingToExpireIn3Days(shouldNotify: boolean) {
     return from(
@@ -260,18 +287,18 @@ export class BookingService implements OnModuleInit {
     return this.getActiveBookingByUserId(userId)
   }
   getActiveBookingByUserId(userId: string) {
-    let iso = DateTime.now().toISO()
-    if(!iso) return of(null);
-
-    iso = iso.replace('T', ' ')
-    iso = iso.replace('Z', '-04')
     return from(
-      this.bookingRepository.createQueryBuilder('bookingEntity')
-        .leftJoin('bookingEntity.parking', 'parkingEntity')
-        .where(`bookingEntity.userId = '${userId}':: uuid`)
-        .andWhere(`bookingEntity.dateStart < '${iso}' ::timestamptz`)
-        .andWhere(`bookingEntity.dateEnd > '${iso}' ::timestamptz`)
-        .getOne())
+      this.bookingRepository.find({
+          where: {
+            bookingType: BookingTypesEnum.NORMAL_BOOKING,
+            bookingState: BookingStatesEnum.RESERVED,
+            user: {
+              id: userId
+            }
+          }
+        }
+      )).pipe(map((b) => b[0]))
+
   }
   private getBookingsForParkingIdByDateRange(parkingId: string, dateStart: Date, dateEnd: Date) : Observable<BookingEntity[] | null> {
     return from(
@@ -307,22 +334,34 @@ export class BookingService implements OnModuleInit {
         return;
       }
       if(DateTime.fromJSDate(j.dateStart).toMillis() <= DateTime.now().toMillis() && DateTime.now().toMillis() <= DateTime.fromJSDate(j.dateEnd).toMillis()) {
-        this.createCron(DateTime.now(), DateTime.fromJSDate(j.dateEnd), j.stateWhenEnd, j.bookingId);
+        this.createCronExisting(j, DateTime.now(), DateTime.fromJSDate(j.dateEnd), j.stateWhenEnd, j.bookingId);
         return;
       }
       if(DateTime.now().toMillis() < DateTime.fromJSDate(j.dateStart).toMillis()) {
-        this.createCron(DateTime.fromJSDate(j.dateStart), DateTime.fromJSDate(j.dateEnd), j.stateWhenEnd, j.bookingId);
+        this.createCronExisting(j, DateTime.fromJSDate(j.dateStart), DateTime.fromJSDate(j.dateEnd), j.stateWhenEnd, j.bookingId);
       }
     })
   }
-  async createCron(dateStart: DateTime, dateEnd: DateTime, stateWhenEnd: BookingStatesEnum, bookingId: string, dateExtended?: boolean): Promise<void> {
+  async createCronExisting(cron: CronEntity, dateStart: DateTime, dateEnd: DateTime, stateWhenEnd: BookingStatesEnum, bookingId: string, dateExtended?: boolean): Promise<void> {
     const hasPreviousJob = this.scheduler.doesExist("cron",bookingId)
     if(hasPreviousJob) {
-      console.log(hasPreviousJob)
       this.scheduler.deleteCronJob(bookingId)
       await this.cronService.deleteCronByBookingId(bookingId)
     }
-
+    const job = new CronJob
+    (dateEnd.toJSDate(), () => {job.stop()},
+      async () => {
+        this.executeStateChangeFromBooking(cron, dateExtended)
+      }, false, Settings.defaultZone.name)
+    job.start();
+    this.scheduler.addCronJob(bookingId, job)
+  }
+  async createNewCron(dateStart: DateTime, dateEnd: DateTime, stateWhenEnd: BookingStatesEnum, bookingId: string, dateExtended?: boolean): Promise<void> {
+    const hasPreviousJob = this.scheduler.doesExist("cron",bookingId)
+    if(hasPreviousJob) {
+      this.scheduler.deleteCronJob(bookingId)
+      await this.cronService.deleteCronByBookingId(bookingId)
+    }
     const cron = await this.cronService.createCron(dateStart, dateEnd, stateWhenEnd, bookingId)
     const job = new CronJob
     (dateEnd.toJSDate(), () => {job.stop()},
@@ -337,9 +376,9 @@ export class BookingService implements OnModuleInit {
       id: cron.bookingId,
       bookingState: cron.stateWhenEnd
     }
-
-    if(dateExtended)
+    if(dateExtended){
       updateBookingInput.dateExtended = DateTime.now().toJSDate()
+    }
 
     await this.updateBooking(updateBookingInput).toPromise().then()
     cron.executed = true

@@ -29,4 +29,13 @@ export class AppController {
     }
     return this.bookingService.updateBooking(updateBookingInput);
   }
+  @Get('/extended')
+  successPaymentExtraTime(@Query('bookingId') bookingId: string, @Query('mountPaid') mountPaid: number): Observable<BookingEntity> {
+    const updateBookingInput: UpdateBookingInput = {
+      id: bookingId,
+      paid: true,
+      mountPaid: mountPaid
+    }
+    return this.bookingService.updateBooking(updateBookingInput);
+  }
 }

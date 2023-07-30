@@ -15,4 +15,6 @@ export class CreateBookingInput {
   dateStart: string
   @Field(() => String, {nullable: true})
   dateEnd: string
+  @Field(() => Boolean)
+  paid: boolean
 }

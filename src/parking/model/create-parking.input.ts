@@ -38,4 +38,6 @@ export class CreateParkingInput {
   type: number;
   @Field(() => String, {nullable: true})
   description?: string
+  @Field(() => String)
+  phone: string
 }

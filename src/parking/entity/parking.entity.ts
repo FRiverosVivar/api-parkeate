@@ -84,4 +84,7 @@ export class ParkingEntity extends BaseEntityWithIdAbstract{
   @OneToMany(() => BookingEntity, (b) => b.parking)
   @Field(() => [BookingEntity])
   bookings: BookingEntity[]
+  @Column({nullable: true})
+  @Field(() => String)
+  phone: string;
 }

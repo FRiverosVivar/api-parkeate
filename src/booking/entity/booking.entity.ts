@@ -1,4 +1,4 @@
-import { Field, ObjectType } from "@nestjs/graphql";
+import { Field, Int, ObjectType } from "@nestjs/graphql";
 import { Column, Entity, JoinColumn, ManyToOne } from "typeorm";
 import { BaseEntityWithIdAbstract } from "../../utils/interfaces/base-entity-with-id.abstract";
 import { BookingTypesEnum } from "../enum/booking-types.enum";
@@ -10,10 +10,10 @@ import { UserEntity } from "../../user/entity/user.entity";
 @ObjectType()
 export class BookingEntity extends BaseEntityWithIdAbstract {
   @Column()
-  @Field(() => BookingTypesEnum)
+  @Field(() => Int)
   bookingType: BookingTypesEnum
   @Column()
-  @Field(() => BookingStatesEnum)
+  @Field(() => Int)
   bookingState: BookingStatesEnum
   @ManyToOne(() => ParkingEntity, (p) => p.bookings, {eager: true})
   @Field(() => ParkingEntity)
@@ -39,4 +39,7 @@ export class BookingEntity extends BaseEntityWithIdAbstract {
   @Column({nullable: true})
   @Field(() => Number,{nullable: true})
   finalPrice: number
+  @Column({nullable: true})
+  @Field(() => Boolean)
+  paid: boolean
 }

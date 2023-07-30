@@ -8,7 +8,7 @@ import { UpdateBookingInput } from "../model/update-booking.input";
 import { UserTypeGuard } from "../../auth/guards/user-type.guard";
 import { UserTypesEnum } from "../../user/constants/constants";
 import { UserType } from "../../auth/decorator/user-type.decorator";
-import { Observable } from "rxjs";
+import { Observable, tap } from "rxjs";
 import { CurrentUser } from "../../auth/decorator/current-user.decorator";
 import { UserEntity } from "../../user/entity/user.entity";
 
@@ -65,6 +65,6 @@ export class BookingResolver {
   @Query(() => BookingEntity, {nullable: true})
   @UseGuards(JwtAuthGuard)
   getActiveBookingByUserId(@CurrentUser() user: UserEntity) {
-    return this.bookingService.findActiveBookingByUserId(user.id);
+    return this.bookingService.findActiveBookingByUserId(user.id)
   }
 }

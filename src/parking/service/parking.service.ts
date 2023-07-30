@@ -11,7 +11,6 @@ import { DuplicatedParkingInBuildingException } from "../../utils/exceptions/dup
 import { ClientService } from "../../client/service/client.service";
 import { UserService } from "../../user/service/user.service";
 import { BuildingService } from "../../building/service/building.service";
-import { ClientEntity } from "../../client/entity/client.entity";
 import { PhotoService } from "../../photo/service/photo.service";
 import { CreatePhotoInput } from "../../photo/model/create-photo.input";
 import { FileUpload } from "graphql-upload-minimal";
@@ -46,7 +45,7 @@ export class ParkingService {
 
             parking.building = b;
             parking.client = c;
-
+            parking.phone = b.phoneNumber;
             parking.blockedUsers = [];
             parking.schedule = [];
 
@@ -112,6 +111,19 @@ export class ParkingService {
           },
         }
       )
+    )
+  }
+  findParkingByBookingId(bookingId: string) {
+    if (!uuid.validate(bookingId)) {
+      throw new UUIDBadFormatException();
+    }
+    return this.getParkingByBookingId(bookingId).pipe(
+      map((p) => {
+        if(!p)
+          throw new NotFoundException()
+
+        return p;
+      })
     )
   }
   findAllParkings(): Observable<ParkingEntity[]> {
@@ -192,6 +204,17 @@ export class ParkingService {
       this.parkingRepository.findOne({
         where: {
           id: id,
+        },
+      }),
+    );
+  }
+  private getParkingByBookingId(bookingId: string): Observable<ParkingEntity | null> {
+    return from(
+      this.parkingRepository.findOne({
+        where: {
+          bookings: {
+            id: bookingId
+          },
         },
       }),
     );

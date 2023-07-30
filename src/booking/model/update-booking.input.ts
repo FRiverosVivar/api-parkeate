@@ -12,4 +12,6 @@ export class UpdateBookingInput extends PartialType(CreateBookingInput) {
   timeFinalized?: Date
   @Field(() => Number, {nullable: true})
   finalPrice?: number
+  @Field(() => Number, {nullable: true})
+  mountPaid?: number
 }

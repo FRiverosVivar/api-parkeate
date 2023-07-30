@@ -244,6 +244,7 @@ type ParkingEntity {
   schedule: [ScheduleEntity!]!
   building: BuildingEntity!
   bookings: [BookingEntity!]!
+  phone: String!
 }
 
 type BookingEntity {
@@ -255,8 +256,8 @@ type BookingEntity {
 
   """update date of the entity"""
   updatedAt: DateTime!
-  bookingType: BookingTypes!
-  bookingState: BookingStates!
+  bookingType: Int!
+  bookingState: Int!
   parking: ParkingEntity!
   user: UserEntity!
   initialPrice: Float!
@@ -265,19 +266,7 @@ type BookingEntity {
   dateExtended: DateTime
   timeFinalized: DateTime
   finalPrice: Float
-}
-
-enum BookingTypes {
-  NORMAL_BOOKING
-  MONTHLY_BOOKING
-  YEARLY_BOOKING
-}
-
-enum BookingStates {
-  CANCELED
-  PAYMENT_REQUIRED
-  RESERVED
-  FINALIZED
+  paid: Boolean!
 }
 
 type UserLoginResponse {
@@ -455,6 +444,7 @@ input UpdateParkingInput {
   priceYearly: String
   type: Int
   description: String
+  phone: String
   id: String!
 }
 
@@ -474,6 +464,7 @@ input CreateParkingInput {
   priceYearly: String!
   type: Int!
   description: String
+  phone: String!
 }
 
 input CreatePhotoInput {
@@ -735,6 +726,7 @@ input CreateBookingInput {
   initialPrice: Float!
   dateStart: String!
   dateEnd: String
+  paid: Boolean!
 }
 
 input UpdateBookingInput {
@@ -743,8 +735,10 @@ input UpdateBookingInput {
   initialPrice: Float
   dateStart: String
   dateEnd: String
+  paid: Boolean
   id: String!
   dateExtended: DateTime
   timeFinalized: DateTime
   finalPrice: Float
+  mountPaid: Float
 }

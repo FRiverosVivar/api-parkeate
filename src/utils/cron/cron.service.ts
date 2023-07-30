@@ -23,14 +23,11 @@ export class CronService{
       }
     })
   }
-  findCronByBookingIdAndExecuteFalse(bookingId: string): Observable<CronEntity> {
+  findCronByBookingIdAndExecuteFalse(bookingId: string): Observable<CronEntity | null> {
     if (!uuid.validate(bookingId)) {
       throw new UUIDBadFormatException();
     }
     return this.getCronByBookingIdAndExecuteFalse(bookingId).pipe(map((c) => {
-      if(!c)
-        throw new NotFoundException()
-
       return c;
     }))
   }
