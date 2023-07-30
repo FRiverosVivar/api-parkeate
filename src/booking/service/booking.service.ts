@@ -147,7 +147,7 @@ export class BookingService implements OnModuleInit {
             if(previousBooking.bookingState === BookingStatesEnum.RESERVED && booking.bookingState === BookingStatesEnum.FINALIZED && booking.bookingType === BookingTypesEnum.NORMAL_BOOKING) {
               if(booking.dateExtended){
                 const extendedMinutes = DateTime.fromJSDate(booking.dateEnd).diff(DateTime.fromJSDate(booking.dateExtended), ['minutes']).minutes
-                booking.finalPrice = booking.initialPrice + (extendedMinutes * +booking.parking.pricePerMinute)
+                booking.finalPrice = booking.initialPrice + (extendedMinutes * +parking.pricePerMinute)
               }else {
                 const minutesStayed = DateTime.fromJSDate(booking.dateEnd).diff(DateTime.fromJSDate(booking.dateStart), ['minutes']).minutes
                 booking.finalPrice = Math.round(minutesStayed * +parking.pricePerMinute)
