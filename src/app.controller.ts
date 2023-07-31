@@ -1,4 +1,4 @@
-import { Controller, Get, OnModuleInit, Query } from "@nestjs/common";
+import { Body, Controller, Get, OnModuleInit, Post, Query } from "@nestjs/common";
 import { BookingService } from "./booking/service/booking.service";
 import { BookingEntity } from "./booking/entity/booking.entity";
 import { Observable } from "rxjs";
@@ -22,7 +22,17 @@ export class AppController {
   ) {}
 
   @Get('')
-  updateBookingToReservedStatus(@Query('bookingId') bookingId: string): Observable<BookingEntity> {
+  updateBookingToReservedStatus(@Query('bookingId') bookingId: string, @Body() body: any): Observable<BookingEntity> {
+    console.log(body)
+    const updateBookingInput: UpdateBookingInput = {
+      id: bookingId,
+      bookingState: BookingStatesEnum.RESERVED,
+    }
+    return this.bookingService.updateBooking(updateBookingInput);
+  }
+  @Post('')
+  updateBookingReservedStatus(@Query('bookingId') bookingId: string, @Body() body: any): Observable<BookingEntity> {
+    console.log(body)
     const updateBookingInput: UpdateBookingInput = {
       id: bookingId,
       bookingState: BookingStatesEnum.RESERVED,

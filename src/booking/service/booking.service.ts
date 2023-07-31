@@ -230,7 +230,7 @@ export class BookingService implements OnModuleInit {
     this.createNewCron(DateTime.now(), firstHourEnd, BookingStatesEnum.RESERVED, booking.id)
   }
   private createBookingCronJobForPaying(booking: BookingEntity): void {
-    const fiveMinutesToPay = DateTime.now().plus({minute: 5})
+    const fiveMinutesToPay = DateTime.now().plus({minute: 6})
     this.createNewCron(DateTime.now(), fiveMinutesToPay, BookingStatesEnum.CANCELED, booking.id)
   }
   private findBookingsThatAreGoingToExpireIn3Days(shouldNotify: boolean) {
