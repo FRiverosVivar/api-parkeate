@@ -68,12 +68,10 @@ export class EmailService implements OnModuleInit {
   }
   private async verifyListOfEmailTemplates(): Promise<void> {
     const list = await this.SESClient.send(new ListTemplatesCommand({}));
-    if (!list || !list.TemplatesMetadata) {
-      const result = this.filterTemplatesAndFindMissingTemplates(
-        list.TemplatesMetadata!,
-      );
-      await this.createAWSEMailTemplates(result);
-    }
+    const result = this.filterTemplatesAndFindMissingTemplates(
+      list.TemplatesMetadata!,
+    );
+    await this.createAWSEMailTemplates(result);
 
   }
   deleteTemplate(emailType: EmailTypesEnum) {
