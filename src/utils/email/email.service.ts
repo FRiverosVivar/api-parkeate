@@ -27,7 +27,6 @@ export class EmailService implements OnModuleInit {
     this.SESClient = new SESClient(SESClientConfig);
   }
   async onModuleInit() {
-    await this.deleteTemplate(EmailTypesEnum.CODE);
     await this.verifyListOfEmailTemplates();
   }
   private getEmailTemplate(emailType: EmailTypesEnum): string | undefined {
@@ -70,12 +69,12 @@ export class EmailService implements OnModuleInit {
   private async verifyListOfEmailTemplates(): Promise<void> {
     const list = await this.SESClient.send(new ListTemplatesCommand({}));
     if (!list || !list.TemplatesMetadata) {
-      throw new NoEmailTemplatesException();
+      const result = this.filterTemplatesAndFindMissingTemplates(
+        list.TemplatesMetadata!,
+      );
+      await this.createAWSEMailTemplates(result);
     }
-    const result = this.filterTemplatesAndFindMissingTemplates(
-      list.TemplatesMetadata,
-    );
-    await this.createAWSEMailTemplates(result);
+
   }
   deleteTemplate(emailType: EmailTypesEnum) {
     return this.SESClient.send(
