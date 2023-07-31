@@ -1,1 +1,1 @@
-export const SNS_REGION = 'us-east-2';
+export const SNS_REGION = 'sa-east-1';
