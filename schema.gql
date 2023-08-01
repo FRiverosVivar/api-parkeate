@@ -361,7 +361,7 @@ type Query {
   findBookingById(bookingId: String!): BookingEntity!
   updateBookingParking(bookingId: String!, parkingId: String!): BookingEntity!
   updateBookingUser(bookingId: String!, userId: String!): BookingEntity!
-  getActiveBookingByUserId: BookingEntity
+  getActiveBookingByUserId: [BookingEntity!]!
 }
 
 input PointInput {
@@ -561,6 +561,9 @@ input CreateUserInput {
   """phone number of the user"""
   phoneNumber: String!
 
+  """photo of the user"""
+  profilePhoto: String
+
   """hashed password of the user"""
   password: String!
   validatedAccount: Boolean!
@@ -588,6 +591,9 @@ input CreateClientInput {
 
   """phone number of the user"""
   phoneNumber: String!
+
+  """photo of the user"""
+  profilePhoto: String
 
   """hashed password of the user"""
   password: String!
@@ -629,6 +635,9 @@ input UpdateUserInput {
   """phone number of the user"""
   phoneNumber: String
 
+  """photo of the user"""
+  profilePhoto: String
+
   """hashed password of the user"""
   password: String
   validatedAccount: Boolean
@@ -657,6 +666,9 @@ input UpdateClientInput {
 
   """phone number of the user"""
   phoneNumber: String
+
+  """photo of the user"""
+  profilePhoto: String
 
   """hashed password of the user"""
   password: String
@@ -703,6 +715,9 @@ input UpdateHoldingInput {
 
   """phone number of the user"""
   phoneNumber: String
+
+  """photo of the user"""
+  profilePhoto: String
   id: String!
 }
 
@@ -718,6 +733,9 @@ input CreateHoldingInput {
 
   """phone number of the user"""
   phoneNumber: String!
+
+  """photo of the user"""
+  profilePhoto: String
 }
 
 input CreateBookingInput {

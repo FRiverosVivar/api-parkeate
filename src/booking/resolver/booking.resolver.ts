@@ -62,7 +62,7 @@ export class BookingResolver {
   ) {
     return this.bookingService.changeBookingUser(bookingId, userId)
   }
-  @Query(() => BookingEntity, {nullable: true})
+  @Query(() => [BookingEntity])
   @UseGuards(JwtAuthGuard)
   getActiveBookingByUserId(@CurrentUser() user: UserEntity) {
     return this.bookingService.findActiveBookingsByUserId(user.id)
