@@ -280,25 +280,23 @@ export class BookingService implements OnModuleInit {
       })
     )
   }
-  findActiveBookingByUserId(userId: string) {
+  findActiveBookingsByUserId(userId: string) {
     if (!uuid.validate(userId)) {
       throw new UUIDBadFormatException();
     }
-    return this.getActiveBookingByUserId(userId)
+    return this.getActiveBookingsByUserId(userId)
   }
-  getActiveBookingByUserId(userId: string) {
+  getActiveBookingsByUserId(userId: string) {
     return from(
       this.bookingRepository.find({
           where: {
-            bookingType: BookingTypesEnum.NORMAL_BOOKING,
             bookingState: BookingStatesEnum.RESERVED,
             user: {
               id: userId
             }
           }
         }
-      )).pipe(map((b) => b[0]))
-
+      ))
   }
   private getBookingsForParkingIdByDateRange(parkingId: string, dateStart: Date, dateEnd: Date) : Observable<BookingEntity[] | null> {
     return from(

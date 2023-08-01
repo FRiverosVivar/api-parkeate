@@ -11,4 +11,6 @@ export abstract class BasicProfileInputAbstract {
   email: string;
   @Field(() => String, { description: 'phone number of the user' })
   phoneNumber: string;
+  @Field(() => String, { description: 'photo of the user', nullable: true })
+  profilePhoto: string;
 }
