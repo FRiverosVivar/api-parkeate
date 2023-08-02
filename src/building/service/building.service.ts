@@ -11,16 +11,14 @@ import { UUIDBadFormatException } from "../../utils/exceptions/UUIDBadFormat.exc
 import { ClientService } from "../../client/service/client.service";
 import { UserEntity } from "../../user/entity/user.entity";
 import { PointInput } from "../../parking/model/point.input";
-import { FiltersInput } from "../../parking/model/filters.input";
-import { ParkingOutput } from "../../parking/model/parking.output";
 import { CreatePhotoInput } from "../../photo/model/create-photo.input";
 import { FileUpload } from "graphql-upload-minimal";
-import { ParkingEntity } from "../../parking/entity/parking.entity";
 import { PhotoService } from "../../photo/service/photo.service";
 import { TagsEntity } from "../../tags/entity/tags.entity";
 import { TagsService } from "../../tags/service/tags.service";
 import { BuildingOutput } from "../model/building.output";
 import { ParkingType } from "../../parking/model/parking-type.enum";
+import * as _ from "lodash";
 
 @Injectable()
 export class BuildingService {
@@ -123,6 +121,19 @@ export class BuildingService {
           throw new NotFoundException()
 
         return v;
+      })
+    )
+  }
+  findBuildingByIdAndFilterParkingsByUserStatus(buildingId: string): Observable<BuildingEntity> {
+    if (!uuid.validate(buildingId)) {
+      throw new UUIDBadFormatException();
+    }
+
+    return this.findBuildingById(buildingId).pipe(
+      map((b) => {
+        const buildingParkings = b.parkingList;
+        b.parkingList = _.filter(buildingParkings, (p) => !p.reserved)
+        return b
       })
     )
   }
