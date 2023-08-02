@@ -69,8 +69,8 @@ type UserEntity {
   vehicleList: [VehicleEntity!]
   bookings: [BookingEntity!]
   wallet: Int!
-  licenseDriver: String!
-  dniPhoto: String!
+  licenseDriver: String
+  dniPhoto: String
 }
 
 enum UserTypesEnum {

@@ -28,9 +28,9 @@ export class UserEntity extends BaseCustomer {
   @Field(() => Int)
   wallet: number
   @Column({ nullable: true})
-  @Field(() => String)
+  @Field(() => String, {nullable: true})
   licenseDriver: string
   @Column({ nullable: true})
-  @Field(() => String)
+  @Field(() => String, {nullable: true})
   dniPhoto: string
 }
