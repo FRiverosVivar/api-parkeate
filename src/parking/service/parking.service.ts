@@ -107,6 +107,7 @@ export class ParkingService {
               { id: Not(userId) },
             ],
             active: true,
+            reserved: false,
             blocked: false
           },
         }
