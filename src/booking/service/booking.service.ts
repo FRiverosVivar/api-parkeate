@@ -374,10 +374,14 @@ export class BookingService implements OnModuleInit {
       id: cron.bookingId,
       bookingState: cron.stateWhenEnd
     }
+    const book = await this.findBookingById(cron.bookingId).toPromise();
     if(dateExtended){
       updateBookingInput.dateExtended = DateTime.now().toJSDate()
+    }else if(cron.stateWhenEnd === BookingStatesEnum.RESERVED && book && book.bookingState === BookingStatesEnum.RESERVED) {
+      if(book && book.dateEnd && DateTime.fromJSDate(book.dateEnd).toMillis() <= DateTime.now().toMillis()) {
+        book.dateExtended = book.dateEnd;
+      }
     }
-
     await this.updateBooking(updateBookingInput).toPromise().then()
     cron.executed = true
     await this.cronService.saveCron(cron).then()

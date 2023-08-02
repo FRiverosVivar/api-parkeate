@@ -69,6 +69,8 @@ type UserEntity {
   vehicleList: [VehicleEntity!]
   bookings: [BookingEntity!]
   wallet: Int!
+  licenseDriver: String!
+  dniPhoto: String!
 }
 
 enum UserTypesEnum {
@@ -578,6 +580,8 @@ input CreateUserInput {
   """type of the user"""
   userType: Int!
   wallet: Int
+  licenseDriver: String
+  dniPhoto: String
 }
 
 input CreateClientInput {
@@ -652,6 +656,8 @@ input UpdateUserInput {
   """type of the user"""
   userType: Int
   wallet: Int
+  licenseDriver: String
+  dniPhoto: String
   id: String!
 }
 
