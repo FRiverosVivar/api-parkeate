@@ -339,6 +339,7 @@ type Query {
   findOneParkingByBuildingId(buildingId: String!): ParkingEntity!
   findOneParkingByBuildingPositionCode(code: String!, floor: Int!, section: String!, buildingId: String!): ParkingEntity!
   findBuildingById(buildingId: String!): BuildingEntity!
+  findBuildingByIdAndFilterParkingsByReservedStatus(buildingId: String!): BuildingEntity!
   findBuildingByAddress(buildingId: String!): BuildingEntity!
   getAllNearbyAndReservableBuildings(distance: Float!, point: PointInput!, parkingType: Float): [BuildingOutput!]!
   findTagById(tagId: String!): [TagsEntity!]!

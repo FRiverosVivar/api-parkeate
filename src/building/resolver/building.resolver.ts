@@ -35,9 +35,9 @@ export class BuildingResolver {
   findBuildingById(@Args('buildingId', { type: () => String }) buildingId: string) {
     return this.buildingService.findBuildingById(buildingId)
   }
-  @Query(() => BuildingEntity, { name: 'findBuildingByIdAndFilterParkingsByUserStatus' })
-  findBuildingByIdAndFilterParkingsByUserStatus(@Args('buildingId', { type: () => String }) buildingId: string) {
-    return this.buildingService.findBuildingByIdAndFilterParkingsByUserStatus(buildingId)
+  @Query(() => BuildingEntity, { name: 'findBuildingByIdAndFilterParkingsByReservedStatus' })
+  findBuildingByIdAndFilterParkingsByReservedStatus(@Args('buildingId', { type: () => String }) buildingId: string) {
+    return this.buildingService.findBuildingByIdAndFilterParkingsByReservedStatus(buildingId)
   }
   @Query(() => BuildingEntity, { name: 'findBuildingByAddress' })
   findBuildingByAddress(@Args('buildingId', { type: () => String }) buildingId: string) {

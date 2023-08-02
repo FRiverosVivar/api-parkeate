@@ -124,7 +124,7 @@ export class BuildingService {
       })
     )
   }
-  findBuildingByIdAndFilterParkingsByUserStatus(buildingId: string): Observable<BuildingEntity> {
+  findBuildingByIdAndFilterParkingsByReservedStatus(buildingId: string): Observable<BuildingEntity> {
     if (!uuid.validate(buildingId)) {
       throw new UUIDBadFormatException();
     }
