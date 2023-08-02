@@ -379,7 +379,7 @@ export class BookingService implements OnModuleInit {
       updateBookingInput.dateExtended = DateTime.now().toJSDate()
     }else if(cron.stateWhenEnd === BookingStatesEnum.RESERVED && book && book.bookingState === BookingStatesEnum.RESERVED) {
       if(book && book.dateEnd && DateTime.fromJSDate(book.dateEnd).toMillis() <= DateTime.now().toMillis()) {
-        book.dateExtended = book.dateEnd;
+        updateBookingInput.dateExtended = book.dateEnd;
       }
     }
     await this.updateBooking(updateBookingInput).toPromise().then()
