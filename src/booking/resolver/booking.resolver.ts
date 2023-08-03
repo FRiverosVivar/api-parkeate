@@ -67,4 +67,20 @@ export class BookingResolver {
   getActiveBookingByUserId(@CurrentUser() user: UserEntity) {
     return this.bookingService.findActiveBookingsByUserId(user.id)
   }
+  @Query(() => [BookingEntity])
+  @UseGuards(JwtAuthGuard)
+  getUnPaidBookings(@CurrentUser() user: UserEntity) {
+    return this.bookingService.findUnPaidBookings(user.id)
+  }
+  @Query(() => BookingEntity)
+  @UseGuards(JwtAuthGuard)
+  getBookingWithPaymentRequiredToStart(@CurrentUser() user: UserEntity) {
+    return this.bookingService.findBookingWithPaymentRequiredToStart(user.id)
+  }
+  @Query(() => BookingEntity)
+  @UseGuards(JwtAuthGuard)
+  getBookingPriceCalculated(
+    @Args('bookingId') bookingId: string) {
+    return this.bookingService.getBookingPriceCalculated(bookingId)
+  }
 }

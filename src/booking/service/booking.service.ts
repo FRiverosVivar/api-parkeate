@@ -173,7 +173,74 @@ export class BookingService implements OnModuleInit {
         );
       })
     )
-
+  }
+  getBookingPriceCalculated(bookingId: string) {
+    return this.findBookingById(bookingId).pipe(
+      switchMap((b) => {
+        if(b.dateExtended) {
+          const extendedMinutes = DateTime.fromJSDate(b.dateEnd).diff(DateTime.fromJSDate(b.dateExtended), ['minutes']).minutes
+          return of(Math.round(b.initialPrice + (extendedMinutes * +b.parking.pricePerMinute)))
+        }
+        return of(Math.round(b.user.wallet + (b.initialPrice - b.finalPrice)))
+      })
+    )
+  }
+  findUnPaidBookings(userId: string) {
+    if (!uuid.validate(userId)) {
+      throw new UUIDBadFormatException();
+    }
+    return this.getUnPaidBookings(userId).pipe(
+      map((t) => {
+        if(!t)
+          throw new NotFoundException()
+        return t;
+      })
+    )
+  }
+  findBookingWithPaymentRequiredToStart(userId: string) {
+    if (!uuid.validate(userId)) {
+      throw new UUIDBadFormatException();
+    }
+    return this.getBookingsWithPaymentRequiredToStart(userId).pipe(
+      map((t) => {
+        if(!t)
+          throw new NotFoundException()
+        return t;
+      })
+    )
+  }
+  getUnPaidBookings(userId: string) {
+    return from(this.bookingRepository.find(
+      {
+        where: [
+          {
+            bookingState: BookingStatesEnum.FINALIZED,
+            paid: false,
+            user: {
+              id: userId
+            }
+          },
+          {
+            bookingState: BookingStatesEnum.PAYMENT_REQUIRED,
+            user: {
+              id: userId
+            }
+          }
+        ]
+      }
+    ))
+  }
+  getBookingsWithPaymentRequiredToStart(userId: string) {
+    return from(this.bookingRepository.findOne(
+      {
+        where: {
+          bookingState: BookingStatesEnum.PAYMENT_REQUIRED,
+          user: {
+            id: userId
+          }
+        }
+      }
+    ))
   }
   changeBookingParking(bookingId: string, parkingId: string): Observable<BookingEntity> {
     return this.parkingService.findParkingById(parkingId).pipe(

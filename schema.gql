@@ -365,6 +365,9 @@ type Query {
   updateBookingParking(bookingId: String!, parkingId: String!): BookingEntity!
   updateBookingUser(bookingId: String!, userId: String!): BookingEntity!
   getActiveBookingByUserId: [BookingEntity!]!
+  getUnPaidBookings: [BookingEntity!]!
+  getBookingWithPaymentRequiredToStart: BookingEntity!
+  getBookingPriceCalculated(bookingId: String!): BookingEntity!
 }
 
 input PointInput {
