@@ -15,6 +15,7 @@ import { ClientEntity } from '../../client/entity/client.entity';
 import { ClientLoginResponse } from '../../client/model/client-login.response';
 import { NotValidatedAccountException } from "../../utils/exceptions/not-validated-account.exception";
 import { LoginClientInput } from "../../client/model/login-client.input";
+import { UpdateUserInput } from "../../user/model/dto/update-user.input";
 @Injectable()
 export class AuthService {
   constructor(
@@ -41,6 +42,18 @@ export class AuthService {
         );
       }),
     );
+  }
+  updateUserPassword(updateUserInput: UpdateUserInput): Observable<UserEntity> {
+    return this.userService.findUserById(updateUserInput.id).pipe(
+      switchMap((u) => {
+        return this.bcryptService.hash(updateUserInput.password!).pipe(
+          switchMap((hashedPassword) => {
+            updateUserInput.password = hashedPassword;
+            return this.userService.updateUser(updateUserInput);
+          })
+        )
+      })
+    )
   }
   createClient(createClientInput: CreateClientInput): Observable<ClientEntity> {
     return this.clientService.getClientByRut(createClientInput.rut).pipe(

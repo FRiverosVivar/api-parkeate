@@ -13,6 +13,7 @@ import { LoginClientInput } from '../../client/model/login-client.input';
 import { ClientLoginResponse } from "../../client/model/client-login.response";
 import { Observable } from "rxjs";
 import { ClientEntity } from "../../client/entity/client.entity";
+import { UpdateUserInput } from "../../user/model/dto/update-user.input";
 
 @Resolver()
 export class AuthResolver {
@@ -56,5 +57,10 @@ export class AuthResolver {
   @Public()
   refreshClientToken(@Args('accessToken') accessToken: string) {
     return this.authService.refreshClientToken(accessToken);
+  }
+  @Mutation(() => UserEntity)
+  @UseGuards(JwtAuthGuard)
+  updateUserPassword(@Args('updateUserInput') updateUserInput: UpdateUserInput) {
+    return this.authService.updateUserPassword(updateUserInput)
   }
 }

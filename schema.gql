@@ -394,6 +394,7 @@ type Mutation {
   login(loginUserInput: LoginUserInput!): UserLoginResponse!
   refreshToken(accessToken: String!): UserLoginResponse!
   refreshClientToken(accessToken: String!): ClientLoginResponse!
+  updateUserPassword(updateUserInput: UpdateUserInput!): UserEntity!
   updateUser(updateUserInput: UpdateUserInput!): UserEntity!
   setProfilePhoto(userId: String!, photoInput: CreatePhotoInput!, photo: Upload!): UserEntity!
   removeUser(userId: String!): UserEntity!
