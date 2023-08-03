@@ -112,15 +112,6 @@ export class BookingService implements OnModuleInit {
                       c.executed = true
                       return this.cronService.saveCron(c)
                     })).toPromise().then()
-                    // switchMap((c) => {
-                    //   const updateParking: UpdateParkingInput = {
-                    //     id: parking.id,
-                    //     reserved: parking.reserved,
-                    //   }
-                    //   return from(this.parkingService.updateParking(updateParking)).pipe(switchMap(() => from(this.bookingRepository.save(booking))))
-                    //
-                    // })
-                  // )
               }
             }
 
@@ -166,8 +157,15 @@ export class BookingService implements OnModuleInit {
             if(updateBookingInput.mountPaid) {
               const updateUser: UpdateUserInput = {
                 id: previousBooking.user.id,
-                wallet: previousBooking.user.wallet + updateBookingInput.mountPaid
               }
+              const user = previousBooking.user
+              const priceWith80Percent = Math.round((booking.finalPrice * 80)/ 100 )
+              const preFinalPrice = booking.finalPrice - priceWith80Percent
+              if(priceWith80Percent <= user.wallet)
+                updateUser.wallet = Math.round(user.wallet - preFinalPrice)
+              else
+                updateUser.wallet = 0
+
               this.userService.updateUser(updateUser).toPromise().then()
             }
             return from(this.bookingRepository.save(booking))
