@@ -1,4 +1,5 @@
-import { ArgsType, Field, InputType } from "@nestjs/graphql";
+import { ArgsType, Field, InputType, Int } from "@nestjs/graphql";
+import { VehicleTypeEnum } from "./vehicle-type.enum";
 
 @InputType()
 @ArgsType()
@@ -9,4 +10,6 @@ export class CreateVehicleInput {
   carPlate: string
   @Field(() => String, { description: 'color'})
   color: string
+  @Field(() => Int, { description: 'car type'})
+  carType: VehicleTypeEnum
 }

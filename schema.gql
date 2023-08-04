@@ -18,6 +18,9 @@ type VehicleEntity {
 
   """color"""
   color: String!
+
+  """car type"""
+  carType: Int
   owner: UserEntity!
 }
 
@@ -702,6 +705,9 @@ input CreateVehicleInput {
 
   """color"""
   color: String!
+
+  """car type"""
+  carType: Int!
 }
 
 input UpdateVehicleInput {
@@ -712,6 +718,9 @@ input UpdateVehicleInput {
 
   """color"""
   color: String
+
+  """car type"""
+  carType: Int
   id: String!
 }
 
