@@ -83,4 +83,10 @@ export class BookingResolver {
     @Args('bookingId') bookingId: string) {
     return this.bookingService.getBookingPriceCalculated(bookingId)
   }
+  @Query(() => BookingEntity)
+  @UseGuards(JwtAuthGuard)
+  resetCronJobsForBookingId(
+    @Args('bookingId') bookingId: string) {
+    return this.bookingService.resetCronJobsForBookingId(bookingId)
+  }
 }

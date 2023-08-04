@@ -363,6 +363,31 @@ export class BookingService implements OnModuleInit {
         }
       ))
   }
+  resetCronJobsForBookingId(bookingId: string) {
+    return this.findBookingById(bookingId).pipe(
+      switchMap((b) => {
+        return this.cronService.findCronByBookingIdAndExecuteFalse(b.id).pipe(
+          switchMap((c) => {
+            if(c) {
+              c.executed = true
+              if(this.scheduler.doesExist('cron', bookingId)) {
+                this.scheduler.deleteCronJob(bookingId)
+              }
+              return from(this.cronService.saveCron(c)).pipe(
+                tap(() => {
+                  this.createBookingCronJobForPaying(b)
+                }),
+                map(() => {
+                  return true
+                })
+              )
+            }
+            return of(false)
+          })
+        )
+      })
+    )
+  }
   private getBookingsForParkingIdByDateRange(parkingId: string, dateStart: Date, dateEnd: Date) : Observable<BookingEntity[] | null> {
     return from(
       this.bookingRepository.find(

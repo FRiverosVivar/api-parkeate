@@ -368,6 +368,7 @@ type Query {
   getUnPaidBookings: [BookingEntity!]!
   getBookingWithPaymentRequiredToStart: BookingEntity!
   getBookingPriceCalculated(bookingId: String!): BookingEntity!
+  resetCronJobsForBookingId(bookingId: String!): BookingEntity!
 }
 
 input PointInput {
