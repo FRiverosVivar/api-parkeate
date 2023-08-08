@@ -94,7 +94,7 @@ export class ClientService {
           this.emailService.sendEmail(
             EmailTypesEnum.CODE,
             u.email,
-            JSON.stringify({ code: code }),
+            JSON.stringify({name: u.fullname, code: code }),
           ),
         );
       }),

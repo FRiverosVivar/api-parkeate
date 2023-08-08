@@ -25,6 +25,8 @@ export class EmailService implements OnModuleInit {
       this.configService.get<SESClientConfig>('uploader.sesConfig')
     );
     this.SESClient = new SESClient(SESClientConfig);
+    this.deleteTemplate(EmailTypesEnum.CODE)
+    this.deleteTemplate(EmailTypesEnum.REGISTER)
   }
   async onModuleInit() {
     await this.verifyListOfEmailTemplates();
