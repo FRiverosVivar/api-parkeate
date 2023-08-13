@@ -19,6 +19,9 @@ import { TagsService } from "../../tags/service/tags.service";
 import { BuildingOutput } from "../model/building.output";
 import { ParkingType } from "../../parking/model/parking-type.enum";
 import * as _ from "lodash";
+import { PageDto, PageOptionsDto, PaginationMeta } from "../../utils/interfaces/pagination.type";
+import { ClientEntity } from "../../client/entity/client.entity";
+import { UserTypesEnum } from "../../user/constants/constants";
 
 @Injectable()
 export class BuildingService {
@@ -82,6 +85,23 @@ export class BuildingService {
         return from(this.buildingRepository.save(b));
       }),
     );
+  }
+  async findPaginatedBuildings(pagination: PageOptionsDto, user: ClientEntity) {
+    const query = this.buildingRepository.createQueryBuilder('buildings')
+      .where(
+        user.userType < UserTypesEnum.ADMIN ?
+          `buildings.id = '${user.id}'::uuid`
+          :
+          ''
+      )
+      .skip(pagination.skip)
+      .take(pagination.take);
+    const itemCount = await query.getCount();
+    const { entities } = await query.getRawAndEntities();
+    const pageMetaDto = new PaginationMeta({ pageOptionsDto: pagination, itemCount });
+    pageMetaDto.skip = (pageMetaDto.page - 1)  * pageMetaDto.take;
+    console.log(pageMetaDto)
+    return new PageDto(entities, pageMetaDto);
   }
   private getBuildingById(buildingId: string): Observable<BuildingEntity | null> {
     return from(

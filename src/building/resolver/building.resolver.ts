@@ -15,9 +15,9 @@ import { UseGuards } from "@nestjs/common";
 import { PointInput } from "../../parking/model/point.input";
 import { UserEntity } from "../../user/entity/user.entity";
 import { CurrentUser } from "../../auth/decorator/current-user.decorator";
-import { FiltersInput } from "../../parking/model/filters.input";
 import { ParkingType } from "../../parking/model/parking-type.enum";
-import { ParkingEntity } from "../../parking/entity/parking.entity";
+import { BuildingsPaginated, PageDto, PageOptionsDto } from "../../utils/interfaces/pagination.type";
+import { ClientEntity } from "../../client/entity/client.entity";
 
 @Resolver(BuildingEntity)
 export class BuildingResolver {
@@ -64,6 +64,14 @@ export class BuildingResolver {
     @Args('parkingType', { nullable: true}) parkingType?: ParkingType,
   ): any {
     return this.buildingService.getAllNearbyAndReservableBuildings(user, point, distance, parkingType)
+  }
+  @Query(() => BuildingsPaginated, { name: 'getPaginatedBuildings' })
+  @UseGuards(JwtAuthGuard)
+  getPaginatedBuildings(
+    @Args('paginationOptions') paginationOptions: PageOptionsDto,
+    @CurrentUser() user: UserEntity
+  ) {
+    return this.buildingService.findPaginatedBuildings(paginationOptions, user as any as ClientEntity)
   }
   @Mutation(() => BuildingEntity)
   setBuildingPhoto(

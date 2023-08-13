@@ -1,5 +1,5 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Injectable, OnModuleInit } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   CreateTemplateCommand,
   DeleteTemplateCommand,
@@ -7,15 +7,15 @@ import {
   SendTemplatedEmailCommand,
   SESClient,
   SESClientConfig,
-  TemplateMetadata,
-} from '@aws-sdk/client-ses';
-import * as lodash from 'lodash';
-import { EmailTypesEnum } from './enum/email-types.enum';
-import * as path from 'path';
-import { NoEmailTemplatesException } from '../exceptions/no-email-templates.exception';
-import { EmailTypesCode } from './constants/email-types-code';
-import { readFileSync } from 'fs';
+  TemplateMetadata
+} from "@aws-sdk/client-ses";
+import * as lodash from "lodash";
+import { EmailTypesEnum } from "./enum/email-types.enum";
+import * as path from "path";
+import { EmailTypesCode } from "./constants/email-types-code";
+import { readFileSync } from "fs";
 import { noReplyEmail } from "./constants/no-reply-email";
+import { EmailTypesSubjectCode } from "./enum/email-types-subject.enum";
 
 @Injectable()
 export class EmailService implements OnModuleInit {
@@ -25,6 +25,7 @@ export class EmailService implements OnModuleInit {
       this.configService.get<SESClientConfig>('uploader.sesConfig')
     );
     this.SESClient = new SESClient(SESClientConfig);
+
   }
   async onModuleInit() {
     await this.verifyListOfEmailTemplates();
@@ -110,7 +111,7 @@ export class EmailService implements OnModuleInit {
       new CreateTemplateCommand({
         Template: {
           TemplateName: EmailTypesCode[EmailTypesEnum.CODE],
-          SubjectPart: EmailTypesCode[EmailTypesEnum.CODE],
+          SubjectPart: EmailTypesSubjectCode[EmailTypesEnum.CODE],
           TextPart: this.getEmailTemplate(EmailTypesEnum.CODE),
           HtmlPart: template ? template : 'NO Template found',
         },
@@ -123,7 +124,7 @@ export class EmailService implements OnModuleInit {
       new CreateTemplateCommand({
         Template: {
           TemplateName: EmailTypesCode[EmailTypesEnum.REGISTER],
-          SubjectPart: EmailTypesCode[EmailTypesEnum.REGISTER],
+          SubjectPart: EmailTypesSubjectCode[EmailTypesEnum.REGISTER],
           TextPart: this.getEmailTemplate(EmailTypesEnum.REGISTER),
           HtmlPart: template ? template : 'NO Template found',
         },
@@ -136,7 +137,7 @@ export class EmailService implements OnModuleInit {
       new CreateTemplateCommand({
         Template: {
           TemplateName: EmailTypesCode[EmailTypesEnum.FORGOTTEN_PASSWORD],
-          SubjectPart: EmailTypesCode[EmailTypesEnum.FORGOTTEN_PASSWORD],
+          SubjectPart: EmailTypesSubjectCode[EmailTypesEnum.FORGOTTEN_PASSWORD],
           TextPart: this.getEmailTemplate(EmailTypesEnum.FORGOTTEN_PASSWORD),
           HtmlPart: template ? template : 'NO Template found',
         },
@@ -149,7 +150,7 @@ export class EmailService implements OnModuleInit {
       new CreateTemplateCommand({
         Template: {
           TemplateName: EmailTypesCode[EmailTypesEnum.CHANGE_PASSWORD],
-          SubjectPart: EmailTypesCode[EmailTypesEnum.CHANGE_PASSWORD],
+          SubjectPart: EmailTypesSubjectCode[EmailTypesEnum.CHANGE_PASSWORD],
           TextPart: this.getEmailTemplate(EmailTypesEnum.CHANGE_PASSWORD),
           HtmlPart: template ? template : 'NO Template found',
         },
@@ -162,7 +163,7 @@ export class EmailService implements OnModuleInit {
       new CreateTemplateCommand({
         Template: {
           TemplateName: EmailTypesCode[EmailTypesEnum.RESERVATION_CREATED],
-          SubjectPart: EmailTypesCode[EmailTypesEnum.RESERVATION_CREATED],
+          SubjectPart: EmailTypesSubjectCode[EmailTypesEnum.RESERVATION_CREATED],
           TextPart: this.getEmailTemplate(EmailTypesEnum.RESERVATION_CREATED),
           HtmlPart: template ? template : 'NO Template found',
         },

@@ -9,6 +9,8 @@ import { Observable, tap } from "rxjs";
 import { CreatePhotoInput } from "../../photo/model/create-photo.input";
 import { UserWithVerificationCode } from "../model/dto/user-with-verification-code.response";
 import { UserWithSmsCode } from "../model/dto/user-with-sms-code.response";
+import { EmailVerificationCode } from "../../client/model/email-verification-code.response";
+import { SmsVerificationCode } from "../../client/model/sms-code.response";
 
 @Resolver(() => UserEntity)
 export class UserResolver {
@@ -44,12 +46,15 @@ export class UserResolver {
   removeUser(@Args('userId', { type: () => String }) userId: string) {
     return this.userService.removeUser(userId);
   }
-  @Query(() => UserWithVerificationCode, { name: 'getUserEmailCode' })
-  getUserEmailCode(@Args('userId', { type: () => String }) userId: string): Observable<UserWithVerificationCode> {
-    return this.userService.getUserEmailCode(userId);
+  @Query(() => EmailVerificationCode, { name: 'getUserEmailCode' })
+  getUserEmailCode(
+    @Args('fullname', { type: () => String }) fullname: string,
+    @Args('email', { type: () => String }) email: string
+  ): Observable<EmailVerificationCode> {
+    return this.userService.getUserEmailCode(email, fullname);
   }
-  @Query(() => UserWithSmsCode, { name: 'getUserSMSCode' })
-  getUserSMSCode(@Args('userId', { type: () => String }) userId: string): Observable<UserWithSmsCode> {
-    return this.userService.getUserSMSCode(userId);
+  @Query(() => SmsVerificationCode, { name: 'getUserSMSCode' })
+  getUserSMSCode(@Args('phoneNumber', { type: () => String }) phoneNumber: string): Observable<SmsVerificationCode> {
+    return this.userService.getUserSMSCode(phoneNumber);
   }
 }

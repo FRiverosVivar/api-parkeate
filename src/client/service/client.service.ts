@@ -11,11 +11,11 @@ import * as uuid from 'uuid';
 import { UUIDBadFormatException } from '../../utils/exceptions/UUIDBadFormat.exception';
 import { getCodeForRegister } from '../../utils/utils';
 import { FileUpload } from 'graphql-upload-minimal';
-import { ClientWithVerificationCode } from '../model/client-with-verification-code.response';
-import { ClientWithSmsCode } from '../model/client-with-sms-code.response';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreatePhotoInput } from "../../photo/model/create-photo.input";
 import { PhotoService } from "../../photo/service/photo.service";
+import { EmailVerificationCode } from "../model/email-verification-code.response";
+import { SmsVerificationCode } from "../model/sms-code.response";
 
 @Injectable()
 export class ClientService {
@@ -26,23 +26,18 @@ export class ClientService {
     private readonly smsService: SmsService,
     private readonly photoService: PhotoService,
   ) {}
-  createClient(clientDTO: CreateClientInput): Observable<ClientEntity> {
+  async createClient(clientDTO: CreateClientInput): Promise<ClientEntity> {
     const client = this.clientRepository.create(clientDTO);
     client.parkingList = []
     client.buildings = []
-    const emailSubject = from(
-      this.emailService.sendEmail(
-        EmailTypesEnum.REGISTER,
-        client.email,
-        JSON.stringify({ name: client.fullname }),
-      ),
-    );
-    const saveUserSubject = from(this.clientRepository.save(client));
-    return forkJoin([emailSubject, saveUserSubject]).pipe(
-      map(([value, c]) => {
-        return c;
-      }),
-    );
+    const res = await this.emailService.sendEmail(
+      EmailTypesEnum.REGISTER,
+      client.email,
+      JSON.stringify({ name: client.fullname }),
+    )
+    console.log(res)
+    console.log(clientDTO)
+    return this.clientRepository.save(client)
   }
   updateClient(updatedClient: UpdateClientInput): Observable<ClientEntity> {
     return from(
@@ -86,38 +81,27 @@ export class ClientService {
       }),
     );
   }
-  getUserEmailCode(id: string): Observable<ClientWithVerificationCode> {
+  getClientEmailCode(email: string, fullname: string): Observable<EmailVerificationCode> {
     const code = getCodeForRegister();
-    return this.findClientById(id).pipe(
-      tap((u) => {
-        from(
-          this.emailService.sendEmail(
-            EmailTypesEnum.CODE,
-            u.email,
-            JSON.stringify({name: u.fullname, code: code }),
-          ),
-        );
-      }),
-      switchMap((u) => {
-        const response = {
-          client: u,
-          code: code,
-        } as ClientWithVerificationCode;
-        return of(response);
-      }),
+    return from(
+      this.emailService.sendEmail(
+        EmailTypesEnum.CODE,
+        email,
+        JSON.stringify({name: fullname, code: code }),
+      )).pipe(
+      switchMap((() => {
+        return of({code: code} as EmailVerificationCode)
+      }))
     );
   }
-  getUserSMSCode(id: string): Observable<ClientWithSmsCode> {
+  getClientSMSCode(phoneNumber: string): Observable<SmsVerificationCode> {
     const code = getCodeForRegister();
-    return this.findClientById(id).pipe(
-      tap((u) => {
-        this.smsService.publishSMSToPhoneNumber(u.phoneNumber, code);
-      }),
+    return this.smsService.publishSMSToPhoneNumber(phoneNumber, code).pipe(
       switchMap((u) => {
-        const response = { client: u, smsCode: code } as ClientWithSmsCode;
+        const response = { smsCode: code } as SmsVerificationCode;
         return of(response);
-      }),
-    );
+      })
+    )
   }
   findClientById(clientId: string): Observable<ClientEntity> {
     if (!uuid.validate(clientId)) {

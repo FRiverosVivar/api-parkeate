@@ -29,6 +29,8 @@ import { PhotoService } from "../../photo/service/photo.service";
 import { CreatePhotoInput } from "../../photo/model/create-photo.input";
 import { PlacesService } from "../../utils/places/places.service";
 import { SearchByTextOptions } from "../../utils/places/places.types";
+import { EmailVerificationCode } from "../../client/model/email-verification-code.response";
+import { SmsVerificationCode } from "../../client/model/sms-code.response";
 
 @Injectable()
 export class UserService {
@@ -94,35 +96,27 @@ export class UserService {
       }),
     );
   }
-  getUserEmailCode(id: string): Observable<UserWithVerificationCode> {
+  getUserEmailCode(email: string, fullname: string): Observable<EmailVerificationCode> {
     const code = getCodeForRegister();
-    return this.findUserById(id).pipe(
-      tap((u) => {
-        from(
-          this.emailService.sendEmail(
-            EmailTypesEnum.CODE,
-            u.email,
-            JSON.stringify({ code: code }),
-          ),
-        );
-      }),
-      switchMap((u) => {
-        const response = { user: u, code: code } as UserWithVerificationCode;
-        return of(response);
-      }),
+    return from(
+      this.emailService.sendEmail(
+        EmailTypesEnum.CODE,
+        email,
+        JSON.stringify({name: fullname, code: code }),
+      )).pipe(
+      switchMap((() => {
+        return of({code: code} as EmailVerificationCode)
+      }))
     );
   }
-  getUserSMSCode(id: string): Observable<UserWithSmsCode> {
+  getUserSMSCode(phoneNumber: string): Observable<SmsVerificationCode> {
     const code = getCodeForRegister();
-    return this.findUserById(id).pipe(
-      tap((u) => {
-        this.smsService.publishSMSToPhoneNumber(u.phoneNumber, code);
-      }),
+    return this.smsService.publishSMSToPhoneNumber(phoneNumber, code).pipe(
       switchMap((u) => {
-        const response = { user: u, smsCode: code } as UserWithSmsCode;
+        const response = { smsCode: code } as SmsVerificationCode;
         return of(response);
-      }),
-    );
+      })
+    )
   }
   findUserById(userId: string): Observable<UserEntity> {
     if (!uuid.validate(userId)) {

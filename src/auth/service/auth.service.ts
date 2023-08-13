@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { CryptService } from '../../utils/crypt/crypt.service';
-import { map, Observable, switchMap, of, forkJoin } from "rxjs";
+import { map, Observable, switchMap, of, forkJoin, from } from "rxjs";
 import { UserEntity } from '../../user/entity/user.entity';
 import { UserService } from '../../user/service/user.service';
 import { JwtService } from '@nestjs/jwt';
@@ -66,7 +66,7 @@ export class AuthService {
         return this.bcryptService.hash(password).pipe(
           switchMap((hashedPassword) => {
             createClientInput.password = hashedPassword;
-            return this.clientService.createClient(createClientInput);
+            return from(this.clientService.createClient(createClientInput))
           }),
         );
       }),

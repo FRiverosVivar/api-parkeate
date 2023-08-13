@@ -7,6 +7,7 @@ export enum UserTypesEnum {
   USER,
   MANAGER,
   ROOT_MANAGER,
+  // parkeate a
   ADMIN,
   ROOT,
 }

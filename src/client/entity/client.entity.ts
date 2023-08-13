@@ -1,5 +1,5 @@
 import { ChildEntity, Column, Entity, JoinColumn, JoinTable, ManyToOne, OneToMany } from "typeorm";
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, Int, ObjectType } from "@nestjs/graphql";
 import { BaseCustomer } from '../../utils/interfaces/base-customer.abstract';
 import { ParkingEntity } from "../../parking/entity/parking.entity";
 import { HoldingEntity } from "../../holding/entity/holding.entity";
@@ -10,7 +10,7 @@ import { UserTypesEnum } from "../../user/constants/constants";
 @ObjectType()
 export class ClientEntity extends BaseCustomer {
   @Column({ type: 'enum', enum: UserTypesEnum , nullable: true})
-  @Field(() => UserTypesEnum, { description: 'type of the user' })
+  @Field(() => Int, { description: 'type of the user' })
   userType: UserTypesEnum;
   @OneToMany(() => ParkingEntity, (p) => p.client)
   @Field(() => [ParkingEntity])

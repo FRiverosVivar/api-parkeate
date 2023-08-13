@@ -6,9 +6,9 @@ import { Observable } from 'rxjs';
 import { ClientEntity } from '../entity/client.entity';
 import { ClientService } from '../service/client.service';
 import { UpdateClientInput } from '../model/update-client.input';
-import { ClientWithVerificationCode } from '../model/client-with-verification-code.response';
-import { ClientWithSmsCode } from '../model/client-with-sms-code.response';
 import { CreatePhotoInput } from "../../photo/model/create-photo.input";
+import { EmailVerificationCode } from "../model/email-verification-code.response";
+import { SmsVerificationCode } from "../model/sms-code.response";
 
 @Resolver(() => ClientEntity)
 export class ClientResolver {
@@ -51,17 +51,18 @@ export class ClientResolver {
   ): Observable<ClientEntity> {
     return this.clientService.removeClient(clientId);
   }
-  @Query(() => ClientWithVerificationCode, { name: 'getClientEmailCode' })
+  @Query(() => EmailVerificationCode, { name: 'getClientEmailCode' })
   getClientEmailCode(
-    @Args('clientId', { type: () => String }) clientId: string,
-  ): Observable<ClientWithVerificationCode> {
-    return this.clientService.getUserEmailCode(clientId);
+    @Args('fullname', { type: () => String }) fullname: string,
+    @Args('email', { type: () => String }) email: string,
+  ): Observable<EmailVerificationCode> {
+    return this.clientService.getClientEmailCode(email, fullname);
   }
-  @Query(() => ClientWithSmsCode, { name: 'getClientSMSCode' })
+  @Query(() => SmsVerificationCode, { name: 'getClientSMSCode' })
   getClientSMSCode(
-    @Args('clientId', { type: () => String }) clientId: string,
-  ): Observable<ClientWithSmsCode> {
-    return this.clientService.getUserSMSCode(clientId);
+    @Args('phoneNumber', { type: () => String }) phoneNumber: string,
+  ): Observable<SmsVerificationCode> {
+    return this.clientService.getClientSMSCode(phoneNumber);
   }
 
 }
