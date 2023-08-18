@@ -100,7 +100,6 @@ export class BuildingService {
     const { entities } = await query.getRawAndEntities();
     const pageMetaDto = new PaginationMeta({ pageOptionsDto: pagination, itemCount });
     pageMetaDto.skip = (pageMetaDto.page - 1)  * pageMetaDto.take;
-    console.log(pageMetaDto)
     return new PageDto(entities, pageMetaDto);
   }
   private getBuildingById(buildingId: string): Observable<BuildingEntity | null> {
@@ -201,6 +200,14 @@ export class BuildingService {
     const query = `
       select * from
       get_nearby_and_available_buildings('${user.id}', ${point.coordinates[0]}, ${point.coordinates[1]}, ${distance} , ${parkingType ? parkingType: -1})
+      `
+    console.log(query)
+    return from(this.buildingRepository.query(query))
+  }
+  getAllNearbyAndBuildings(point: PointInput, distance: number): Observable<BuildingOutput[]> {
+    const query = `
+      select * from
+      get_nearby_buildings_with_coords_as_text(${point.coordinates[0]}, ${point.coordinates[1]}, ${distance} )
       `
     console.log(query)
     return from(this.buildingRepository.query(query))

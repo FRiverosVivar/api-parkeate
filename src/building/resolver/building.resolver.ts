@@ -65,6 +65,16 @@ export class BuildingResolver {
   ): any {
     return this.buildingService.getAllNearbyAndReservableBuildings(user, point, distance, parkingType)
   }
+  @Query(() => [BuildingOutput], { name: 'getAllNearbyAndBuildings' })
+  @UserType(UserTypesEnum.USER)
+  @UseGuards(JwtAuthGuard, UserTypeGuard)
+  getAllNearbyAndBuildings(
+    @Args('distance') distance: number,
+    @Args( 'point') point: PointInput,
+    @CurrentUser() user: UserEntity,
+  ): any {
+    return this.buildingService.getAllNearbyAndBuildings(point, distance)
+  }
   @Query(() => BuildingsPaginated, { name: 'getPaginatedBuildings' })
   @UseGuards(JwtAuthGuard)
   getPaginatedBuildings(
