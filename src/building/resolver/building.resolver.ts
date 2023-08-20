@@ -87,7 +87,7 @@ export class BuildingResolver {
   setBuildingPhoto(
     @Args('buildingId') buildingId: string,
     @Args('createPhotoInput') createPhotoInput: CreatePhotoInput,
-    @Args('file', { type: () => GraphQLUpload , nullable: true}) file?: FileUpload,
+    @Args('file', { type: () => GraphQLUpload }) file: FileUpload,
   ): Observable<BuildingEntity> {
     return this.buildingService.setBuildingPhoto(buildingId, createPhotoInput, file);
   }
