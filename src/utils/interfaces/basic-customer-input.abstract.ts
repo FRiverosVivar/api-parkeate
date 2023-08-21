@@ -1,5 +1,6 @@
 import { BasicProfileInputAbstract } from "./basic-profile-input.abstract";
-import { ArgsType, Field, InputType } from "@nestjs/graphql";
+import { ArgsType, Field, InputType, Int } from "@nestjs/graphql";
+import { UserTypesEnum } from "../../user/constants/constants";
 
 @InputType()
 @ArgsType()
@@ -12,4 +13,6 @@ export class BasicCustomerInputAbstract extends BasicProfileInputAbstract {
   validatedEmail: boolean;
   @Field(() => Boolean, { description: 'validated phone'})
   validatedPhone: boolean;
+  @Field(() => Int, { description: 'type of the user' })
+  userType: UserTypesEnum;
 }

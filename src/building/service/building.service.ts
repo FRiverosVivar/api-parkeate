@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from "@nestjs/comm
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { BuildingEntity } from "../entity/building.entity";
-import { forkJoin, from, map, Observable, switchMap, tap } from "rxjs";
+import { forkJoin, from, map, Observable, of, switchMap, tap } from "rxjs";
 import { CreateBuildingInput } from "../model/create-building.input";
 import { UpdateBuildingInput } from "../model/update-building.input";
 import { ExistingIdException } from "../../utils/exceptions/existing-id.exception";
@@ -22,6 +22,7 @@ import * as _ from "lodash";
 import { PageDto, PageOptionsDto, PaginationMeta } from "../../utils/interfaces/pagination.type";
 import { ClientEntity } from "../../client/entity/client.entity";
 import { UserTypesEnum } from "../../user/constants/constants";
+import { BuildingWithCoordsOutput } from "../model/building-coords.output";
 
 @Injectable()
 export class BuildingService {
@@ -111,6 +112,39 @@ export class BuildingService {
       }),
     );
   }
+  private getBuildingWithCoordsById(buildingId: string): Observable<BuildingWithCoordsOutput | null> {
+    return from(
+      this.buildingRepository.findOne({
+        where: {
+          id: buildingId,
+        },
+        relations: {
+          parkingList: true,
+          tags: true
+        }
+      })
+    ).pipe(switchMap((b) => {
+      if(b) {
+        const query = `
+          select b.id, concat(ST_Y(ST_AsText(b.location)), ',', ST_X(ST_AsText(b.location))) as coords
+          from building as b where b.id = '${b.id}'::uuid
+        `
+        return from(this.buildingRepository.query(query)).pipe(
+          switchMap((bWithCoords: BuildingWithCoordsOutput[]) => {
+            if(bWithCoords && bWithCoords.length > 0) {
+              const buildingOutput: BuildingWithCoordsOutput = {
+                coords: bWithCoords[0].coords,
+                ...b
+              }
+              return of(buildingOutput)
+            }
+            return of(null)
+          })
+        )
+      }
+      return of(null)
+    }))
+  }
   private getBuildingByAddress(address: string): Observable<BuildingEntity | null> {
     return from(
       this.buildingRepository.findOne({
@@ -135,6 +169,20 @@ export class BuildingService {
     }
 
     return this.getBuildingById(buildingId).pipe(
+      map((v) => {
+        if(!v)
+          throw new NotFoundException()
+
+        return v;
+      })
+    )
+  }
+  findBuildingWithCoordsById(buildingId: string): Observable<BuildingWithCoordsOutput> {
+    if (!uuid.validate(buildingId)) {
+      throw new UUIDBadFormatException();
+    }
+
+    return this.getBuildingWithCoordsById(buildingId).pipe(
       map((v) => {
         if(!v)
           throw new NotFoundException()

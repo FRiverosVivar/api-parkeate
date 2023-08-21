@@ -6,8 +6,6 @@ import { Column } from "typeorm";
 @InputType()
 @ArgsType()
 export class CreateUserInput extends BasicCustomerInputAbstract {
-  @Field(() => Int, { description: 'type of the user' })
-  userType: UserTypesEnum;
   @Field(() => Int, { nullable: true})
   wallet: number
   @Field(() => String, { nullable: true})

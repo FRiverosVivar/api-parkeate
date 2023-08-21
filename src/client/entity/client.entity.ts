@@ -9,7 +9,7 @@ import { UserTypesEnum } from "../../user/constants/constants";
 @Entity('client')
 @ObjectType()
 export class ClientEntity extends BaseCustomer {
-  @Column({ type: 'enum', enum: UserTypesEnum , nullable: true})
+  @Column({ type: 'enum', enum: UserTypesEnum})
   @Field(() => Int, { description: 'type of the user' })
   userType: UserTypesEnum;
   @OneToMany(() => ParkingEntity, (p) => p.client)

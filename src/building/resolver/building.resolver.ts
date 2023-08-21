@@ -18,6 +18,7 @@ import { CurrentUser } from "../../auth/decorator/current-user.decorator";
 import { ParkingType } from "../../parking/model/parking-type.enum";
 import { BuildingsPaginated, PageDto, PageOptionsDto } from "../../utils/interfaces/pagination.type";
 import { ClientEntity } from "../../client/entity/client.entity";
+import { BuildingWithCoordsOutput } from "../model/building-coords.output";
 
 @Resolver(BuildingEntity)
 export class BuildingResolver {
@@ -34,6 +35,10 @@ export class BuildingResolver {
   @Query(() => BuildingEntity, { name: 'findBuildingById' })
   findBuildingById(@Args('buildingId', { type: () => String }) buildingId: string) {
     return this.buildingService.findBuildingById(buildingId)
+  }
+  @Query(() => BuildingWithCoordsOutput, { name: 'findBuildingWithCoordsById' })
+  findBuildingWithCoordsById(@Args('buildingId', { type: () => String }) buildingId: string) {
+    return this.buildingService.findBuildingWithCoordsById(buildingId)
   }
   @Query(() => BuildingEntity, { name: 'findBuildingByIdAndFilterParkingsByReservedStatus' })
   findBuildingByIdAndFilterParkingsByReservedStatus(@Args('buildingId', { type: () => String }) buildingId: string) {

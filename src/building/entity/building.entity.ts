@@ -6,7 +6,6 @@ import { Field, ObjectType } from "@nestjs/graphql";
 import { BaseEntityWithIdAbstract } from "../../utils/interfaces/base-entity-with-id.abstract";
 import { ParkingEntity } from "../../parking/entity/parking.entity";
 import { ClientEntity } from "../../client/entity/client.entity";
-import { PointInput } from "../../parking/model/point.input";
 import { GeometryGQL } from "../../parking/scalar/point.scalar";
 import { TagsEntity } from "../../tags/entity/tags.entity";
 
