@@ -67,9 +67,8 @@ export class ParkingResolver {
   updateParking(
     @Args('updateParkingInput') updateParkingInput: UpdateParkingInput,
     @Args('buildingId', {nullable: true}) buildingId: string,
-    @Args('tagsIds', {type: () => [String], nullable: true}) tagsIds: string[],
   ) {
-    return this.parkingService.updateParking(updateParkingInput);
+    return this.parkingService.updateParking(updateParkingInput, buildingId);
   }
   @Mutation(() => ParkingEntity)
   removeParking(@Args('parkingId') parkingId: string) {
