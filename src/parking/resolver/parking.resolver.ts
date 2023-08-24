@@ -12,13 +12,10 @@ import { CreateFileInput } from "../../file/model/dto/create-file.input";
 import { FileUpload, GraphQLUpload } from "graphql-upload-minimal";
 import { CreatePhotoInput } from "../../photo/model/create-photo.input";
 import { Observable } from "rxjs";
-import { PointInput } from "../model/point.input";
 import { CurrentUser } from "../../auth/decorator/current-user.decorator";
-import { ClientEntity } from "../../client/entity/client.entity";
 import { UserEntity } from "../../user/entity/user.entity";
-import { FiltersInput } from "../model/filters.input";
-import { ParkingOutput } from "../model/parking.output";
-import { BuildingEntity } from "../../building/entity/building.entity";
+import { BuildingsPaginated, PageOptionsDto, ParkingsPaginated } from "../../utils/interfaces/pagination.type";
+import { ClientEntity } from "../../client/entity/client.entity";
 
 @Resolver(() => ParkingEntity)
 export class ParkingResolver {
@@ -56,6 +53,15 @@ export class ParkingResolver {
     @Args('buildingId', { type: () => String }) buildingId: string
   ) {
     return this.parkingService.findParkingByBuildingPositionCode(code, floor, section, buildingId);
+  }
+  @Query(() => ParkingsPaginated, { name: 'getPaginatedParkings' })
+  @UseGuards(JwtAuthGuard)
+  getPaginatedParkings(
+    @Args('paginationOptions') paginationOptions: PageOptionsDto,
+    @Args('buildingId') buildingId: string,
+    @CurrentUser() user: UserEntity
+  ) {
+    return this.parkingService.findPaginatedParkings(paginationOptions, buildingId, user as any as ClientEntity)
   }
   @Mutation(() => ParkingEntity, {name: 'updateParking'})
   updateParking(

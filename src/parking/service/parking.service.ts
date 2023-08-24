@@ -14,6 +14,9 @@ import { BuildingService } from "../../building/service/building.service";
 import { PhotoService } from "../../photo/service/photo.service";
 import { CreatePhotoInput } from "../../photo/model/create-photo.input";
 import { FileUpload } from "graphql-upload-minimal";
+import { PageDto, PageOptionsDto, PaginationMeta } from "../../utils/interfaces/pagination.type";
+import { ClientEntity } from "../../client/entity/client.entity";
+import { UserTypesEnum } from "../../user/constants/constants";
 
 @Injectable()
 export class ParkingService {
@@ -170,6 +173,29 @@ export class ParkingService {
         return p;
       })
     )
+  }
+  async findPaginatedParkings(pagination: PageOptionsDto, buildingId: string,  user: ClientEntity) {
+
+    const query = this.parkingRepository.createQueryBuilder('p')
+      .leftJoinAndSelect('p.client', 'c')
+      .leftJoinAndSelect('p.blockedUsers', 'bu')
+      .leftJoinAndSelect('p.building', 'bl')
+      .leftJoinAndSelect('p.schedule', 's')
+      .leftJoinAndSelect('p.bookings', 'b')
+      .where(
+        user.userType < UserTypesEnum.ADMIN ?
+          `c.id = '${user.id}'::uuid`
+          :
+          ''
+      )
+      .andWhere(buildingId !== '' ? `bl.id = '${buildingId}'::uuid`:'')
+      .skip(pagination.skip)
+      .take(pagination.take);
+    const itemCount = await query.getCount();
+    const { entities } = await query.getRawAndEntities();
+    const pageMetaDto = new PaginationMeta({ pageOptionsDto: pagination, itemCount });
+    pageMetaDto.skip = (pageMetaDto.page - 1)  * pageMetaDto.take;
+    return new PageDto(entities, pageMetaDto);
   }
   setParkingPhoto(parkingId: string, createPhotoInput: CreatePhotoInput, file: FileUpload | undefined) : Observable<ParkingEntity> {
     if(!file)

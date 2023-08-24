@@ -90,9 +90,10 @@ export class BuildingService {
   async findPaginatedBuildings(pagination: PageOptionsDto, user: ClientEntity) {
     const query = this.buildingRepository.createQueryBuilder('buildings')
       .leftJoinAndSelect('buildings.client', 'c')
+      .leftJoinAndSelect('buildings.tags', 't')
       .where(
         user.userType < UserTypesEnum.ADMIN ?
-          `buildings.id = '${user.id}'::uuid`
+          `c.id = '${user.id}'::uuid`
           :
           ''
       )
