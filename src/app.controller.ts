@@ -19,7 +19,6 @@ export class AppController {
 
   @Get('')
   updateBookingToReservedStatus(@Query('bookingId') bookingId: string, @Body() body: any): Observable<BookingEntity> {
-    console.log(body)
     const updateBookingInput: UpdateBookingInput = {
       id: bookingId,
       bookingState: BookingStatesEnum.RESERVED,

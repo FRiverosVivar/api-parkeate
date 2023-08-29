@@ -85,6 +85,6 @@ export class ParkingEntity extends BaseEntityWithIdAbstract{
   @Field(() => [BookingEntity])
   bookings: BookingEntity[]
   @Column({nullable: true})
-  @Field(() => String)
+  @Field(() => String, {nullable: true})
   phone: string;
 }

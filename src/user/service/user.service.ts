@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { DataSource, Equal, Repository } from "typeorm";
+import { DataSource, Equal, Like, Repository } from "typeorm";
 import { UserEntity } from '../entity/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
@@ -31,6 +31,9 @@ import { PlacesService } from "../../utils/places/places.service";
 import { SearchByTextOptions } from "../../utils/places/places.types";
 import { EmailVerificationCode } from "../../client/model/email-verification-code.response";
 import { SmsVerificationCode } from "../../client/model/sms-code.response";
+import { PageDto, PageOptionsDto, PaginationMeta } from "../../utils/interfaces/pagination.type";
+import { ClientEntity } from "../../client/entity/client.entity";
+import { UserTypesEnum } from "../constants/constants";
 
 @Injectable()
 export class UserService {
@@ -174,6 +177,31 @@ export class UserService {
         );
       }),
     );
+  }
+  async findPaginatedBlockedUsersOfParking(pagination: PageOptionsDto, user: ClientEntity, parkingId?: string) {
+    const query = this.userRepository.createQueryBuilder('u')
+      .leftJoinAndSelect('u.restrictedParkings', 'rp')
+      .where(
+        user.userType < UserTypesEnum.ADMIN ?
+          `c.id = '${user.id}'::uuid`
+          :
+          ''
+      )
+      .andWhere(parkingId ? `rp.id = '${parkingId}'::uuid`:'')
+      .skip(pagination.skip)
+      .take(pagination.take);
+
+    const itemCount = await query.getCount();
+    const { entities } = await query.getRawAndEntities();
+    const pageMetaDto = new PaginationMeta({ pageOptionsDto: pagination, itemCount });
+    pageMetaDto.skip = (pageMetaDto.page - 1) * pageMetaDto.take;
+    return new PageDto(entities, pageMetaDto);
+  }
+  searchUsersByGivenRutEmailOrFullname(text: string) {
+    const query = this.userRepository.createQueryBuilder('u')
+      .where(`LOWER(u.fullname) like '%${text.toLowerCase()}%' or LOWER(u.email) like '%${text.toLowerCase().replace('-', '')}%' or translate(u.rut, '-', '') like '%${text.toLowerCase()}%' or u.rut like '%${text.toLowerCase()}%'`)
+    console.log(query.getQuery())
+    return from(query.getMany())
   }
   getAddressesForGivenText(text: string, options: SearchByTextOptions) {
     return this.placesService.getPlacesByText(text, options)

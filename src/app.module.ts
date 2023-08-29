@@ -23,6 +23,7 @@ import { CronModule } from "./utils/cron/cron.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { SchedulesModule } from "./schedule/schedulesModule";
 import * as fs from 'fs'
+import { RequestModule } from "./requests/request.module";
 
 @Module({
   imports: [
@@ -72,6 +73,7 @@ import * as fs from 'fs'
     BookingModule,
     PlacesModule,
     CronModule,
+    RequestModule,
   ],
   controllers: [AppController],
   providers: [AppService, EmailService, PlacesService],

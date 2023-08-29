@@ -6,4 +6,6 @@ import { CreateBuildingInput } from "./create-building.input";
 export class UpdateBuildingInput extends PartialType(CreateBuildingInput) {
   @Field(() => String, { description: 'id of the building' })
   id: string;
+  @Field(() => Boolean, { nullable: true })
+  active: boolean;
 }

@@ -149,6 +149,7 @@ export class AuthService {
           access_token: this.jwtService.sign(
             {
               username: user.username,
+              userType: user.userType,
               sub: user.sub,
             },
             { secret: jwtConstants.secret, expiresIn: '60s' },
@@ -169,6 +170,7 @@ export class AuthService {
           access_token: this.jwtService.sign(
             {
               username: user.username,
+              userType: user.userType,
               sub: user.sub,
             },
             { secret: jwtConstants.secret, expiresIn: '60s' },

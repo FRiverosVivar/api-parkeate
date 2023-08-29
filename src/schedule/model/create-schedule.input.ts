@@ -1,4 +1,4 @@
-import { ArgsType, Field, InputType } from "@nestjs/graphql";
+import { ArgsType, Field, InputType, Int } from "@nestjs/graphql";
 import { Column, JoinColumn, ManyToOne } from "typeorm";
 import { ScheduleDaysEnum } from "../enum/schedule-days.enum";
 import { ParkingEntity } from "../../parking/entity/parking.entity";
@@ -6,7 +6,7 @@ import { ParkingEntity } from "../../parking/entity/parking.entity";
 @InputType()
 @ArgsType()
 export class CreateScheduleInput {
-  @Field(() => ScheduleDaysEnum, { description: 'day of the schedule' })
+  @Field(() => Int, { description: 'day of the schedule' })
   day: ScheduleDaysEnum;
   @Field(() => Date)
   scheduleStart: Date;

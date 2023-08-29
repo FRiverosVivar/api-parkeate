@@ -21,21 +21,24 @@ export class ScheduleService {
   }
   createSchedule(createScheduleInput: CreateScheduleInput, parkingId: string): Observable<ScheduleEntity> {
     const newSchedule = this.scheduleRepository.create(createScheduleInput);
-    const createSchedule = this.findSchedulesByParkingId(parkingId).pipe(
-      switchMap((schedules) => {
-        if(!schedules || schedules.length === 0)
-          return this.scheduleRepository.save(newSchedule)
+    return this.parkingService.findParkingById(parkingId).pipe(
+      switchMap((p) => {
+        return this.findSchedulesByParkingId(parkingId).pipe(
+          switchMap((schedules) => {
+            newSchedule.parking = p
 
-        if(schedules.length >= 6)
-          throw new MaxSchedulesException()
+            if(!schedules || schedules.length === 0)
+              return this.scheduleRepository.save(newSchedule)
 
-        if(this.checkDuplicatedScheduleDay(schedules, newSchedule))
-          throw new DuplicatedScheduleException()
+            if(schedules.length >= 6)
+              throw new MaxSchedulesException()
 
-        return this.scheduleRepository.save(newSchedule);
-      })
-    )
-    return this.parkingService.findParkingById(parkingId).pipe(switchMap(() => createSchedule))
+            if(this.checkDuplicatedScheduleDay(schedules, newSchedule))
+              throw new DuplicatedScheduleException()
+
+            return this.scheduleRepository.save(newSchedule);
+          }))
+      }))
   }
   removeSchedule(scheduleId: string): Observable<ScheduleEntity> {
     if (!uuid.validate(scheduleId)) {
@@ -62,6 +65,10 @@ export class ScheduleService {
     );
   }
   findSchedulesByParkingId(parkingId: string): Observable<ScheduleEntity[]> {
+    if (!uuid.validate(parkingId)) {
+      throw new UUIDBadFormatException();
+    }
+
     return this.getSchedulesByParkingId(parkingId).pipe(
       map((schedule) => {
         if(!schedule)
@@ -83,6 +90,10 @@ export class ScheduleService {
     )
   }
   findScheduleById(scheduleId: string): Observable<ScheduleEntity> {
+    if (!uuid.validate(scheduleId)) {
+      throw new UUIDBadFormatException();
+    }
+
     return this.getScheduleById(scheduleId).pipe(
       map((schedule) => {
         if(!schedule)

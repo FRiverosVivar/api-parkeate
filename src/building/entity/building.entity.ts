@@ -12,6 +12,9 @@ import { TagsEntity } from "../../tags/entity/tags.entity";
 @Entity('building')
 @ObjectType()
 export class BuildingEntity extends BaseEntityWithIdAbstract {
+  @Column({nullable: true})
+  @Field(() => Boolean, { nullable: true })
+  active: boolean
   @Column()
   @Field(() => String, { description: 'name of the building' })
   name: string;

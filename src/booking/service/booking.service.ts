@@ -23,6 +23,9 @@ import { UpdateUserInput } from "../../user/model/dto/update-user.input";
 import { CronService } from "../../utils/cron/cron.service";
 import { CronEntity } from "../../utils/cron/entity/cron.entity";
 import { UpdateParkingInput } from "../../parking/model/update-parking.input";
+import { PageDto, PageOptionsDto, PaginationMeta } from "../../utils/interfaces/pagination.type";
+import { ClientEntity } from "../../client/entity/client.entity";
+import { UserTypesEnum } from "../../user/constants/constants";
 
 @Injectable()
 export class BookingService implements OnModuleInit {
@@ -184,6 +187,24 @@ export class BookingService implements OnModuleInit {
         return of(Math.round(b.user.wallet + (b.initialPrice - b.finalPrice)))
       })
     )
+  }
+  async findPaginatedBookings(pagination: PageOptionsDto, displayAll: boolean, parkingId: string, user: ClientEntity) {
+    const query = this.bookingRepository.createQueryBuilder('b')
+      .leftJoinAndSelect('b.parking', 'p')
+      .leftJoinAndSelect('b.user', 'u')
+      .where(
+        user.userType < UserTypesEnum.ADMIN && displayAll ?
+          `u.id = '${user.id}'::uuid`
+          :
+          ''
+      )
+      .skip(pagination.skip)
+      .take(pagination.take);
+    const itemCount = await query.getCount();
+    const { entities } = await query.getRawAndEntities();
+    const pageMetaDto = new PaginationMeta({ pageOptionsDto: pagination, itemCount });
+    pageMetaDto.skip = (pageMetaDto.page - 1) * pageMetaDto.take;
+    return new PageDto(entities, pageMetaDto);
   }
   findUnPaidBookings(userId: string) {
     if (!uuid.validate(userId)) {

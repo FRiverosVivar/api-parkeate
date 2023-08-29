@@ -1,8 +1,8 @@
 import { InjectRepository } from "@nestjs/typeorm";
 import { ParkingEntity } from "../entity/parking.entity";
-import { And, Equal, IsNull, Not, Repository } from "typeorm";
+import { IsNull, Not, Repository } from "typeorm";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { combineLatest, forkJoin, from, isEmpty, map, Observable, of, switchMap, tap } from "rxjs";
+import { forkJoin, from, map, Observable, switchMap, tap } from "rxjs";
 import { CreateParkingInput } from "../model/create-parking.input";
 import * as uuid from "uuid";
 import { UUIDBadFormatException } from "../../utils/exceptions/UUIDBadFormat.exception";
@@ -17,7 +17,7 @@ import { FileUpload } from "graphql-upload-minimal";
 import { PageDto, PageOptionsDto, PaginationMeta } from "../../utils/interfaces/pagination.type";
 import { ClientEntity } from "../../client/entity/client.entity";
 import { UserTypesEnum } from "../../user/constants/constants";
-
+import * as _ from 'lodash';
 @Injectable()
 export class ParkingService {
   constructor(
@@ -155,7 +155,7 @@ export class ParkingService {
       map((p) => {
         if(!p)
           throw new NotFoundException()
-
+        console.log(p)
         return p;
       })
     )
@@ -174,8 +174,35 @@ export class ParkingService {
       })
     )
   }
+  removeBlockedUserFromParking(userId: string, parkingId: string) {
+    return this.userService.findUserById(userId).pipe(
+      switchMap((u) => {
+        return this.findParkingById(parkingId).pipe(
+          switchMap((p) => {
+            const blockedUsers = p.blockedUsers
+            _.remove(blockedUsers, (bu) => bu.id === userId)
+            p.blockedUsers = blockedUsers;
+            return from(this.parkingRepository.save(p))
+          })
+        )
+      })
+    )
+  }
+  addUserToParkingBlockList(userId: string, parkingId: string) {
+    return this.userService.findUserById(userId).pipe(
+      switchMap((u) => {
+        return this.findParkingById(parkingId).pipe(
+          switchMap((p) => {
+            const blockedUsers = p.blockedUsers
+            blockedUsers.push(u)
+            p.blockedUsers = blockedUsers;
+            return from(this.parkingRepository.save(p))
+          })
+        )
+      })
+    )
+  }
   async findPaginatedParkings(pagination: PageOptionsDto, buildingId: string,  user: ClientEntity) {
-
     const query = this.parkingRepository.createQueryBuilder('p')
       .leftJoinAndSelect('p.client', 'c')
       .leftJoinAndSelect('p.blockedUsers', 'bu')
@@ -204,13 +231,16 @@ export class ParkingService {
     return this.findParkingById(parkingId).pipe(
       switchMap((p) => {
         return this.photoService.createPhoto(createPhotoInput, file).pipe(
+          tap((photo) => {
+            if(p.photo)
+              this.photoService.removePhoto(p.photo)
+          }),
           switchMap((photo) => {
             p.photo = photo.url;
             return this.parkingRepository.save(p)
           })
         )
-      })
-    )
+      }))
   }
   private getParkingByBuildingPositionCode(code: string, floor: number, section: string, buildingId: string ): Observable<ParkingEntity | null> {
     return from(
@@ -229,6 +259,9 @@ export class ParkingService {
   private getParkingById(id: string): Observable<ParkingEntity | null> {
     return from(
       this.parkingRepository.findOne({
+        relations: {
+          blockedUsers: true
+        },
         where: {
           id: id,
         },

@@ -11,6 +11,9 @@ import { UserWithVerificationCode } from "../model/dto/user-with-verification-co
 import { UserWithSmsCode } from "../model/dto/user-with-sms-code.response";
 import { EmailVerificationCode } from "../../client/model/email-verification-code.response";
 import { SmsVerificationCode } from "../../client/model/sms-code.response";
+import { PageOptionsDto, ParkingBlockedUsersPaginated } from "../../utils/interfaces/pagination.type";
+import { CurrentUser } from "../../auth/decorator/current-user.decorator";
+import { ClientEntity } from "../../client/entity/client.entity";
 
 @Resolver(() => UserEntity)
 export class UserResolver {
@@ -22,6 +25,23 @@ export class UserResolver {
     return this.userService.findAll();
   }
 
+  @Query(() => ParkingBlockedUsersPaginated, { name: 'getPaginatedParkingBlockedUsers' })
+  @UseGuards(JwtAuthGuard)
+  getPaginatedParkingBlockedUsers(
+    @Args('paginationOptions') paginationOptions: PageOptionsDto,
+    @Args('parkingId', {nullable: true}) parkingId: string,
+    @CurrentUser() user: UserEntity
+  ) {
+    return this.userService.findPaginatedBlockedUsersOfParking(paginationOptions, user as any as ClientEntity, parkingId)
+  }
+  @Query(() => [UserEntity], { name: 'searchUsersByGivenRutEmailOrFullname' })
+  @UseGuards(JwtAuthGuard)
+  searchUsersByGivenRutEmailOrFullname(
+    @Args('text') text: string,
+    @CurrentUser() user: UserEntity
+  ) {
+    return this.userService.searchUsersByGivenRutEmailOrFullname(text)
+  }
   @Query(() => UserEntity, { name: 'userById' })
   findOne(@Args('userId', { type: () => String }) userId: string) {
     return this.userService.findUserById(userId)

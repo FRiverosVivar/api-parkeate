@@ -1,4 +1,4 @@
-import { Args, Context, Int, Mutation, Query, Resolver } from "@nestjs/graphql";
+import { Args, Int, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { ParkingEntity } from "../entity/parking.entity";
 import { UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
@@ -8,13 +8,15 @@ import { UserTypesEnum } from "../../user/constants/constants";
 import { UserTypeGuard } from "../../auth/guards/user-type.guard";
 import { UpdateParkingInput } from "../model/update-parking.input";
 import { CreateParkingInput } from "../model/create-parking.input";
-import { CreateFileInput } from "../../file/model/dto/create-file.input";
 import { FileUpload, GraphQLUpload } from "graphql-upload-minimal";
 import { CreatePhotoInput } from "../../photo/model/create-photo.input";
 import { Observable } from "rxjs";
 import { CurrentUser } from "../../auth/decorator/current-user.decorator";
 import { UserEntity } from "../../user/entity/user.entity";
-import { BuildingsPaginated, PageOptionsDto, ParkingsPaginated } from "../../utils/interfaces/pagination.type";
+import {
+  PageOptionsDto,
+  ParkingsPaginated
+} from "../../utils/interfaces/pagination.type";
 import { ClientEntity } from "../../client/entity/client.entity";
 
 @Resolver(() => ParkingEntity)
@@ -69,6 +71,22 @@ export class ParkingResolver {
     @Args('buildingId', {nullable: true}) buildingId: string,
   ) {
     return this.parkingService.updateParking(updateParkingInput, buildingId);
+  }
+  @Mutation(() => ParkingEntity, {name: 'removeBlockedUserFromParking'})
+  @UseGuards(JwtAuthGuard)
+  removeBlockedUserFromParking(
+    @Args('userId') userId: string,
+    @Args('parkingId') parkingId: string
+  ) {
+    return this.parkingService.removeBlockedUserFromParking(userId, parkingId);
+  }
+  @Mutation(() => ParkingEntity, {name: 'addUserToParkingBlockList'})
+  @UseGuards(JwtAuthGuard)
+  addUserToParkingBlockList(
+    @Args('userId') userId: string,
+    @Args('parkingId') parkingId: string
+  ) {
+    return this.parkingService.addUserToParkingBlockList(userId, parkingId);
   }
   @Mutation(() => ParkingEntity)
   removeParking(@Args('parkingId') parkingId: string) {

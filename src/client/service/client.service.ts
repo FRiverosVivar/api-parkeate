@@ -35,8 +35,6 @@ export class ClientService {
       client.email,
       JSON.stringify({ name: client.fullname }),
     )
-    console.log(res)
-    console.log(clientDTO)
     return this.clientRepository.save(client)
   }
   updateClient(updatedClient: UpdateClientInput): Observable<ClientEntity> {

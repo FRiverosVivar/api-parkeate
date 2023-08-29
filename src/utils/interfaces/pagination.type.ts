@@ -2,6 +2,8 @@ import { ArgsType, Field, InputType, ObjectType } from "@nestjs/graphql";
 import { Any } from "typeorm";
 import { BuildingEntity } from "../../building/entity/building.entity";
 import { ParkingEntity } from "../../parking/entity/parking.entity";
+import { UserEntity } from "../../user/entity/user.entity";
+import { BookingEntity } from "../../booking/entity/booking.entity";
 @InputType()
 @ArgsType()
 export class PageOptionsDto {
@@ -65,6 +67,20 @@ export class BuildingsPaginated {
 export class ParkingsPaginated {
   @Field(() => [ParkingEntity])
   data: ParkingEntity[];
+  @Field(() => PaginationMeta)
+  meta: PaginationMeta;
+}
+@ObjectType()
+export class BookingsPaginated {
+  @Field(() => [BookingEntity])
+  data: BookingEntity[];
+  @Field(() => PaginationMeta)
+  meta: PaginationMeta;
+}
+@ObjectType()
+export class ParkingBlockedUsersPaginated {
+  @Field(() => [UserEntity])
+  data: UserEntity[];
   @Field(() => PaginationMeta)
   meta: PaginationMeta;
 }

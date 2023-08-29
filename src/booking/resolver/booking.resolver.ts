@@ -8,9 +8,11 @@ import { UpdateBookingInput } from "../model/update-booking.input";
 import { UserTypeGuard } from "../../auth/guards/user-type.guard";
 import { UserTypesEnum } from "../../user/constants/constants";
 import { UserType } from "../../auth/decorator/user-type.decorator";
-import { Observable, tap } from "rxjs";
+import { Observable } from "rxjs";
 import { CurrentUser } from "../../auth/decorator/current-user.decorator";
 import { UserEntity } from "../../user/entity/user.entity";
+import { BookingsPaginated, PageOptionsDto } from "../../utils/interfaces/pagination.type";
+import { ClientEntity } from "../../client/entity/client.entity";
 
 @Resolver(BookingEntity)
 export class BookingResolver {
@@ -42,6 +44,16 @@ export class BookingResolver {
   @Query(() => Int)
   getOrderNumberByCountingBookings(): Observable<number> {
     return this.bookingService.getBookingCountForOrderNumber()
+  }
+  @Query(() => BookingsPaginated, { name: 'getPaginatedBookings' })
+  @UseGuards(JwtAuthGuard)
+  getPaginatedBookings(
+    @Args('paginationOptions') paginationOptions: PageOptionsDto,
+    @Args('parkingId', {nullable: true}) parkingId: string,
+    @Args('displayAll', {nullable: true}) displayAll: boolean,
+    @CurrentUser() user: UserEntity
+  ) {
+    return this.bookingService.findPaginatedBookings(paginationOptions, displayAll, parkingId, user as any as ClientEntity)
   }
   @Query(() => BookingEntity)
   findBookingById(
