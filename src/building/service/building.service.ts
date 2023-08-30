@@ -98,6 +98,7 @@ export class BuildingService {
           :
           ''
       )
+      .orderBy('buildings.createdAt', 'DESC')
       .skip(pagination.skip)
       .take(pagination.take);
     const itemCount = await query.getCount();

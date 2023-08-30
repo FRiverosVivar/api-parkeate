@@ -216,6 +216,7 @@ export class ParkingService {
           ''
       )
       .andWhere(buildingId !== '' ? `bl.id = '${buildingId}'::uuid`:'')
+      .orderBy('p.createdAt', 'DESC')
       .skip(pagination.skip)
       .take(pagination.take);
     const itemCount = await query.getCount();
