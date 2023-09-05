@@ -23,6 +23,8 @@ import { PageDto, PageOptionsDto, PaginationMeta } from "../../utils/interfaces/
 import { ClientEntity } from "../../client/entity/client.entity";
 import { UserTypesEnum } from "../../user/constants/constants";
 import { BuildingWithCoordsOutput } from "../model/building-coords.output";
+import { MostProfitableBuilding } from "../model/finance-building.output";
+import { DateTime } from "luxon";
 
 @Injectable()
 export class BuildingService {
@@ -248,6 +250,42 @@ export class BuildingService {
       })
     )
   }
+  findMostProfitableBuilding() {
+    const todayStart = DateTime.now().set({
+      hour: 0,
+      minute: 0,
+      second: 0,
+      millisecond: 1
+    })
+    const todayEnd = DateTime.now().set({
+      hour: 23,
+      minute: 59,
+      second: 59,
+      millisecond: 999
+    })
+    const query = this.buildingRepository.createQueryBuilder('b')
+      .leftJoinAndSelect('b.client', 'c')
+      .leftJoinAndSelect('b.parkingList', 'p')
+      .leftJoinAndSelect('p.bookings', 'bookings')
+      .select(`b.id, SUM(bookings."finalPrice") as "finalPrice"`)
+      .where(`bookings."dateStart" BETWEEN '${todayStart.toISO()}' AND '${todayEnd.toISO()}'`)
+      .groupBy('b.id')
+      .orderBy(`"finalPrice"`, 'DESC')
+      .limit(1)
+    return from(query.getRawOne()).pipe(
+      switchMap((b) => {
+        if(!b)
+          return of(null)
+      return this.findBuildingById(b.id).pipe(map((building) => {
+        const mostProfitableBuilding: MostProfitableBuilding = {
+          building: building,
+          totalPrice: b.finalPrice
+        }
+        return mostProfitableBuilding
+      }))
+    }))
+
+  }
   getAllNearbyAndReservableBuildings(user: UserEntity, point: PointInput, distance: number, parkingType?: ParkingType): Observable<BuildingOutput[]> {
     const query = `
       select * from
@@ -262,27 +300,4 @@ export class BuildingService {
       `
     return from(this.buildingRepository.query(query))
   }
-  // private createWhereClause(filters?: FiltersInput): string {
-  //   if(!filters) return '';
-  //   const conditions = [];
-  //
-  //   if (filters.priceMonthly !== undefined) {
-  //     conditions.push(`priceMonthly = ${filters.priceMonthly}`);
-  //   }
-  //
-  //   if (filters.pricePerMinute !== undefined) {
-  //     conditions.push(`pricePerMinute = ${filters.pricePerMinute}`);
-  //   }
-  //
-  //   if (filters.parkingType !== undefined) {
-  //     conditions.push(`type = ${filters.parkingType}`);
-  //   }
-  //
-  //   if (conditions.length === 0) {
-  //     return '';
-  //   }
-  //
-  //   const whereClause = conditions.join(' AND ');
-  //   return `WHERE ${whereClause}`;
-  // }
 }

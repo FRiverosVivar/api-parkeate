@@ -18,6 +18,8 @@ import {
   ParkingsPaginated
 } from "../../utils/interfaces/pagination.type";
 import { ClientEntity } from "../../client/entity/client.entity";
+import { MostProfitableBuilding } from "../../building/model/finance-building.output";
+import { MostProfitableParking } from "../model/finance-parking.output";
 
 @Resolver(() => ParkingEntity)
 export class ParkingResolver {
@@ -108,15 +110,9 @@ export class ParkingResolver {
   ): Observable<ParkingEntity> {
     return this.parkingService.setParkingPhoto(parkingId, createPhotoInput, file);
   }
-  // @Query(() => [ParkingOutput], { name: 'getAllNearbyAndReservableParkings' })
-  // @UserType(UserTypesEnum.USER)
-  // @UseGuards(JwtAuthGuard, UserTypeGuard)
-  // getAllNearbyAndReservableParkings(
-  //   @Args('distance') distance: number,
-  //   @Args( 'point') point: PointInput,
-  //   @CurrentUser() user: UserEntity,
-  //   @Args('filters', { nullable: true}) filters?: FiltersInput,
-  // ): any {
-  //   return this.parkingService.getAllNearbyAndReservableParkings(user, point, distance, filters)
-  // }
+  @Query(() => MostProfitableParking, { name: 'findMostProfitableParking', nullable: true })
+  @UseGuards(JwtAuthGuard)
+  findMostProfitableParking(): Observable<MostProfitableParking | null> {
+    return this.parkingService.findMostProfitableParking()
+  }
 }

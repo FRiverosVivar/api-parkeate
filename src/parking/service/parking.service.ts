@@ -2,7 +2,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { ParkingEntity } from "../entity/parking.entity";
 import { IsNull, Not, Repository } from "typeorm";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { forkJoin, from, map, Observable, switchMap, tap } from "rxjs";
+import { forkJoin, from, map, Observable, of, switchMap, tap } from "rxjs";
 import { CreateParkingInput } from "../model/create-parking.input";
 import * as uuid from "uuid";
 import { UUIDBadFormatException } from "../../utils/exceptions/UUIDBadFormat.exception";
@@ -18,6 +18,9 @@ import { PageDto, PageOptionsDto, PaginationMeta } from "../../utils/interfaces/
 import { ClientEntity } from "../../client/entity/client.entity";
 import { UserTypesEnum } from "../../user/constants/constants";
 import * as _ from 'lodash';
+import { DateTime } from "luxon";
+import { MostProfitableBuilding } from "../../building/model/finance-building.output";
+import { MostProfitableParking } from "../model/finance-parking.output";
 @Injectable()
 export class ParkingService {
   constructor(
@@ -155,7 +158,6 @@ export class ParkingService {
       map((p) => {
         if(!p)
           throw new NotFoundException()
-        console.log(p)
         return p;
       })
     )
@@ -243,6 +245,39 @@ export class ParkingService {
         )
       }))
   }
+  findMostProfitableParking() {
+    const todayStart = DateTime.now().set({
+      hour: 0,
+      minute: 0,
+      second: 0,
+      millisecond: 1
+    })
+    const todayEnd = DateTime.now().set({
+      hour: 23,
+      minute: 59,
+      second: 59,
+      millisecond: 999
+    })
+    const query = this.parkingRepository.createQueryBuilder('p')
+      .leftJoinAndSelect('p.bookings', 'bookings')
+      .select(`p.id, SUM(bookings."finalPrice") as "finalPrice"`)
+      .where(`bookings."dateStart" BETWEEN '${todayStart.toISO()}' AND '${todayEnd.toISO()}'`)
+      .groupBy('p.id')
+      .orderBy(`"finalPrice"`, 'DESC')
+      .limit(1)
+    return from(query.getRawOne()).pipe(
+      switchMap((p) => {
+        if(!p)
+          return of(null)
+        return this.findParkingById(p.id).pipe(map((parking) => {
+          const mostProfitableParking: MostProfitableParking = {
+            parking: parking,
+            totalPrice: p.finalPrice
+          }
+          return mostProfitableParking
+        }))
+      }))
+  }
   private getParkingByBuildingPositionCode(code: string, floor: number, section: string, buildingId: string ): Observable<ParkingEntity | null> {
     return from(
       this.parkingRepository.findOne({
@@ -261,7 +296,8 @@ export class ParkingService {
     return from(
       this.parkingRepository.findOne({
         relations: {
-          blockedUsers: true
+          blockedUsers: true,
+          building: true
         },
         where: {
           id: id,

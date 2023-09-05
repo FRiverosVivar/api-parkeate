@@ -26,7 +26,8 @@ import { UpdateParkingInput } from "../../parking/model/update-parking.input";
 import { PageDto, PageOptionsDto, PaginationMeta } from "../../utils/interfaces/pagination.type";
 import { ClientEntity } from "../../client/entity/client.entity";
 import { UserTypesEnum } from "../../user/constants/constants";
-
+import { BookingDailyFinance, BookingDailyIncomeFinance } from "../model/finance-booking.output";
+import * as _ from 'lodash'
 @Injectable()
 export class BookingService implements OnModuleInit {
   constructor(
@@ -49,7 +50,7 @@ export class BookingService implements OnModuleInit {
   }
 
   onModuleInit(): any {
-    Settings.defaultZone = 'America/Santiago';
+    Settings.defaultZone = 'America/Sao_Paulo';
     this.checkMonthlyAndYearlyReservations()
     this.loadCronsFromRepository()
   }
@@ -229,6 +230,98 @@ export class BookingService implements OnModuleInit {
         return t;
       })
     )
+  }
+  async findBookingsAndGetDailyIncomeAndPercentage() {
+    const todayStart = DateTime.now().set({
+      hour: 0,
+      minute: 0,
+      second: 0,
+      millisecond: 1
+    })
+    const todayEnd = DateTime.now().set({
+      hour: 23,
+      minute: 59,
+      second: 59,
+      millisecond: 999
+    })
+    const todayBookings = await this.bookingRepository.find({
+      where: {
+        dateStart: Between(todayStart.toJSDate(), todayEnd.toJSDate())
+      }
+    })
+    const yesterdayStart = DateTime.now().minus({ day: 1 }).set({
+      hour: 0,
+      minute: 0,
+      second: 0,
+      millisecond: 1
+    })
+    const yesterdayEnd = DateTime.now().minus({ day: 1 }).set({
+      hour: 23,
+      minute: 59,
+      second: 59,
+      millisecond: 999
+    })
+    const yesterdayBookings = await this.bookingRepository.find({
+      where: {
+        dateStart: Between(yesterdayStart.toJSDate(), yesterdayEnd.toJSDate())
+      }
+    })
+    let todayIncome = 0;
+    _.forEach(todayBookings, (b) => {
+      todayIncome += b.finalPrice
+    })
+    let yesterdayIncome = 0;
+    _.forEach(yesterdayBookings, (b) => {
+      yesterdayIncome += b.finalPrice
+    })
+    const percentBetterFromYesterday = todayIncome === 0 && yesterdayIncome === 0 ? 0:Math.round(((todayIncome - yesterdayIncome) * 100)/(yesterdayIncome === 0 ? todayIncome: yesterdayIncome))
+    return {
+      percentBetterFromYesterday: percentBetterFromYesterday,
+      numberOfIncomeToday: todayIncome
+    } as BookingDailyIncomeFinance
+  }
+  async findBookingsMadeTodayAndYesterday() {
+    const todayStart = DateTime.now().set({
+      hour: 0,
+      minute: 0,
+      second: 0,
+      millisecond: 1
+    })
+    const todayEnd = DateTime.now().set({
+      hour: 23,
+      minute: 59,
+      second: 59,
+      millisecond: 999
+    })
+    const yesterdayStart = DateTime.now().minus({ day: 1 }).set({
+      hour: 0,
+      minute: 0,
+      second: 0,
+      millisecond: 1
+    })
+    const yesterdayEnd = DateTime.now().minus({ day: 1 }).set({
+      hour: 23,
+      minute: 59,
+      second: 59,
+      millisecond: 999
+    })
+    const todayBookings = await this.bookingRepository.find({
+      where: {
+        dateStart: Between(todayStart.toJSDate(), todayEnd.toJSDate())
+      }
+    })
+    const yesterdayBookings = await this.bookingRepository.find({
+      where: {
+        dateStart: Between(yesterdayStart.toJSDate(), yesterdayEnd.toJSDate())
+      }
+    })
+    const totalYesterday = yesterdayBookings.length
+    const totalToday = todayBookings.length
+    const percentBetterFromYesterday = totalYesterday === 0 && totalToday === 0 ? 0:Math.round(((totalToday - totalYesterday) * 100)/(totalYesterday === 0 ? totalToday: totalYesterday))
+    return {
+      percentBetterFromYesterday: percentBetterFromYesterday,
+      numberOfBookingToday: todayBookings.length
+    } as BookingDailyFinance
   }
   getUnPaidBookings(userId: string) {
     return from(this.bookingRepository.find(

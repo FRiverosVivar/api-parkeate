@@ -19,6 +19,7 @@ import { ParkingType } from "../../parking/model/parking-type.enum";
 import { BuildingsPaginated, PageDto, PageOptionsDto } from "../../utils/interfaces/pagination.type";
 import { ClientEntity } from "../../client/entity/client.entity";
 import { BuildingWithCoordsOutput } from "../model/building-coords.output";
+import { MostProfitableBuilding } from "../model/finance-building.output";
 
 @Resolver(BuildingEntity)
 export class BuildingResolver {
@@ -95,5 +96,10 @@ export class BuildingResolver {
     @Args('file', { type: () => GraphQLUpload }) file: FileUpload,
   ): Observable<BuildingEntity> {
     return this.buildingService.setBuildingPhoto(buildingId, createPhotoInput, file);
+  }
+  @Query(() => MostProfitableBuilding, { name: 'findMostProfitableBuilding', nullable: true })
+  @UseGuards(JwtAuthGuard)
+  findMostProfitableBuilding(): Observable<MostProfitableBuilding | null> {
+    return this.buildingService.findMostProfitableBuilding()
   }
 }

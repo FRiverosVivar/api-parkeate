@@ -13,6 +13,7 @@ import { CurrentUser } from "../../auth/decorator/current-user.decorator";
 import { UserEntity } from "../../user/entity/user.entity";
 import { BookingsPaginated, PageOptionsDto } from "../../utils/interfaces/pagination.type";
 import { ClientEntity } from "../../client/entity/client.entity";
+import { BookingDailyFinance, BookingDailyIncomeFinance } from "../model/finance-booking.output";
 
 @Resolver(BookingEntity)
 export class BookingResolver {
@@ -54,6 +55,16 @@ export class BookingResolver {
     @CurrentUser() user: UserEntity
   ) {
     return this.bookingService.findPaginatedBookings(paginationOptions, displayAll, parkingId, user as any as ClientEntity)
+  }
+  @Query(() => BookingDailyFinance, { name: 'findBookingsMadeTodayAndYesterday' })
+  @UseGuards(JwtAuthGuard)
+  findBookingsMadeTodayAndYesterday() {
+    return this.bookingService.findBookingsMadeTodayAndYesterday()
+  }
+  @Query(() => BookingDailyIncomeFinance, { name: 'findBookingsAndGetDailyIncomeAndPercentage' })
+  @UseGuards(JwtAuthGuard)
+  findBookingsAndGetDailyIncomeAndPercentage() {
+    return this.bookingService.findBookingsAndGetDailyIncomeAndPercentage()
   }
   @Query(() => BookingEntity)
   findBookingById(
