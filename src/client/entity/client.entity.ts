@@ -5,6 +5,7 @@ import { ParkingEntity } from "../../parking/entity/parking.entity";
 import { HoldingEntity } from "../../holding/entity/holding.entity";
 import { BuildingEntity } from "../../building/entity/building.entity";
 import { UserTypesEnum } from "../../user/constants/constants";
+import { LiquidationEntity } from "../../liquidation/entity/liquidation.entity";
 
 @Entity('client')
 @ObjectType()
@@ -21,4 +22,7 @@ export class ClientEntity extends BaseCustomer {
   @ManyToOne(() => HoldingEntity, (h) => h.clientList, {nullable: true})
   @Field(() => HoldingEntity, {nullable: true})
   holding: HoldingEntity
+  @OneToMany(() => LiquidationEntity, (l ) => l.client)
+  @Field(() => [LiquidationEntity])
+  liquidations: LiquidationEntity[]
 }

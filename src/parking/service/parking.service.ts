@@ -17,10 +17,15 @@ import { FileUpload } from "graphql-upload-minimal";
 import { PageDto, PageOptionsDto, PaginationMeta } from "../../utils/interfaces/pagination.type";
 import { ClientEntity } from "../../client/entity/client.entity";
 import { UserTypesEnum } from "../../user/constants/constants";
-import * as _ from 'lodash';
+import * as _ from "lodash";
 import { DateTime } from "luxon";
-import { MostProfitableBuilding } from "../../building/model/finance-building.output";
-import { MostProfitableParking } from "../model/finance-parking.output";
+import {
+  MostProfitableParking,
+  MostRentedParking,
+  RawParkingMostRentedOfDay,
+  TopMostRentedParkings
+} from "../model/finance-parking.output";
+
 @Injectable()
 export class ParkingService {
   constructor(
@@ -277,6 +282,48 @@ export class ParkingService {
           return mostProfitableParking
         }))
       }))
+  }
+  async findWeekMostRentedParkings() {
+    const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const resultsByDayOfWeek: Record<string, RawParkingMostRentedOfDay | null | undefined> = {};
+    const parkingsByDayOfWeek: Record<string, MostRentedParking | undefined> = {};
+    let topRentedParkings: TopMostRentedParkings = {
+      monday: undefined,
+      tuesday: undefined,
+      wednesday: undefined,
+      thursday: undefined,
+      friday: undefined,
+      saturday: undefined,
+      sunday: undefined,
+    }
+    for (const day of daysOfWeek) {
+      const startOfDay = DateTime.now().startOf("week").plus({ days: daysOfWeek.indexOf(day) });
+      const endOfDay = startOfDay.endOf("day");
+      const query = this.parkingRepository.createQueryBuilder("p")
+        .leftJoinAndSelect("p.bookings", "bookings")
+        .select(`p.id as "parkingId", COUNT(bookings.id) as "quantityOfBookings"`)
+        .where(`bookings."dateStart" BETWEEN '${startOfDay.startOf("day").toISO()}' AND '${endOfDay.toISO()}'`)
+        .groupBy("p.id")
+        .orderBy(`"quantityOfBookings"`, "DESC")
+        .limit(1);
+      resultsByDayOfWeek[day] = await query.getRawOne();
+      let parking: ParkingEntity | undefined;
+      let mostRentedParking: MostRentedParking | undefined;
+      if (resultsByDayOfWeek[day]) {
+        parking = await this.findParkingById(resultsByDayOfWeek[day]!!.parkingId).toPromise();
+        if (parking) {
+          mostRentedParking = {
+            parking: parking,
+            quantity: resultsByDayOfWeek[day]!!.quantityOfBookings
+          };
+        }
+      }
+      parkingsByDayOfWeek[day] = mostRentedParking;
+      const index = daysOfWeek.indexOf(day);
+      const keys = Object.keys(topRentedParkings);
+      topRentedParkings[keys[index] as keyof TopMostRentedParkings] = parkingsByDayOfWeek[day];
+    }
+    return topRentedParkings
   }
   private getParkingByBuildingPositionCode(code: string, floor: number, section: string, buildingId: string ): Observable<ParkingEntity | null> {
     return from(

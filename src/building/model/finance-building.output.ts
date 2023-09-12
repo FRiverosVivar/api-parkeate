@@ -8,3 +8,11 @@ export class MostProfitableBuilding {
   @Field(() => Number)
   totalPrice: number;
 }
+@ObjectType()
+export class WeeklyBuildingProfit {
+  @Field(() => [Number])
+  weeklyBuildingProfit: number[];
+}
+export interface FinalPrice {
+  finalPrice: number;
+}

@@ -23,7 +23,7 @@ import { PageDto, PageOptionsDto, PaginationMeta } from "../../utils/interfaces/
 import { ClientEntity } from "../../client/entity/client.entity";
 import { UserTypesEnum } from "../../user/constants/constants";
 import { BuildingWithCoordsOutput } from "../model/building-coords.output";
-import { MostProfitableBuilding } from "../model/finance-building.output";
+import { FinalPrice, MostProfitableBuilding, WeeklyBuildingProfit } from "../model/finance-building.output";
 import { DateTime } from "luxon";
 
 @Injectable()
@@ -231,6 +231,7 @@ export class BuildingService {
       }
     }))
   }
+
   setBuildingPhoto(buildingId: string, createPhotoInput: CreatePhotoInput, file: FileUpload | undefined) : Observable<BuildingEntity> {
     if(!file)
       throw new BadRequestException()
@@ -284,7 +285,29 @@ export class BuildingService {
         return mostProfitableBuilding
       }))
     }))
+  }
+  async findAllProfitOfAllBuildingsGivenADate(date: DateTime): Promise<FinalPrice | undefined> {
+    return await this.buildingRepository.createQueryBuilder('b')
+      .leftJoinAndSelect('b.client', 'c')
+      .leftJoinAndSelect('b.parkingList', 'p')
+      .leftJoinAndSelect('p.bookings', 'bookings')
+      .select(`SUM(bookings."finalPrice") as "finalPrice"`)
+      .where(`bookings."dateStart" BETWEEN '${date.startOf('day').toISO()}' AND '${date.endOf('day').toISO()}'`)
+      .getRawOne()
 
+  }
+  async findWeeklyProfitOfAllBuildings() {
+    const profitOfPreviousSevenDays: WeeklyBuildingProfit = {
+      weeklyBuildingProfit: []
+    }
+    const now = DateTime.now().minus({ day: 7 })
+    const days = 7;
+    for (let i = 1; i <= days; i++) {
+      let dateTime = now.plus({ day: i })
+      const finalPrice = await this.findAllProfitOfAllBuildingsGivenADate(dateTime)
+      profitOfPreviousSevenDays.weeklyBuildingProfit.push(finalPrice && finalPrice.finalPrice ? finalPrice.finalPrice: 0)
+    }
+    return profitOfPreviousSevenDays;
   }
   getAllNearbyAndReservableBuildings(user: UserEntity, point: PointInput, distance: number, parkingType?: ParkingType): Observable<BuildingOutput[]> {
     const query = `

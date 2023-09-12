@@ -8,12 +8,13 @@ import { UpdateBookingInput } from "../model/update-booking.input";
 import { UserTypeGuard } from "../../auth/guards/user-type.guard";
 import { UserTypesEnum } from "../../user/constants/constants";
 import { UserType } from "../../auth/decorator/user-type.decorator";
-import { Observable } from "rxjs";
+import { from, Observable } from "rxjs";
 import { CurrentUser } from "../../auth/decorator/current-user.decorator";
 import { UserEntity } from "../../user/entity/user.entity";
 import { BookingsPaginated, PageOptionsDto } from "../../utils/interfaces/pagination.type";
 import { ClientEntity } from "../../client/entity/client.entity";
 import { BookingDailyFinance, BookingDailyIncomeFinance } from "../model/finance-booking.output";
+import { WeeklyBuildingProfit } from "../../building/model/finance-building.output";
 
 @Resolver(BookingEntity)
 export class BookingResolver {
@@ -111,5 +112,13 @@ export class BookingResolver {
   resetCronJobsForBookingId(
     @Args('bookingId') bookingId: string) {
     return this.bookingService.resetCronJobsForBookingId(bookingId)
+  }
+
+  @Query(() => [BookingEntity], { name: 'findRecentBookingsFromBuildings'})
+  @UseGuards(JwtAuthGuard)
+  findRecentBookingsFromBuildings(
+    @CurrentUser() client: ClientEntity
+  ) {
+    return this.bookingService.findRecentBookingsFromBuildings(client)
   }
 }

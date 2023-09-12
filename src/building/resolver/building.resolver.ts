@@ -5,7 +5,7 @@ import { CreateBuildingInput } from "../model/create-building.input";
 import { UpdateBuildingInput } from "../model/update-building.input";
 import { CreatePhotoInput } from "../../photo/model/create-photo.input";
 import { FileUpload, GraphQLUpload } from "graphql-upload-minimal";
-import { Observable, tap } from "rxjs";
+import { from, Observable, tap } from "rxjs";
 import { BuildingOutput } from "../model/building.output";
 import { UserType } from "../../auth/decorator/user-type.decorator";
 import { UserTypesEnum } from "../../user/constants/constants";
@@ -19,7 +19,7 @@ import { ParkingType } from "../../parking/model/parking-type.enum";
 import { BuildingsPaginated, PageDto, PageOptionsDto } from "../../utils/interfaces/pagination.type";
 import { ClientEntity } from "../../client/entity/client.entity";
 import { BuildingWithCoordsOutput } from "../model/building-coords.output";
-import { MostProfitableBuilding } from "../model/finance-building.output";
+import { MostProfitableBuilding, WeeklyBuildingProfit } from "../model/finance-building.output";
 
 @Resolver(BuildingEntity)
 export class BuildingResolver {
@@ -101,5 +101,10 @@ export class BuildingResolver {
   @UseGuards(JwtAuthGuard)
   findMostProfitableBuilding(): Observable<MostProfitableBuilding | null> {
     return this.buildingService.findMostProfitableBuilding()
+  }
+  @Query(() => WeeklyBuildingProfit, { name: 'findWeeklyProfitOfAllBuildings'})
+  @UseGuards(JwtAuthGuard)
+  findWeeklyProfitOfAllBuildings() {
+    return from(this.buildingService.findWeeklyProfitOfAllBuildings())
   }
 }

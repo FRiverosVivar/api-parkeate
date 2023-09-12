@@ -1,0 +1,7 @@
+export enum LiquidationEnum {
+  BIWEEKLY15,
+  MONTHLY30,
+  MONTH_AND_A_HALF45,
+  BIMONTHLY60,
+  QUARTERLY90
+}

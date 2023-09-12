@@ -7,7 +7,6 @@ import { from, map, Observable, switchMap } from "rxjs";
 import * as uuid from "uuid";
 import { UUIDBadFormatException } from "../../utils/exceptions/UUIDBadFormat.exception";
 import { OwnDuplicatedVehicleException } from "../../utils/exceptions/own-duplicated-vehicle.exception";
-import { EmailService } from "../../utils/email/email.service";
 import { UpdateVehicleInput } from "../model/update-vehicle.input";
 import { UserService } from "../../user/service/user.service";
 

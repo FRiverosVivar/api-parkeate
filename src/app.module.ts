@@ -24,6 +24,7 @@ import { ScheduleModule } from "@nestjs/schedule";
 import { SchedulesModule } from "./schedule/schedulesModule";
 import * as fs from 'fs'
 import { RequestModule } from "./requests/request.module";
+import { LiquidationModule } from "./liquidation/liquidation.module";
 
 @Module({
   imports: [
@@ -74,6 +75,7 @@ import { RequestModule } from "./requests/request.module";
     PlacesModule,
     CronModule,
     RequestModule,
+    LiquidationModule,
   ],
   controllers: [AppController],
   providers: [AppService, EmailService, PlacesService],

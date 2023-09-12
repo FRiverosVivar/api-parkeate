@@ -27,7 +27,8 @@ import { PageDto, PageOptionsDto, PaginationMeta } from "../../utils/interfaces/
 import { ClientEntity } from "../../client/entity/client.entity";
 import { UserTypesEnum } from "../../user/constants/constants";
 import { BookingDailyFinance, BookingDailyIncomeFinance } from "../model/finance-booking.output";
-import * as _ from 'lodash'
+import * as _ from "lodash";
+
 @Injectable()
 export class BookingService implements OnModuleInit {
   constructor(
@@ -188,6 +189,44 @@ export class BookingService implements OnModuleInit {
         return of(Math.round(b.user.wallet + (b.initialPrice - b.finalPrice)))
       })
     )
+  }
+  findRecentBookingsFromBuildings(client: ClientEntity) {
+    const customerQuery = this.bookingRepository.find({
+      relations: {
+        parking: {
+          building: {
+            client: true
+          }
+        }
+      },
+      where: {
+        parking: {
+          building: {
+            client: {
+              id: client.id
+            }
+          }
+        }
+      },
+      order: {
+        dateStart: "DESC"
+      },
+      take: 7
+    })
+    const adminQuery = this.bookingRepository.find({
+      relations: {
+        parking: {
+          building: {
+            client: true
+          }
+        }
+      },
+      order: {
+        dateStart: "DESC"
+      },
+      take: 7
+    })
+    return client.userType >= UserTypesEnum.ADMIN ? adminQuery: customerQuery;
   }
   async findPaginatedBookings(pagination: PageOptionsDto, displayAll: boolean, parkingId: string, user: ClientEntity) {
     const query = this.bookingRepository.createQueryBuilder('b')

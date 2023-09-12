@@ -5,6 +5,7 @@ import { BookingTypesEnum } from "../enum/booking-types.enum";
 import { BookingStatesEnum } from "../enum/booking-states.enum";
 import { ParkingEntity } from "../../parking/entity/parking.entity";
 import { UserEntity } from "../../user/entity/user.entity";
+import { LiquidationEntity } from "../../liquidation/entity/liquidation.entity";
 
 @Entity('booking')
 @ObjectType()
@@ -42,4 +43,7 @@ export class BookingEntity extends BaseEntityWithIdAbstract {
   @Column({nullable: true})
   @Field(() => Boolean)
   paid: boolean
+  @ManyToOne(() => LiquidationEntity, (l ) => l.bookings)
+  @Field(() => LiquidationEntity)
+  liquidation: LiquidationEntity
 }

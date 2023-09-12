@@ -10,7 +10,7 @@ import { UpdateParkingInput } from "../model/update-parking.input";
 import { CreateParkingInput } from "../model/create-parking.input";
 import { FileUpload, GraphQLUpload } from "graphql-upload-minimal";
 import { CreatePhotoInput } from "../../photo/model/create-photo.input";
-import { Observable } from "rxjs";
+import { from, Observable } from "rxjs";
 import { CurrentUser } from "../../auth/decorator/current-user.decorator";
 import { UserEntity } from "../../user/entity/user.entity";
 import {
@@ -19,7 +19,7 @@ import {
 } from "../../utils/interfaces/pagination.type";
 import { ClientEntity } from "../../client/entity/client.entity";
 import { MostProfitableBuilding } from "../../building/model/finance-building.output";
-import { MostProfitableParking } from "../model/finance-parking.output";
+import { MostProfitableParking, TopMostRentedParkings } from "../model/finance-parking.output";
 
 @Resolver(() => ParkingEntity)
 export class ParkingResolver {
@@ -114,5 +114,9 @@ export class ParkingResolver {
   @UseGuards(JwtAuthGuard)
   findMostProfitableParking(): Observable<MostProfitableParking | null> {
     return this.parkingService.findMostProfitableParking()
+  }
+  @Query(() => TopMostRentedParkings, { name: 'findWeekMostRentedParkings', nullable: true })
+  findWeekMostRentedParkings(): Observable<TopMostRentedParkings> {
+    return from(this.parkingService.findWeekMostRentedParkings())
   }
 }
