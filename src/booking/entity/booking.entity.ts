@@ -43,7 +43,7 @@ export class BookingEntity extends BaseEntityWithIdAbstract {
   @Column({nullable: true})
   @Field(() => Boolean)
   paid: boolean
-  @ManyToOne(() => LiquidationEntity, (l ) => l.bookings)
+  @ManyToOne(() => LiquidationEntity, (l ) => l.bookings, {nullable: true})
   @Field(() => LiquidationEntity)
   liquidation: LiquidationEntity
 }

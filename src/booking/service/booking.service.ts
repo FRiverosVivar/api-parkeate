@@ -362,6 +362,26 @@ export class BookingService implements OnModuleInit {
       numberOfBookingToday: todayBookings.length
     } as BookingDailyFinance
   }
+  getBookingsByClientId(clientId: string) {
+    return this.bookingRepository.find({
+      relations: {
+        parking: {
+          building: {
+            client: true
+          }
+        }
+      },
+      where: {
+        parking: {
+          building: {
+            client: {
+              id: clientId
+            }
+          }
+        }
+      }
+    })
+  }
   getUnPaidBookings(userId: string) {
     return from(this.bookingRepository.find(
       {

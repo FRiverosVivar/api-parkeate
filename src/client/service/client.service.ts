@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Equal, In, Repository } from "typeorm";
+import { Equal, In, Not, Repository } from "typeorm";
 import { ClientEntity } from '../entity/client.entity';
 import { forkJoin, from, map, Observable, of, switchMap, tap } from 'rxjs';
 import { EmailTypesEnum } from '../../utils/email/enum/email-types.enum';
@@ -139,6 +139,16 @@ export class ClientService {
         },
       }),
     );
+  }
+  getClientsToLiquidate() {
+    return this.clientRepository.createQueryBuilder('c')
+      .leftJoin(`c.buildings`, 'b')
+      .leftJoin(`b.parkingList`, 'p')
+      .leftJoin(`p.bookings`, 'bk')
+      .select(`c.id`)
+      .where(`bk.id is not null`)
+      .andWhere(`bk.liquidationId is null`)
+      .getMany()
   }
   findAll(): Observable<ClientEntity[]> {
     return from(this.clientRepository.find());

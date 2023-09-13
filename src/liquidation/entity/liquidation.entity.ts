@@ -1,5 +1,5 @@
 import { Field, Int, ObjectType } from "@nestjs/graphql";
-import { Column, Entity, ManyToOne, OneToMany } from "typeorm";
+import { Column, Entity, ManyToOne, OneToMany, UpdateDateColumn } from "typeorm";
 import { BaseEntityWithIdAbstract } from "../../utils/interfaces/base-entity-with-id.abstract";
 import { ClientEntity } from "../../client/entity/client.entity";
 import { BookingEntity } from "../../booking/entity/booking.entity";
@@ -23,4 +23,16 @@ export class LiquidationEntity extends BaseEntityWithIdAbstract {
   @Column()
   @Field(() => Int)
   liquidationType: LiquidationEnum;
+  @Column()
+  @Field(() => Boolean)
+  paid: boolean;
+  @Column()
+  @Field(() => String)
+  liquidationReceipt: string;
+  @Column()
+  @Field(() => Boolean)
+  approved: boolean;
+  @Column()
+  @Field(() => String)
+  approvedBy: string;
 }

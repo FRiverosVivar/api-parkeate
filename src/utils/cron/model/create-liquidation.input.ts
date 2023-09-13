@@ -4,11 +4,18 @@ import { LiquidationEnum } from "../../../liquidation/model/liquidation.enum";
 @InputType()
 @ArgsType()
 export class CreateLiquidationInput {
-
   @Field(() => Number)
   priceToBeLiquidated: number;
   @Field(() => String)
   liquidatedBy: string;
   @Field(() => Int)
   liquidationType: LiquidationEnum;
+  @Field(() => Boolean)
+  paid: boolean;
+  @Field(() => String)
+  liquidationReceipt: string;
+  @Field(() => Boolean)
+  approved: boolean;
+  @Field(() => String)
+  approvedBy: string;
 }

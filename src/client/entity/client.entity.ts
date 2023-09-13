@@ -6,6 +6,7 @@ import { HoldingEntity } from "../../holding/entity/holding.entity";
 import { BuildingEntity } from "../../building/entity/building.entity";
 import { UserTypesEnum } from "../../user/constants/constants";
 import { LiquidationEntity } from "../../liquidation/entity/liquidation.entity";
+import { LiquidationEnum } from "../../liquidation/model/liquidation.enum";
 
 @Entity('client')
 @ObjectType()
@@ -25,4 +26,9 @@ export class ClientEntity extends BaseCustomer {
   @OneToMany(() => LiquidationEntity, (l ) => l.client)
   @Field(() => [LiquidationEntity])
   liquidations: LiquidationEntity[]
+  @Column()
+  @Field(() => Int)
+  preferedLiquidationPayRate: LiquidationEnum
+
+
 }
