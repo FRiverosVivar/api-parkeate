@@ -3,3 +3,8 @@ export enum BookingTypesEnum {
   MONTHLY_BOOKING,
   YEARLY_BOOKING
 }
+export const BookingTypeNameEnum = [
+  "Por Minuto",
+  "Mensual",
+  "Anual"
+]

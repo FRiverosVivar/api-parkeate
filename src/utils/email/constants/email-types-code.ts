@@ -4,4 +4,5 @@ export const EmailTypesCode = [
   'forgotten-password',
   'change-password',
   'reservation-created',
+  'liquidation-generated',
 ];

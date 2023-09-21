@@ -5,12 +5,18 @@ import { Repository } from "typeorm";
 import { ClientService } from "../../client/service/client.service";
 import { BookingService } from "../../booking/service/booking.service";
 import { CronService } from "../../utils/cron/cron.service";
-import { Settings } from "luxon";
+import { DateTime, Settings } from "luxon";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { CronExpressionExtendedEnum } from "../../utils/cron/cron-expression-extended.enum";
-import { CreateLiquidationInput } from "../../utils/cron/model/create-liquidation.input";
-import { LiquidationEnum } from "../model/liquidation.enum";
+import { CreateLiquidationInput } from "../model/create-liquidation.input";
 import * as _ from 'lodash';
+import { BookingEntity } from "src/booking/entity/booking.entity";
+import { ClientEntity } from "src/client/entity/client.entity";
+import { LiquidationEnum } from "../model/liquidation.enum";
+import { generateLiquidationTemplateDataToFulfillPdfTemplate, readPdfTemplateFromFilesAndCompileWithData } from '../../utils/utils';
+import { FileService } from "src/file/service/file.service";
+import { EmailService } from "src/utils/email/email.service";
+import { EmailTypesEnum } from "src/utils/email/enum/email-types.enum";
 @Injectable()
 export class LiquidationService implements OnModuleInit {
   constructor(
@@ -18,7 +24,9 @@ export class LiquidationService implements OnModuleInit {
     private readonly liquidationRepository: Repository<LiquidationEntity>,
     private clientService: ClientService,
     private bookingService: BookingService,
-    private cronService: CronService
+    private cronService: CronService,
+    private fileService: FileService,
+    private emailService: EmailService
   ) {
 
   }
@@ -37,6 +45,7 @@ export class LiquidationService implements OnModuleInit {
   }
   async generateLiquidations() {
     const clientsThatHaveUnLiquidatedBookings = await this.clientService.getClientsToLiquidate();
+    const liquidations = []
     for(let client of clientsThatHaveUnLiquidatedBookings) {
       switch(client.preferedLiquidationPayRate) {
         case LiquidationEnum.BIWEEKLY15: {
@@ -52,10 +61,14 @@ export class LiquidationService implements OnModuleInit {
             paid: false,
             liquidatedBy: "Parkeate!",
             liquidationType: LiquidationEnum.BIWEEKLY15,
-            priceToBeLiquidated: summarizedPrice
-
+            priceToBeLiquidated: summarizedPrice,
           }
-          this.createLiquidation()
+          const liqToSave = this.preCreateLiquidation(createLiquidationInput, client, bookings)
+          const pdfUrl = await this.generatePdfFileForLiquidation(liqToSave, client)
+          liqToSave.liquidatedPdf = pdfUrl;
+          this.sendLiquidationEmailToClientWithPdfAttachment(client, liqToSave)
+          const savedLiq = await this.saveLiquidation(liqToSave)
+          liquidations.push(savedLiq)
           break;
         }
         case LiquidationEnum.MONTHLY30: {
@@ -78,16 +91,35 @@ export class LiquidationService implements OnModuleInit {
         }
       }
     }
-
-
+    return liquidations
   }
   onModuleInit(): any {
     Settings.defaultZone = 'America/Sao_Paulo';
     this.generate1stMonthDayLiquidations()
     this.generate16thMonthDayLiquidations()
   }
-  async createLiquidation(createLiquidationInput: CreateLiquidationInput, clientId: string, bookingsId: string[]) {
+  preCreateLiquidation(createLiquidationInput: CreateLiquidationInput, client: ClientEntity, bookings: BookingEntity[]): LiquidationEntity {
     const liq = this.liquidationRepository.create(createLiquidationInput)
+    liq.bookings = bookings
+    liq.client = client
+    return liq;
+  }
+  async createLiquidation(createLiquidationInput: CreateLiquidationInput, client: ClientEntity, bookings: BookingEntity[]) {
+    const liq = this.preCreateLiquidation(createLiquidationInput, client, bookings)
+    return this.liquidationRepository.save(liq)
+  }
+  saveLiquidation(liquidation: LiquidationEntity) {
+    return this.liquidationRepository.save(liquidation)
+  }
+  async generatePdfFileForLiquidation(liquidation: LiquidationEntity, client: ClientEntity): Promise<string> {
+    const data = generateLiquidationTemplateDataToFulfillPdfTemplate(liquidation, client)
+    const pdf = await readPdfTemplateFromFilesAndCompileWithData(data)
+    const date = DateTime.now().toFormat('yyyy-MM-dd')
+    return (await this.fileService.uploadPDFBufferToS3(client.id, pdf, `${client.rut}-${date}.pdf`).toPromise())!
+  }
+  sendLiquidationEmailToClientWithPdfAttachment(client: ClientEntity, liquidation: LiquidationEntity){
+    const data = JSON.stringify(this.fillEmailDataWithLiquidationAndClientInfo(client, liquidation))
+    this.emailService.sendEmail(EmailTypesEnum.LIQUIDATION_GENERATED, client.email, data)
   }
   findLatestLiquidationFromClientId(clientId: string) {
     return this.liquidationRepository.findOne({
@@ -103,5 +135,11 @@ export class LiquidationService implements OnModuleInit {
         createdAt: 'DESC'
       },
     })
+  }
+  private fillEmailDataWithLiquidationAndClientInfo(client: ClientEntity, liquidation: LiquidationEntity) {
+    return {
+      name: client.fullname,
+      pdfUrl: liquidation.liquidatedPdf
+    }
   }
 }

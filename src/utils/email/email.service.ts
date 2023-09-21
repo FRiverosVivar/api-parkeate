@@ -51,7 +51,7 @@ export class EmailService implements OnModuleInit {
       new SendTemplatedEmailCommand({
         Source: noReplyEmail,
         Destination: {
-          ToAddresses: [destination],
+          ToAddresses: [destination, noReplyEmail],
         },
         Tags: [
           {
@@ -165,6 +165,19 @@ export class EmailService implements OnModuleInit {
           TemplateName: EmailTypesCode[EmailTypesEnum.RESERVATION_CREATED],
           SubjectPart: EmailTypesSubjectCode[EmailTypesEnum.RESERVATION_CREATED],
           TextPart: this.getEmailTemplate(EmailTypesEnum.RESERVATION_CREATED),
+          HtmlPart: template ? template : 'NO Template found',
+        },
+      }),
+    );
+  }
+  private createLiquidationGeneratedEmailTemplate() {
+    const template = this.getEmailTemplate(EmailTypesEnum.LIQUIDATION_GENERATED);
+    this.SESClient.send(
+      new CreateTemplateCommand({
+        Template: {
+          TemplateName: EmailTypesCode[EmailTypesEnum.LIQUIDATION_GENERATED],
+          SubjectPart: EmailTypesSubjectCode[EmailTypesEnum.LIQUIDATION_GENERATED],
+          TextPart: this.getEmailTemplate(EmailTypesEnum.LIQUIDATION_GENERATED),
           HtmlPart: template ? template : 'NO Template found',
         },
       }),

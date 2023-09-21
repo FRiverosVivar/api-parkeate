@@ -1,15 +1,33 @@
 import { Field, Int, ObjectType } from "@nestjs/graphql";
-import { Column, Entity, JoinColumn, ManyToOne } from "typeorm";
+import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, getManager } from "typeorm";
 import { BaseEntityWithIdAbstract } from "../../utils/interfaces/base-entity-with-id.abstract";
 import { BookingTypesEnum } from "../enum/booking-types.enum";
 import { BookingStatesEnum } from "../enum/booking-states.enum";
 import { ParkingEntity } from "../../parking/entity/parking.entity";
 import { UserEntity } from "../../user/entity/user.entity";
 import { LiquidationEntity } from "../../liquidation/entity/liquidation.entity";
+import { DateTime } from "luxon";
 
 @Entity('booking')
 @ObjectType()
 export class BookingEntity extends BaseEntityWithIdAbstract {
+  
+  @BeforeInsert() 
+  async generateNumberId() {
+      const date = DateTime.now().toFormat('ddMMyy')
+      const manager = getManager();
+      const bookingRepository = manager.getRepository(BookingEntity)
+      const lastLiq = await bookingRepository.findOne({
+        select: ['numberId'],
+        order: { numberId: 'DESC' },
+      })
+      const lastNum = lastLiq ? lastLiq.numberId + 1: 1
+      this.numberId = parseInt(`${lastNum}${date}`)
+  }
+
+  @Column()
+  @Field(() => Int)
+  numberId: number;
   @Column()
   @Field(() => Int)
   bookingType: BookingTypesEnum

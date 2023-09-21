@@ -7,6 +7,7 @@ import { BuildingEntity } from "../../building/entity/building.entity";
 import { UserTypesEnum } from "../../user/constants/constants";
 import { LiquidationEntity } from "../../liquidation/entity/liquidation.entity";
 import { LiquidationEnum } from "../../liquidation/model/liquidation.enum";
+import { BankAccountTypeEnum, BanksEnum } from "../model/bank.enum";
 
 @Entity('client')
 @ObjectType()
@@ -29,6 +30,16 @@ export class ClientEntity extends BaseCustomer {
   @Column()
   @Field(() => Int)
   preferedLiquidationPayRate: LiquidationEnum
-
-
+  @Column({nullable: true})
+  @Field(() => Int)
+  bankType: BanksEnum
+  @Column({nullable: true})
+  @Field(() => String)
+  bankAccountName: string
+  @Column({nullable: true})
+  @Field(() => Int)
+  bankAccountType: BankAccountTypeEnum
+  @Column({nullable: true})
+  @Field(() => Int)
+  bankAccountNumber: number
 }

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <title>Parkeate! | Liquidación {{dateStart}} a {{dateEnd}}</title>
+</head>
+<style>
+    @font-face {
+        font-family: 'Poppins-Medium';
+        src: local('Poppins-Medium'), local('Poppins-Medium'),
+        url('./fonts/Poppins-Medium.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+    }
+    @font-face {
+        font-family: 'Poppins-Regular';
+        src: local('Poppins-Regular'), local('Poppins-Regular'),
+        url('./fonts/Poppins-Regular.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+    }
+    .demi {
+        font-family: 'Poppins-Medium', 'Helvetica', Arial, sans-serif!important;
+        font-weight: 600!important;
+    }
+    .body-text {
+        font-size:  1rem;
+        line-height: 1.375;
+        letter-spacing: 0;
+        font-family: 'Poppins-Regular', 'Helvetica', Arial, sans-serif;;
+        font-weight: 400;
+        color: #5F5F5F;
+        
+    }
+    .body-text-xl {
+        font-size: 1.25rem;
+        line-height: 1.6;
+        letter-spacing: 0;
+        font-family: 'Poppins-Regular', 'Helvetica', Arial, sans-serif;;
+        font-weight: 400;
+        color: #5F5F5F;
+    }
+    .body-text-lg {
+        font-size: 1.125rem;
+        line-height: 1.5;
+        letter-spacing: 0.0125;
+        font-family: 'Poppins-Regular', 'Helvetica', Arial, sans-serif;;
+        font-weight: 400;
+        color: #5F5F5F;
+    }
+    .body-text-sm {
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+        letter-spacing: 0;
+        font-family: 'Poppins-Regular', 'Helvetica', Arial, sans-serif;;
+        font-weight: 400;
+        color: #5F5F5F;
+    }
+    .body-text-xs {
+        font-size:  0.75rem;
+        line-height: 1rem;
+        letter-spacing: 0.0125rem;
+        font-family: 'Poppins-Regular', 'Helvetica', Arial, sans-serif;;
+        font-weight: 400;
+        color: #5F5F5F;
+    }
+    .body-text-xxs {
+        font-size: 0.625rem;
+        line-height: 1.4;
+        letter-spacing: 0.03125rem;
+        font-family: 'Poppins-Regular', 'Helvetica', Arial, sans-serif;;
+        font-weight: 400;
+        color: #5F5F5F;
+    }
+    td, th {
+        border-bottom: unset;
+    }
+    p {
+        background: #ebebeb!important;
+    }
+</style>
+<body>
+    <div class="container p-4">
+        <div class="row">
+            <div class="col-lg-12 text-end">
+                <img src="https://api-photos.s3.sa-east-1.amazonaws.com/logoParkeat-dark.svg" alt="" style="width: 12.5rem">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6">
+                <span class="body-text-xl demi">Liquidación de Reservas</span>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-lg-7">
+                <table class="table">
+                    <tr>
+                        <th style="width:25%" class="p-0 pb-1">N° de Liquidación
+                        </th>
+                        <td style="width:35%" class="p-0 pb-1">
+                            <p class="m-0">{{liquidation.numberId}}</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th style="width:25%" class="p-0 pb-1">Cliente</th>
+                        <td class="p-0 pb-1"><p class="m-0">{{client.fullName}}</p></td>
+                    </tr>
+                    <tr>
+                        <th style="width:25%" class="p-0 pb-1">Rut</th>
+                        <td class="p-0 pb-1"><p class="m-0">{{client.rut}}</p></td>
+                    </tr> 
+                    <tr>
+                        <th style="width:25%" class="p-0 pb-1">Fecha</th>
+                        <td class="p-0 pb-1"><p class="m-0">{{liquidation.dateLiquidationGenerated}}</p></td>
+                    </tr>   
+                </table>
+            </div>
+        </div>
+        <div class="row mt-5">
+            <div class="col-lg-6">
+                <span class="body-text-xl demi">Reservas registradas</span>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-lg-12">
+                <table class="table border border-1">
+                    <thead class="table-secondary">
+                        <tr>
+                          <th scope="col"><span class="body-text">N° Reserva</span></th>
+                          <th scope="col"><span class="body-text">Inicio</span></th>
+                          <th scope="col"><span class="body-text">Termino</span></th>
+                          <th scope="col"><span class="body-text">Tipo Arriendo</span></th>
+                          <th scope="col"><span class="body-text">Monto Neto</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{each bookings as | booking |}}
+                            <tr>
+                                <th scope="row"><span class="body-text demi">{{booking.numberId}}</span></th>
+                                <td><span class="body-text">{{booking.dateStart}}</span></td>
+                                <td><span class="body-text">{{booking.dateEnd}}</span></td>
+                                <td><span class="body-text">{{booking.bookingType}}</span></td>
+                                <td><span class="body-text">{{booking.finalPrice}}</span></td>
+                            </tr>
+                        {{/each}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="row mt-5">
+            <div class="col-lg-7">
+                <span class="body-text-xl demi">Facturación</span>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-lg-7">
+                <table class="table body-text">
+                    <tr>
+                        <th style="width:25%" class="p-0 pb-1">Total neto
+                        </th>
+                        <td style="width:35%" class="p-0 pb-1">
+                            <p class="m-0 text-success">{{liquidation.totalAmount}}</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th style="width:25%" class="p-0 pb-1">Impuesto Parkeate
+                        </th>
+                        <td style="width:35%" class="p-0 pb-1 ">
+                            <p class="m-0 text-danger">- {{liquidation.parkeateTax}}</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th style="width:25%" class="p-0 pb-1">IVA
+                        </th>
+                        <td style="width:35%" class="p-0 pb-1">
+                            <p class="m-0 text-danger">+ {{liquidation.ivaTax}}</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th style="width:25%" class="p-0 pb-1">Total a Liquidar</th>
+                        <td class="p-0 pb-1 text-success demi"><p class="m-0">{{liquidation.totalAmountToPay}}</p></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-lg-12">
+                <span class="body-text-xs" style="font-style: italic;">Por favor le solicitamos encarecidamente que haga revisión de este documento. 
+                    Si presenta observaciones y/o dudas por favor tome contacto con nuestro correo electrónico de soporte<br><span class="demi">soporte@parkeateapp.com</span></span>
+            </div>
+        </div>
+        <div class="row mt-5">
+            <div class="col-lg-7">
+                <span class="body-text-xl demi">Datos Bancarios</span>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-lg-7">
+                <table class="table body-text">
+                    <tr>
+                        <th style="width:25%" class="p-0 pb-1">Razon Social / Nombre
+                        </th>
+                        <td style="width:35%" class="p-0 pb-1">
+                            <p class="m-0">{{bank.accountName}}</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th style="width:25%" class="p-0 pb-1">Rut
+                        </th>
+                        <td style="width:35%" class="p-0 pb-1">
+                            <p class="m-0">{{client.rut}}</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th style="width:25%" class="p-0 pb-1">Banco
+                        </th>
+                        <td style="width:35%" class="p-0 pb-1">
+                            <p class="m-0">{{bank.bankTypeName}}</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th style="width:25%" class="p-0 pb-1">Tipo de Cuenta</th>
+                        <td class="p-0 pb-1"><p class="m-0">{{bank.accountTypeName}}</p></td>
+                    </tr>
+                    <tr>
+                        <th style="width:25%" class="p-0 pb-1">N° Cuenta</th>
+                        <td class="p-0 pb-1"><p class="m-0">{{bank.accountNumber}}</p></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-lg-12">
+                <span class="body-text-xs" style="font-style: italic;">
+                    Nuestro equipo de finanzas actualizará la liquidación en la plataforma <span class="demi">Parkeate</span> y efectuará el pago lo más pronto posible.
+                    Te informaremos cuando este proceso de pago esté finalizado.
+                    Gracias por ser parte de nuestra comunidad en Parkeate!
+                </span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

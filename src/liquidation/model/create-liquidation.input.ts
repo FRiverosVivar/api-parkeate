@@ -1,5 +1,5 @@
 import { ArgsType, Field, InputType, Int } from "@nestjs/graphql";
-import { LiquidationEnum } from "../../../liquidation/model/liquidation.enum";
+import { LiquidationEnum } from "./liquidation.enum";
 
 @InputType()
 @ArgsType()
@@ -18,4 +18,5 @@ export class CreateLiquidationInput {
   approved: boolean;
   @Field(() => String)
   approvedBy: string;
+  
 }

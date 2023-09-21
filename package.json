@@ -10,6 +10,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start:local": "NODE_ENV=local nest start --watch",
     "start:debug": "NODE_ENV=local nest start --debug --watch",
+    "start:localdev": "NODE_ENV=development nest start --watch",
     "start:development": "NODE_ENV=development node dist/main --watch",
     "start:staging": "NODE_ENV=staging node dist/main --watch",
     "start:prod": "NODE_ENV=prod node dist/main --watch",
@@ -52,12 +53,14 @@
     "class-validator": "^0.14.0",
     "geojson": "^0.5.0",
     "graphql-upload-minimal": "^1.5.4",
+    "hbs": "^4.2.0",
     "lodash": "^4.17.21",
     "luxon": "^3.3.0",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
     "pg": "^8.9.0",
+    "puppeteer-core": "^21.2.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0",
     "sharp": "^0.32.0",
@@ -112,5 +115,7 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
   },
-  "engines": { "node" : "18.0.0" }
+  "engines": {
+    "node": "18.0.0"
+  }
 }

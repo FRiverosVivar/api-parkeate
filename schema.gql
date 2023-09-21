@@ -137,6 +137,7 @@ type BuildingEntity {
 
   """update date of the entity"""
   updatedAt: DateTime!
+  active: Boolean
 
   """name of the building"""
   name: String!
@@ -161,6 +162,28 @@ type BuildingEntity {
 
 """Geometry scalar type"""
 scalar Geometry
+
+type LiquidationEntity {
+  """id of the entity"""
+  id: String!
+
+  """creation date of the entity"""
+  createdAt: DateTime!
+
+  """update date of the entity"""
+  updatedAt: DateTime!
+  numberId: Int!
+  client: ClientEntity!
+  bookings: [BookingEntity!]!
+  priceToBeLiquidated: Float!
+  liquidatedBy: String!
+  liquidationType: Int!
+  paid: Boolean!
+  liquidationReceipt: String!
+  approved: Boolean!
+  approvedBy: String!
+  liquidatedPdf: String!
+}
 
 type ClientEntity {
   """id of the entity"""
@@ -198,10 +221,16 @@ type ClientEntity {
   validatedAccount: Boolean!
 
   """type of the user"""
-  userType: UserTypesEnum!
+  userType: Int!
   parkingList: [ParkingEntity!]!
   buildings: [BuildingEntity!]!
   holding: HoldingEntity
+  liquidations: [LiquidationEntity!]!
+  preferedLiquidationPayRate: Int!
+  bankType: Int!
+  bankAccountName: String!
+  bankAccountType: Int!
+  bankAccountNumber: Int!
 }
 
 type ScheduleEntity {
@@ -249,7 +278,7 @@ type ParkingEntity {
   schedule: [ScheduleEntity!]!
   building: BuildingEntity!
   bookings: [BookingEntity!]!
-  phone: String!
+  phone: String
 }
 
 type BookingEntity {
@@ -261,6 +290,7 @@ type BookingEntity {
 
   """update date of the entity"""
   updatedAt: DateTime!
+  numberId: Int!
   bookingType: Int!
   bookingState: Int!
   parking: ParkingEntity!
@@ -272,6 +302,37 @@ type BookingEntity {
   timeFinalized: DateTime
   finalPrice: Float
   paid: Boolean!
+  liquidation: LiquidationEntity!
+}
+
+type PaginationMeta {
+  page: Float!
+  skip: Float!
+  take: Float!
+  itemCount: Float!
+  pageCount: Float!
+  hasPreviousPage: Boolean!
+  hasNextPage: Boolean!
+}
+
+type BuildingsPaginated {
+  data: [BuildingEntity!]!
+  meta: PaginationMeta!
+}
+
+type ParkingsPaginated {
+  data: [ParkingEntity!]!
+  meta: PaginationMeta!
+}
+
+type BookingsPaginated {
+  data: [BookingEntity!]!
+  meta: PaginationMeta!
+}
+
+type ParkingBlockedUsersPaginated {
+  data: [UserEntity!]!
+  meta: PaginationMeta!
 }
 
 type UserLoginResponse {
@@ -284,24 +345,32 @@ type ClientLoginResponse {
   access_token: String!
 }
 
-type UserWithVerificationCode {
-  user: UserEntity!
+type EmailVerificationCode {
   code: Float!
 }
 
-type UserWithSmsCode {
-  user: UserEntity!
+type SmsVerificationCode {
   smsCode: Float!
 }
 
-type ClientWithVerificationCode {
-  client: ClientEntity!
-  code: Float!
+type MostProfitableParking {
+  parking: ParkingEntity!
+  totalPrice: Float!
 }
 
-type ClientWithSmsCode {
-  client: ClientEntity!
-  smsCode: Float!
+type MostRentedParking {
+  parking: ParkingEntity!
+  quantity: Float!
+}
+
+type TopMostRentedParkings {
+  monday: MostRentedParking
+  tuesday: MostRentedParking
+  wednesday: MostRentedParking
+  thursday: MostRentedParking
+  friday: MostRentedParking
+  saturday: MostRentedParking
+  sunday: MostRentedParking
 }
 
 type BuildingOutput {
@@ -313,6 +382,7 @@ type BuildingOutput {
 
   """update date of the entity"""
   updatedAt: DateTime!
+  active: Boolean
 
   """name of the building"""
   name: String!
@@ -337,33 +407,113 @@ type BuildingOutput {
   coords: String!
 }
 
+type BuildingWithCoordsOutput {
+  """id of the entity"""
+  id: String!
+
+  """creation date of the entity"""
+  createdAt: DateTime!
+
+  """update date of the entity"""
+  updatedAt: DateTime!
+  active: Boolean
+
+  """name of the building"""
+  name: String!
+
+  """address of the building"""
+  address: String!
+
+  """phone number of the building"""
+  phoneNumber: String!
+
+  """photos of the building"""
+  photo: String
+  client: ClientEntity!
+
+  """parkings of the building"""
+  parkingList: [ParkingEntity!]!
+  tags: [TagsEntity!]!
+  location: Geometry!
+  floors: String!
+  description: String
+  coords: String!
+}
+
+type MostProfitableBuilding {
+  building: BuildingEntity!
+  totalPrice: Float!
+}
+
+type WeeklyBuildingProfit {
+  weeklyBuildingProfit: [Float!]!
+}
+
+type BookingDailyFinance {
+  percentBetterFromYesterday: Float!
+  numberOfBookingToday: Float!
+}
+
+type BookingDailyIncomeFinance {
+  percentBetterFromYesterday: Float!
+  numberOfIncomeToday: Float!
+}
+
+type RequestEntity {
+  """id of the entity"""
+  id: String!
+
+  """creation date of the entity"""
+  createdAt: DateTime!
+
+  """update date of the entity"""
+  updatedAt: DateTime!
+  subject: String!
+  email: String!
+  phoneNumber: String!
+  content: String!
+}
+
 type Query {
   findAllParkings: [ParkingEntity!]!
   findAllReservableParkingsByBuildingId(buildingId: String!): [ParkingEntity!]!
   findOneParkingById(parkingId: String!): ParkingEntity!
   findOneParkingByBuildingId(buildingId: String!): ParkingEntity!
   findOneParkingByBuildingPositionCode(code: String!, floor: Int!, section: String!, buildingId: String!): ParkingEntity!
+  getPaginatedParkings(paginationOptions: PageOptionsDto!, buildingId: String!): ParkingsPaginated!
+  findMostProfitableParking: MostProfitableParking
+  findWeekMostRentedParkings: TopMostRentedParkings
   findBuildingById(buildingId: String!): BuildingEntity!
+  findBuildingWithCoordsById(buildingId: String!): BuildingWithCoordsOutput!
   findBuildingByIdAndFilterParkingsByReservedStatus(buildingId: String!): BuildingEntity!
   findBuildingByAddress(buildingId: String!): BuildingEntity!
   getAllNearbyAndReservableBuildings(distance: Float!, point: PointInput!, parkingType: Float): [BuildingOutput!]!
+  getAllNearbyAndBuildings(distance: Float!, point: PointInput!): [BuildingOutput!]!
+  getPaginatedBuildings(paginationOptions: PageOptionsDto!): BuildingsPaginated!
+  findMostProfitableBuilding: MostProfitableBuilding
+  findWeeklyProfitOfAllBuildings: WeeklyBuildingProfit!
   findTagById(tagId: String!): [TagsEntity!]!
   findTagsByBuildingId(buildingId: String!): [TagsEntity!]!
   users: [UserEntity!]!
+  getPaginatedParkingBlockedUsers(paginationOptions: PageOptionsDto!, parkingId: String): ParkingBlockedUsersPaginated!
+  searchUsersByGivenRutEmailOrFullname(text: String!): [UserEntity!]!
   userById(userId: String!): UserEntity!
   userByRut(rut: String!): UserEntity
-  getUserEmailCode(userId: String!): UserWithVerificationCode!
-  getUserSMSCode(userId: String!): UserWithSmsCode!
+  getUserEmailCode(fullname: String!, email: String!): EmailVerificationCode!
+  getUserSMSCode(phoneNumber: String!): SmsVerificationCode!
   clientById(clientId: String!): ClientEntity!
   clients: [ClientEntity!]!
   clientByRut(rut: String!): ClientEntity
-  getClientEmailCode(clientId: String!): ClientWithVerificationCode!
-  getClientSMSCode(clientId: String!): ClientWithSmsCode!
+  getClientEmailCode(fullname: String!, email: String!): EmailVerificationCode!
+  getClientSMSCode(phoneNumber: String!): SmsVerificationCode!
   findVehicleById(vehicleId: String!): VehicleEntity!
   findVehiclesByUserId: [VehicleEntity!]!
   getAllHoldings: [HoldingEntity!]!
   getHoldingById(holdingId: String!): HoldingEntity!
   getOrderNumberByCountingBookings: Int!
+  getPaginatedBookings(paginationOptions: PageOptionsDto!, parkingId: String, displayAll: Boolean): BookingsPaginated!
+  findBookingsMadeTodayAndYesterday: BookingDailyFinance!
+  findBookingsAndGetDailyIncomeAndPercentage: BookingDailyIncomeFinance!
   findBookingById(bookingId: String!): BookingEntity!
   updateBookingParking(bookingId: String!, parkingId: String!): BookingEntity!
   updateBookingUser(bookingId: String!, userId: String!): BookingEntity!
@@ -372,6 +522,13 @@ type Query {
   getBookingWithPaymentRequiredToStart: BookingEntity!
   getBookingPriceCalculated(bookingId: String!): BookingEntity!
   resetCronJobsForBookingId(bookingId: String!): BookingEntity!
+  findRecentBookingsFromBuildings: [BookingEntity!]!
+}
+
+input PageOptionsDto {
+  page: Float! = 1
+  take: Float! = 10
+  skip: Float! = 0
 }
 
 input PointInput {
@@ -382,7 +539,9 @@ input PointInput {
 type Mutation {
   uploadFile(createFileInput: CreateFileInput!, file: Upload!): String!
   deleteFile(url: String!): Boolean!
-  updateParking(updateParkingInput: UpdateParkingInput!, buildingId: String, tagsIds: [String!]): ParkingEntity!
+  updateParking(updateParkingInput: UpdateParkingInput!, buildingId: String): ParkingEntity!
+  removeBlockedUserFromParking(userId: String!, parkingId: String!): ParkingEntity!
+  addUserToParkingBlockList(userId: String!, parkingId: String!): ParkingEntity!
   removeParking(parkingId: String!): ParkingEntity!
   createParking(createParkingInput: CreateParkingInput!, buildingId: String!, clientId: String!): ParkingEntity!
   setParkingPhoto(parkingId: String!, createPhotoInput: CreatePhotoInput!, file: Upload): ParkingEntity!
@@ -392,7 +551,7 @@ type Mutation {
   createBuilding(createBuildingEntity: CreateBuildingInput!, ownerId: String!, tags: [String!]!): BuildingEntity!
   updateBuilding(updateBuildingInput: UpdateBuildingInput!, tags: [String!]): BuildingEntity!
   removeTag(tagId: String!): TagsEntity!
-  setBuildingPhoto(buildingId: String!, createPhotoInput: CreatePhotoInput!, file: Upload): BuildingEntity!
+  setBuildingPhoto(buildingId: String!, createPhotoInput: CreatePhotoInput!, file: Upload!): BuildingEntity!
   createTag(createTagInput: CreateTagInput!): TagsEntity!
   updateTag(updateTagInput: UpdateTagInput!): TagsEntity!
   createUser(createUserInput: CreateUserInput!): UserEntity!
@@ -418,6 +577,7 @@ type Mutation {
   createBooking(createBookingInput: CreateBookingInput!, parkingId: String!): BookingEntity!
   updateBooking(updateBookingInput: UpdateBookingInput!): BookingEntity!
   removeBooking(bookingId: String!): BookingEntity!
+  createRequest(createRequestInput: CreateRequestInput!): RequestEntity!
 }
 
 input CreateFileInput {
@@ -486,24 +646,14 @@ input CreatePhotoInput {
 
 input CreateScheduleInput {
   """day of the schedule"""
-  day: ScheduleDaysEnum!
+  day: Int!
   scheduleStart: DateTime!
   scheduleEnd: DateTime!
 }
 
-enum ScheduleDaysEnum {
-  MONDAY
-  TUESDAY
-  WEDNESDAY
-  THURSDAY
-  FRIDAY
-  SATURDAY
-  SUNDAY
-}
-
 input UpdateScheduleInput {
   """day of the schedule"""
-  day: ScheduleDaysEnum
+  day: Int
   scheduleStart: DateTime
   scheduleEnd: DateTime
   id: String!
@@ -544,6 +694,7 @@ input UpdateBuildingInput {
 
   """id of the building"""
   id: String!
+  active: Boolean
 }
 
 input CreateTagInput {
@@ -617,6 +768,9 @@ input CreateClientInput {
 
   """validated phone"""
   validatedPhone: Boolean!
+
+  """type of the user"""
+  userType: Int!
 }
 
 input LoginClientInput {
@@ -694,6 +848,9 @@ input UpdateClientInput {
 
   """validated phone"""
   validatedPhone: Boolean
+
+  """type of the user"""
+  userType: Int
   id: String!
 }
 
@@ -780,4 +937,11 @@ input UpdateBookingInput {
   timeFinalized: DateTime
   finalPrice: Float
   mountPaid: Float
+}
+
+input CreateRequestInput {
+  subject: String!
+  email: String!
+  phoneNumber: String!
+  content: String!
 }

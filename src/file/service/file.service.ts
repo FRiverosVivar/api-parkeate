@@ -196,4 +196,27 @@ export class FileService {
       }),
     );
   }
+  public uploadPDFBufferToS3(clientId: string,pdfBuffer: Buffer, name: string): Observable<string> {
+    if (!this.bucketData) {
+      throw new InternalServerErrorException();
+    }
+
+    const key = 'pdf/' +name+ '.pdf'
+    const putObjectOptions = {
+      Bucket: this.bucketData.name,
+      Body: pdfBuffer,
+      Key: key,
+      ACL: 'public-read',
+      ContentType: 'application/pdf',
+      ServerSideEncryption: 'AES256'
+    };
+    return from(this.client.send(new PutObjectCommand(putObjectOptions))).pipe(
+      switchMap((output) => {
+        if (output && this.bucketData) {
+          return of(this.bucketData.url + key);
+        }
+        throw new InternalServerErrorException();
+      }),
+    );
+  }
 }
