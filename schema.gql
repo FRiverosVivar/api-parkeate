@@ -523,6 +523,7 @@ type Query {
   getBookingPriceCalculated(bookingId: String!): BookingEntity!
   resetCronJobsForBookingId(bookingId: String!): BookingEntity!
   findRecentBookingsFromBuildings: [BookingEntity!]!
+  forceToLiquidateToAllBookings: [LiquidationEntity!]!
 }
 
 input PageOptionsDto {

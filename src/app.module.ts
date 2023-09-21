@@ -21,7 +21,7 @@ import { PlacesService } from "./utils/places/places.service";
 import { PlacesModule } from "./utils/places/places.module";
 import { CronModule } from "./utils/cron/cron.module";
 import { ScheduleModule } from "@nestjs/schedule";
-import { SchedulesModule } from "./schedule/schedulesModule";
+import { SchedulesModule } from "./schedule/schedules.module";
 import * as fs from 'fs'
 import { RequestModule } from "./requests/request.module";
 import { LiquidationModule } from "./liquidation/liquidation.module";
