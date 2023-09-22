@@ -145,7 +145,6 @@ export class ClientService {
       .leftJoin(`c.buildings`, 'b')
       .leftJoin(`b.parkingList`, 'p')
       .leftJoin(`p.bookings`, 'bk')
-      .select(`c.id`)
       .where(`bk.id is not null`)
       .andWhere(`bk.liquidationId is null`)
       .getMany()

@@ -1,11 +1,11 @@
 import * as lodash from 'lodash';
-import * as fs from 'fs'
+import { readFileSync } from "fs";
 import { Kind } from "graphql";
 import { LiquidationPDFTemplate, MinifiedBookingForPDF } from 'src/liquidation/model/liquidation-template.input';
-import path from 'path';
+import * as path from 'path';
 import * as handlebars from 'handlebars'
 import { DateTime } from 'luxon';
-import * as puppeteer from 'puppeteer-core'
+import * as puppeteer from 'puppeteer'
 import { LiquidationEntity } from 'src/liquidation/entity/liquidation.entity';
 import { ClientEntity } from 'src/client/entity/client.entity';
 import { IVA_TAX, PARKEATE_TAX } from 'src/liquidation/model/parkeate.const';
@@ -38,17 +38,15 @@ export function parseLiteral(ast: any): unknown {
   }
 }
 export async function readPdfTemplateFromFilesAndCompileWithData(data: LiquidationPDFTemplate) {
-	let templateHtml = fs.readFileSync(path.join(process.cwd(), './liquidation/liquidation.template.html'), 'utf8');
-  let template = handlebars.compile(templateHtml);
+	let templateHtml = readFileSync(path.resolve(__dirname + '/liquidation/liquidation.template.html'));
+  let template = handlebars.compile(templateHtml.toString());
+  console.log(data)
   let html = template(data)
+  console.log(html)
   const dateTime = DateTime.now()
   const date = dateTime.toFormat('yyyy-MM-dd')
-  const pdfPath = path.join('pdf', `${data.client.rut}-${date}.pdf`);
+  const pdfPath = path.join('', `${data.client.rut}-${date}.pdf`);
   const options = {
-		width: '1230px',
-		headerTemplate: "<p></p>",
-		footerTemplate: "<p></p>",
-		displayHeaderFooter: false,
 		margin: {
 			top: "10px",
 			bottom: "30px"
@@ -58,14 +56,15 @@ export async function readPdfTemplateFromFilesAndCompileWithData(data: Liquidati
 	}
   const browser = await puppeteer.launch({
 		args: ['--no-sandbox'],
-		headless: true
+		headless: 'new',
+    
 	});
 
 	const page = await browser.newPage();
   await page.goto(`data:text/html;charset=UTF-8,${html}`, {
 		waitUntil: 'networkidle0'
 	});
-
+  await page.setContent(html)
 	const pdfBuffer = await page.pdf(options);
 	await browser.close();
   return pdfBuffer
@@ -119,9 +118,9 @@ export function getPriceAfterTaxes(amount: number) {
   return formatearMonedaChilena(finalPrice)
 }
 export function mapBookingsToPDFTemplateBookings(bookings: BookingEntity[]): MinifiedBookingForPDF[] {
-  const minifiedBookings: MinifiedBookingForPDF[] = []
+  let minifiedBookings: MinifiedBookingForPDF[] = []
   bookings.forEach((b) => {
-    const minifiedBooking = this.mapBookingToMinifiedBookingForPDFTemplate(b)
+    const minifiedBooking = mapBookingToMinifiedBookingForPDFTemplate(b)
     minifiedBookings.push(minifiedBooking)
   })
   return minifiedBookings

@@ -93,6 +93,8 @@ export class EmailService implements OnModuleInit {
       await this.createChangePasswordEmailTemplate();
     if (!result[EmailTypesEnum.RESERVATION_CREATED].found)
       await this.createReservationCreatedEmailTemplate();
+    if (!result[EmailTypesEnum.LIQUIDATION_GENERATED].found)
+      await this.createLiquidationGeneratedEmailTemplate();
   }
   private filterTemplatesAndFindMissingTemplates(
     templates: TemplateMetadata[],

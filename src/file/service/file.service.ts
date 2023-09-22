@@ -201,7 +201,7 @@ export class FileService {
       throw new InternalServerErrorException();
     }
 
-    const key = 'pdf/' +name+ '.pdf'
+    const key = 'pdf/' +name
     const putObjectOptions = {
       Bucket: this.bucketData.name,
       Body: pdfBuffer,

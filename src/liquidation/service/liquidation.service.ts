@@ -62,13 +62,16 @@ export class LiquidationService implements OnModuleInit {
             liquidatedBy: "Parkeate!",
             liquidationType: LiquidationEnum.BIWEEKLY15,
             priceToBeLiquidated: summarizedPrice,
+            liquidatedPdf: ''
           }
           const liqToSave = this.preCreateLiquidation(createLiquidationInput, client, bookings)
-          const pdfUrl = await this.generatePdfFileForLiquidation(liqToSave, client)
-          liqToSave.liquidatedPdf = pdfUrl;
-          this.sendLiquidationEmailToClientWithPdfAttachment(client, liqToSave)
           const savedLiq = await this.saveLiquidation(liqToSave)
-          liquidations.push(savedLiq)
+          const pdfUrl = await this.generatePdfFileForLiquidation(savedLiq, client)
+          savedLiq.liquidatedPdf = pdfUrl;
+          const latestSavedLiquidation = await this.saveLiquidation(savedLiq)
+          this.sendLiquidationEmailToClientWithPdfAttachment(client, liqToSave)
+          liquidations.push(latestSavedLiquidation)
+
           break;
         }
         case LiquidationEnum.MONTHLY30: {
@@ -95,8 +98,8 @@ export class LiquidationService implements OnModuleInit {
   }
   onModuleInit(): any {
     Settings.defaultZone = 'America/Sao_Paulo';
-    this.generate1stMonthDayLiquidations()
-    this.generate16thMonthDayLiquidations()
+    // this.generate1stMonthDayLiquidations()
+    // this.generate16thMonthDayLiquidations()
   }
   preCreateLiquidation(createLiquidationInput: CreateLiquidationInput, client: ClientEntity, bookings: BookingEntity[]): LiquidationEntity {
     const liq = this.liquidationRepository.create(createLiquidationInput)

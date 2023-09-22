@@ -18,5 +18,6 @@ export class CreateLiquidationInput {
   approved: boolean;
   @Field(() => String)
   approvedBy: string;
-  
+  @Field(() => String)
+  liquidatedPdf: string;
 }
