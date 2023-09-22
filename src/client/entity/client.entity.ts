@@ -27,7 +27,7 @@ export class ClientEntity extends BaseCustomer {
   @OneToMany(() => LiquidationEntity, (l ) => l.client)
   @Field(() => [LiquidationEntity])
   liquidations: LiquidationEntity[]
-  @Column()
+  @Column({default: LiquidationEnum.BIWEEKLY15})
   @Field(() => Int)
   preferedLiquidationPayRate: LiquidationEnum
   @Column({nullable: true})
