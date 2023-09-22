@@ -25,7 +25,7 @@ export class BookingEntity extends BaseEntityWithIdAbstract {
       this.numberId = parseInt(`${lastNum}${date}`)
   }
 
-  @Column({nullable: true})
+  @Column()
   @Field(() => Int)
   numberId: number;
   @Column()
