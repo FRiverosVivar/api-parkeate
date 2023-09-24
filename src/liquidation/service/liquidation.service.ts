@@ -149,11 +149,19 @@ export class LiquidationService implements OnModuleInit {
     let liquidations;
     if(userType >= UserTypesEnum.ADMIN) {
       liquidations = await this.liquidationRepository.find({
+        relations: {
+          client: true,
+          bookings: true,
+        },
         skip: pagination.skip,
         take: pagination.take
       })
     } else {
       liquidations = await this.liquidationRepository.find({
+        relations: {
+          client: true,
+          bookings: true,
+        },
         where: {
           client: {
             id: client.id
