@@ -4,6 +4,7 @@ import { BuildingEntity } from "../../building/entity/building.entity";
 import { ParkingEntity } from "../../parking/entity/parking.entity";
 import { UserEntity } from "../../user/entity/user.entity";
 import { BookingEntity } from "../../booking/entity/booking.entity";
+import { LiquidationEntity } from "src/liquidation/entity/liquidation.entity";
 @InputType()
 @ArgsType()
 export class PageOptionsDto {
@@ -81,6 +82,13 @@ export class BookingsPaginated {
 export class ParkingBlockedUsersPaginated {
   @Field(() => [UserEntity])
   data: UserEntity[];
+  @Field(() => PaginationMeta)
+  meta: PaginationMeta;
+}
+@ObjectType()
+export class LiquidationsPaginated {
+  @Field(() => [LiquidationEntity])
+  data: LiquidationEntity[];
   @Field(() => PaginationMeta)
   meta: PaginationMeta;
 }

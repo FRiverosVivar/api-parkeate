@@ -17,6 +17,11 @@ import { generateLiquidationTemplateDataToFulfillPdfTemplate, readPdfTemplateFro
 import { FileService } from "src/file/service/file.service";
 import { EmailService } from "src/utils/email/email.service";
 import { EmailTypesEnum } from "src/utils/email/enum/email-types.enum";
+import { UserEntity } from "src/user/entity/user.entity";
+import { UserType } from "src/auth/decorator/user-type.decorator";
+import { UserTypesEnum } from "src/user/constants/constants";
+import { from } from "rxjs";
+import { PageDto, PageOptionsDto, PaginationMeta } from "src/utils/interfaces/pagination.type";
 @Injectable()
 export class LiquidationService implements OnModuleInit {
   constructor(
@@ -138,6 +143,30 @@ export class LiquidationService implements OnModuleInit {
         createdAt: 'DESC'
       },
     })
+  }
+  async findAllLiquidations(pagination: PageOptionsDto, client: ClientEntity) {
+    const userType = client.userType;
+    let liquidations;
+    if(userType >= UserTypesEnum.ADMIN) {
+      liquidations = await this.liquidationRepository.find({
+        skip: pagination.skip,
+        take: pagination.take
+      })
+    } else {
+      liquidations = await this.liquidationRepository.find({
+        where: {
+          client: {
+            id: client.id
+          }
+        },
+        take: 10,
+      })
+    }
+    
+    const itemCount = liquidations.length;
+    const pageMetaDto = new PaginationMeta({ pageOptionsDto: pagination, itemCount });
+    pageMetaDto.skip = (pageMetaDto.page - 1) * pageMetaDto.take;
+    return new PageDto(liquidations, pageMetaDto);
   }
   private fillEmailDataWithLiquidationAndClientInfo(client: ClientEntity, liquidation: LiquidationEntity) {
     return {

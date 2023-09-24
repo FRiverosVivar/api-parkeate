@@ -335,6 +335,11 @@ type ParkingBlockedUsersPaginated {
   meta: PaginationMeta!
 }
 
+type LiquidationsPaginated {
+  data: [LiquidationEntity!]!
+  meta: PaginationMeta!
+}
+
 type UserLoginResponse {
   user: UserEntity!
   access_token: String!
@@ -524,6 +529,7 @@ type Query {
   resetCronJobsForBookingId(bookingId: String!): BookingEntity!
   findRecentBookingsFromBuildings: [BookingEntity!]!
   forceToLiquidateToAllBookings: [LiquidationEntity!]!
+  getAllLiquidations(paginationOptions: PageOptionsDto!): LiquidationsPaginated!
 }
 
 input PageOptionsDto {
