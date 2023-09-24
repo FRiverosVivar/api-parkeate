@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from "@nestjs/common";
+import { Injectable, NotFoundException, OnModuleInit } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { LiquidationEntity } from "../entity/liquidation.entity";
 import { Repository } from "typeorm";
@@ -20,8 +20,9 @@ import { EmailTypesEnum } from "src/utils/email/enum/email-types.enum";
 import { UserEntity } from "src/user/entity/user.entity";
 import { UserType } from "src/auth/decorator/user-type.decorator";
 import { UserTypesEnum } from "src/user/constants/constants";
-import { from } from "rxjs";
+import { from, switchMap } from "rxjs";
 import { PageDto, PageOptionsDto, PaginationMeta } from "src/utils/interfaces/pagination.type";
+import { UpdateLiquidationInput } from "../model/update-liquidation.input";
 @Injectable()
 export class LiquidationService implements OnModuleInit {
   constructor(
@@ -128,6 +129,20 @@ export class LiquidationService implements OnModuleInit {
   sendLiquidationEmailToClientWithPdfAttachment(client: ClientEntity, liquidation: LiquidationEntity){
     const data = JSON.stringify(this.fillEmailDataWithLiquidationAndClientInfo(client, liquidation))
     this.emailService.sendEmail(EmailTypesEnum.LIQUIDATION_GENERATED, client.email, data)
+  }
+  updateLiquidation(updatedLiquidation: UpdateLiquidationInput) {
+    return from(
+      this.liquidationRepository.preload({
+        ...updatedLiquidation,
+      }),
+    ).pipe(
+      switchMap((liq) => {
+        if (!liq) {
+          throw new NotFoundException();
+        }
+        return from(this.liquidationRepository.save(liq));
+      }),
+    );
   }
   findLatestLiquidationFromClientId(clientId: string) {
     return this.liquidationRepository.findOne({

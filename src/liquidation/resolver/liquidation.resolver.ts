@@ -11,6 +11,7 @@ import { CurrentUser } from "src/auth/decorator/current-user.decorator";
 import { UserEntity } from "src/user/entity/user.entity";
 import { ClientEntity } from "src/client/entity/client.entity";
 import { LiquidationsPaginated, PageOptionsDto } from "src/utils/interfaces/pagination.type";
+import { UpdateLiquidationInput } from "../model/update-liquidation.input";
 
 @Resolver(LiquidationEntity)
 export class LiquidationResolver {
@@ -28,5 +29,12 @@ export class LiquidationResolver {
     @CurrentUser() user: ClientEntity
     ):Observable<LiquidationsPaginated> {
     return from(this.liquidationService.findAllLiquidations(paginationOptions, user))
+  }
+  @Query(() => LiquidationEntity)
+  @UserType(UserTypesEnum.ADMIN)
+  @UseGuards(UserTypeGuard, JwtAuthGuard)
+  updateLiquidation(
+    @Args('updateLiquidationInput') updateLiquidationInput: UpdateLiquidationInput):Observable<LiquidationEntity> {
+    return this.liquidationService.updateLiquidation(updateLiquidationInput)
   }
 }

@@ -530,6 +530,7 @@ type Query {
   findRecentBookingsFromBuildings: [BookingEntity!]!
   forceToLiquidateToAllBookings: [LiquidationEntity!]!
   getAllLiquidations(paginationOptions: PageOptionsDto!): LiquidationsPaginated!
+  updateLiquidation(updateLiquidationInput: UpdateLiquidationInput!): LiquidationEntity!
 }
 
 input PageOptionsDto {
@@ -541,6 +542,18 @@ input PageOptionsDto {
 input PointInput {
   type: String!
   coordinates: [Float!]!
+}
+
+input UpdateLiquidationInput {
+  priceToBeLiquidated: Float
+  liquidatedBy: String
+  liquidationType: Int
+  paid: Boolean
+  liquidationReceipt: String
+  approved: Boolean
+  approvedBy: String
+  liquidatedPdf: String
+  id: String!
 }
 
 type Mutation {
