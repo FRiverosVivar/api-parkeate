@@ -154,7 +154,10 @@ export class LiquidationService implements OnModuleInit {
           bookings: true,
         },
         skip: pagination.skip,
-        take: pagination.take
+        take: pagination.take,
+        order: {
+          createdAt: 'DESC'
+        }
       })
     } else {
       liquidations = await this.liquidationRepository.find({
@@ -167,7 +170,11 @@ export class LiquidationService implements OnModuleInit {
             id: client.id
           }
         },
-        take: 10,
+        skip: pagination.skip,
+        take: pagination.take,
+        order: {
+          createdAt: 'DESC'
+        }
       })
     }
     
