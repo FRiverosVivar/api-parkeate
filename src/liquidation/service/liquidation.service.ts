@@ -23,6 +23,7 @@ import { UserTypesEnum } from "src/user/constants/constants";
 import { from, switchMap } from "rxjs";
 import { PageDto, PageOptionsDto, PaginationMeta } from "src/utils/interfaces/pagination.type";
 import { UpdateLiquidationInput } from "../model/update-liquidation.input";
+import { FileUpload } from "graphql-upload-minimal";
 @Injectable()
 export class LiquidationService implements OnModuleInit {
   constructor(
@@ -197,6 +198,21 @@ export class LiquidationService implements OnModuleInit {
     const pageMetaDto = new PaginationMeta({ pageOptionsDto: pagination, itemCount });
     pageMetaDto.skip = (pageMetaDto.page - 1) * pageMetaDto.take;
     return new PageDto(liquidations, pageMetaDto);
+  }
+  async uploadReceiptPdfToS3(liquidationId: string, receiptPdf: FileUpload, client: ClientEntity) {
+    const pdfBuffer = await this.fileService.getBufferFromFileUpload(receiptPdf)
+    const name = DateTime.now().toFormat('yyyyLLLdd-hh-mm')
+    const pdfUrl = await this.fileService.uploadPDFBufferToS3(client.id, pdfBuffer, name).toPromise()
+    const liq = await this.liquidationRepository.findOne({
+      where: {
+        id: liquidationId
+      }
+    })
+    if (!liq)
+      throw new NotFoundException()
+    liq.paid = true
+    liq.liquidationReceipt = pdfUrl!
+    return this.liquidationRepository.save(liq)
   }
   private fillEmailDataWithLiquidationAndClientInfo(client: ClientEntity, liquidation: LiquidationEntity) {
     return {

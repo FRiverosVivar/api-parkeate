@@ -219,4 +219,7 @@ export class FileService {
       }),
     );
   }
+  getBufferFromFileUpload(file: FileUpload) {
+    return FileService.streamToBuffer(file.createReadStream())
+  }
 }
