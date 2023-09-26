@@ -200,7 +200,6 @@ export class UserService {
   searchUsersByGivenRutEmailOrFullname(text: string) {
     const query = this.userRepository.createQueryBuilder('u')
       .where(`LOWER(u.fullname) like '%${text.toLowerCase()}%' or LOWER(u.email) like '%${text.toLowerCase().replace('-', '')}%' or translate(u.rut, '-', '') like '%${text.toLowerCase()}%' or u.rut like '%${text.toLowerCase()}%'`)
-    console.log(query.getQuery())
     return from(query.getMany())
   }
   getAddressesForGivenText(text: string, options: SearchByTextOptions) {
