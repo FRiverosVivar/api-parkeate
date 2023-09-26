@@ -40,9 +40,7 @@ export function parseLiteral(ast: any): unknown {
 export async function readPdfTemplateFromFilesAndCompileWithData(data: LiquidationPDFTemplate) {
 	let templateHtml = readFileSync(path.resolve(__dirname + '/liquidation/liquidation.template.html'));
   let template = handlebars.compile(templateHtml.toString());
-  console.log(data)
   let html = template(data)
-  console.log(html)
   const dateTime = DateTime.now()
   const date = dateTime.toFormat('yyyy-MM-dd')
   const pdfPath = path.join('', `${data.client.rut}-${date}.pdf`);

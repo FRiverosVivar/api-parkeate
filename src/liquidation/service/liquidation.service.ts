@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from "@nestjs/common";
+import { Injectable, NotFoundException, OnModuleInit } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { LiquidationEntity } from "../entity/liquidation.entity";
 import { Repository } from "typeorm";
@@ -17,6 +17,13 @@ import { generateLiquidationTemplateDataToFulfillPdfTemplate, readPdfTemplateFro
 import { FileService } from "src/file/service/file.service";
 import { EmailService } from "src/utils/email/email.service";
 import { EmailTypesEnum } from "src/utils/email/enum/email-types.enum";
+import { UserEntity } from "src/user/entity/user.entity";
+import { UserType } from "src/auth/decorator/user-type.decorator";
+import { UserTypesEnum } from "src/user/constants/constants";
+import { from, switchMap } from "rxjs";
+import { PageDto, PageOptionsDto, PaginationMeta } from "src/utils/interfaces/pagination.type";
+import { UpdateLiquidationInput } from "../model/update-liquidation.input";
+import { FileUpload } from "graphql-upload-minimal";
 @Injectable()
 export class LiquidationService implements OnModuleInit {
   constructor(
@@ -124,6 +131,20 @@ export class LiquidationService implements OnModuleInit {
     const data = JSON.stringify(this.fillEmailDataWithLiquidationAndClientInfo(client, liquidation))
     this.emailService.sendEmail(EmailTypesEnum.LIQUIDATION_GENERATED, client.email, data)
   }
+  updateLiquidation(updatedLiquidation: UpdateLiquidationInput) {
+    return from(
+      this.liquidationRepository.preload({
+        ...updatedLiquidation,
+      }),
+    ).pipe(
+      switchMap((liq) => {
+        if (!liq) {
+          throw new NotFoundException();
+        }
+        return from(this.liquidationRepository.save(liq));
+      }),
+    );
+  }
   findLatestLiquidationFromClientId(clientId: string) {
     return this.liquidationRepository.findOne({
       relations: {
@@ -138,6 +159,60 @@ export class LiquidationService implements OnModuleInit {
         createdAt: 'DESC'
       },
     })
+  }
+  async findAllLiquidations(pagination: PageOptionsDto, client: ClientEntity) {
+    const userType = client.userType;
+    let liquidations;
+    if(userType >= UserTypesEnum.ADMIN) {
+      liquidations = await this.liquidationRepository.find({
+        relations: {
+          client: true,
+          bookings: true,
+        },
+        skip: pagination.skip,
+        take: pagination.take,
+        order: {
+          createdAt: 'DESC'
+        }
+      })
+    } else {
+      liquidations = await this.liquidationRepository.find({
+        relations: {
+          client: true,
+          bookings: true,
+        },
+        where: {
+          client: {
+            id: client.id
+          }
+        },
+        skip: pagination.skip,
+        take: pagination.take,
+        order: {
+          createdAt: 'DESC'
+        }
+      })
+    }
+    
+    const itemCount = liquidations.length;
+    const pageMetaDto = new PaginationMeta({ pageOptionsDto: pagination, itemCount });
+    pageMetaDto.skip = (pageMetaDto.page - 1) * pageMetaDto.take;
+    return new PageDto(liquidations, pageMetaDto);
+  }
+  async uploadReceiptPdfToS3(liquidationId: string, receiptPdf: FileUpload, client: ClientEntity) {
+    const pdfBuffer = await this.fileService.getBufferFromFileUpload(receiptPdf)
+    const name = DateTime.now().toFormat('yyyyLLLdd-hh-mm')
+    const pdfUrl = await this.fileService.uploadPDFBufferToS3(client.id, pdfBuffer, name).toPromise()
+    const liq = await this.liquidationRepository.findOne({
+      where: {
+        id: liquidationId
+      }
+    })
+    if (!liq)
+      throw new NotFoundException()
+    liq.paid = true
+    liq.liquidationReceipt = pdfUrl!
+    return this.liquidationRepository.save(liq)
   }
   private fillEmailDataWithLiquidationAndClientInfo(client: ClientEntity, liquidation: LiquidationEntity) {
     return {
