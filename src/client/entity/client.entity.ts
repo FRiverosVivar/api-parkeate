@@ -31,7 +31,7 @@ export class ClientEntity extends BaseCustomer {
   @Field(() => Int)
   preferedLiquidationPayRate: LiquidationEnum
   @Column({nullable: true})
-  @Field(() => Int)
+  @Field(() => Int, {nullable: true})
   bankType: BanksEnum
   @Column({nullable: true})
   @Field(() => String)
