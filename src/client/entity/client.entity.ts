@@ -42,4 +42,7 @@ export class ClientEntity extends BaseCustomer {
   @Column({nullable: true})
   @Field(() => Int)
   bankAccountNumber: number
+  @Column({nullable: true})
+  @Field(() => String)
+  bankAccountEmail: string
 }

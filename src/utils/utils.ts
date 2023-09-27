@@ -86,7 +86,8 @@ export function generateLiquidationTemplateDataToFulfillPdfTemplate(liquidation:
       accountName: client.bankAccountName,
       bankTypeName: BankNames[client.bankType],
       accountTypeName: BankAccountTypeNameEnum[client.bankAccountType],
-      accountNumber: client.bankAccountNumber
+      accountNumber: client.bankAccountNumber,
+      accountEmail: client.bankAccountEmail
     }
   }
   return data;

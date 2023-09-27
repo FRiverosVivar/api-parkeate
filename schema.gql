@@ -231,6 +231,7 @@ type ClientEntity {
   bankAccountName: String!
   bankAccountType: Int!
   bankAccountNumber: Int!
+  bankAccountEmail: String!
 }
 
 type ScheduleEntity {
@@ -598,6 +599,7 @@ type Mutation {
   updateBooking(updateBookingInput: UpdateBookingInput!): BookingEntity!
   removeBooking(bookingId: String!): BookingEntity!
   createRequest(createRequestInput: CreateRequestInput!): RequestEntity!
+  uploadPaymentReceipt(liquidationId: String!, receiptPdf: Upload!): LiquidationEntity!
 }
 
 input CreateFileInput {
@@ -791,6 +793,12 @@ input CreateClientInput {
 
   """type of the user"""
   userType: Int!
+  preferedLiquidationPayRate: Int!
+  bankType: Int!
+  bankAccountEmail: String!
+  bankAccountName: String!
+  bankAccountType: Int!
+  bankAccountNumber: Int!
 }
 
 input LoginClientInput {
@@ -871,6 +879,12 @@ input UpdateClientInput {
 
   """type of the user"""
   userType: Int
+  preferedLiquidationPayRate: Int
+  bankType: Int
+  bankAccountEmail: String
+  bankAccountName: String
+  bankAccountType: Int
+  bankAccountNumber: Int
   id: String!
 }
 
