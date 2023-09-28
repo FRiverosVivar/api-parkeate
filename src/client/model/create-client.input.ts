@@ -1,6 +1,5 @@
-import { ArgsType, Field, InputType, Int } from '@nestjs/graphql';
+import { ArgsType, Field, Float, InputType, Int } from '@nestjs/graphql';
 import { BasicCustomerInputAbstract } from "../../utils/interfaces/basic-customer-input.abstract";
-import { Column } from "typeorm";
 import { LiquidationEnum } from 'src/liquidation/model/liquidation.enum';
 import { BankAccountTypeEnum, BanksEnum } from './bank.enum';
 
@@ -17,6 +16,6 @@ export class CreateClientInput extends BasicCustomerInputAbstract {
     bankAccountName: string
     @Field(() => Int)
     bankAccountType: BankAccountTypeEnum
-    @Field(() => Int)
-    bankAccountNumber: number
+    @Field(() => String)
+    bankAccountNumber: string
 }

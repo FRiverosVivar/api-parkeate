@@ -40,8 +40,8 @@ export class ClientEntity extends BaseCustomer {
   @Field(() => Int)
   bankAccountType: BankAccountTypeEnum
   @Column({nullable: true})
-  @Field(() => Float)
-  bankAccountNumber: number
+  @Field(() => String)
+  bankAccountNumber: string
   @Column({nullable: true})
   @Field(() => String)
   bankAccountEmail: string
