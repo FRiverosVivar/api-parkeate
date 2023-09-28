@@ -1,5 +1,5 @@
-import { ChildEntity, Column, Entity, JoinColumn, JoinTable, ManyToOne, OneToMany } from "typeorm";
-import { Field, Int, ObjectType } from "@nestjs/graphql";
+import { Column, Entity, ManyToOne, OneToMany } from "typeorm";
+import { Field, Float, Int, ObjectType } from "@nestjs/graphql";
 import { BaseCustomer } from '../../utils/interfaces/base-customer.abstract';
 import { ParkingEntity } from "../../parking/entity/parking.entity";
 import { HoldingEntity } from "../../holding/entity/holding.entity";
@@ -40,7 +40,7 @@ export class ClientEntity extends BaseCustomer {
   @Field(() => Int)
   bankAccountType: BankAccountTypeEnum
   @Column({nullable: true})
-  @Field(() => Int)
+  @Field(() => Float)
   bankAccountNumber: number
   @Column({nullable: true})
   @Field(() => String)
