@@ -8,7 +8,6 @@ import { UserTypesEnum } from "../../user/constants/constants";
 import { LiquidationEntity } from "../../liquidation/entity/liquidation.entity";
 import { LiquidationEnum } from "../../liquidation/model/liquidation.enum";
 import { BankAccountTypeEnum, BanksEnum } from "../model/bank.enum";
-import { GraphQLBigInt } from "graphql-scalars";
 
 @Entity('client')
 @ObjectType()
@@ -41,8 +40,8 @@ export class ClientEntity extends BaseCustomer {
   @Field(() => Int)
   bankAccountType: BankAccountTypeEnum
   @Column({nullable: true})
-  @Field(() => Float)
-  bankAccountNumber: number
+  @Field(() => String)
+  bankAccountNumber: string
   @Column({nullable: true})
   @Field(() => String)
   bankAccountEmail: string

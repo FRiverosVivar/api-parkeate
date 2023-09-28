@@ -24,7 +24,7 @@ export interface LiquidationPDFTemplate {
         accountName: string,
         bankTypeName: string,
         accountTypeName: string,
-        accountNumber: number,
+        accountNumber: string,
         accountEmail: string,
     }
 }
