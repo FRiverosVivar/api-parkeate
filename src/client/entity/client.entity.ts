@@ -1,4 +1,4 @@
-import { ChildEntity, Column, Entity, JoinColumn, JoinTable, ManyToOne, OneToMany } from "typeorm";
+import { Column, Entity, ManyToOne, OneToMany } from "typeorm";
 import { Field, Int, ObjectType } from "@nestjs/graphql";
 import { BaseCustomer } from '../../utils/interfaces/base-customer.abstract';
 import { ParkingEntity } from "../../parking/entity/parking.entity";
@@ -8,6 +8,7 @@ import { UserTypesEnum } from "../../user/constants/constants";
 import { LiquidationEntity } from "../../liquidation/entity/liquidation.entity";
 import { LiquidationEnum } from "../../liquidation/model/liquidation.enum";
 import { BankAccountTypeEnum, BanksEnum } from "../model/bank.enum";
+import { GraphQLBigInt } from "graphql-scalars";
 
 @Entity('client')
 @ObjectType()
@@ -40,7 +41,7 @@ export class ClientEntity extends BaseCustomer {
   @Field(() => Int)
   bankAccountType: BankAccountTypeEnum
   @Column({nullable: true})
-  @Field(() => Int)
+  @Field(() => GraphQLBigInt)
   bankAccountNumber: number
   @Column({nullable: true})
   @Field(() => String)
