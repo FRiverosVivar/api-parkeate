@@ -11,11 +11,12 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     super({
       usernameField: 'username',
       passwordField: 'password',
+      passReqToCallback: true
     });
   }
-  async validate(username: string, password: string) {
+  async validate(req: any, username: string, password: string) {
     return this.authService
-      .validateCredentials(username, password)
+      .validateCredentials(username, password, req.body.isClient)
       .pipe(
         map((userOrClient) => {
           if (!userOrClient) {

@@ -9,6 +9,7 @@ import { UpdateClientInput } from '../model/update-client.input';
 import { CreatePhotoInput } from "../../photo/model/create-photo.input";
 import { EmailVerificationCode } from "../model/email-verification-code.response";
 import { SmsVerificationCode } from "../model/sms-code.response";
+import { RecoverPasswordCodeAndClientId } from '../model/recover-password.response';
 
 @Resolver(() => ClientEntity)
 export class ClientResolver {
@@ -64,5 +65,10 @@ export class ClientResolver {
   ): Observable<SmsVerificationCode> {
     return this.clientService.getClientSMSCode(phoneNumber);
   }
-
+  @Query(() => RecoverPasswordCodeAndClientId)
+  checkClientAndGetCodeToValidate(
+    @Args('rut', {type: () => String}) rut: string
+  ) {
+    return this.clientService.checkClientAndGetCodeToValidate(rut)
+  }
 }

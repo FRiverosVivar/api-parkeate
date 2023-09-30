@@ -75,31 +75,25 @@ export class AuthService {
   validateCredentials(
     username: string,
     password: string,
+    isClient: boolean
   ): Observable<UserEntity | ClientEntity | undefined> {
-    const login = forkJoin(
-      [
-        this.userService.getUserByRut(username),
-        this.clientService.getClientByRut(username)
-      ]
-    )
-    return login.pipe(
-      switchMap(([user, client]) => {
-        if(user)
-          return this.bcryptService.compare(password, user.password).pipe(
-            map((areSamePassword) => {
-              return areSamePassword ? user : undefined;
-            }),
-          );
-        else if(client)
-          return this.bcryptService.compare(password, client.password).pipe(
-            map((areSamePassword) => {
-              return areSamePassword ? client : undefined;
-            }),
-          );
-
-        return of(undefined)
-      }),
-    );
+    if(isClient) {
+      return this.clientService.findClientByRut(username).pipe(switchMap((c) => {
+        return this.bcryptService.compare(password, c.password).pipe(
+          map((areSamePassword) => {
+            return areSamePassword ? c : undefined;
+          }),
+        );
+      }))
+    }
+    return this.userService.findUserByRut(username)
+    .pipe(switchMap((u) => {
+      return this.bcryptService.compare(password, u.password).pipe(
+        map((areSamePassword) => {
+          return areSamePassword ? u : undefined;
+        }),
+      );
+    }))
   }
   login(user: UserEntity) {
     if(!user.validatedAccount)

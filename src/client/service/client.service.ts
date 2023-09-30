@@ -16,6 +16,8 @@ import { CreatePhotoInput } from "../../photo/model/create-photo.input";
 import { PhotoService } from "../../photo/service/photo.service";
 import { EmailVerificationCode } from "../model/email-verification-code.response";
 import { SmsVerificationCode } from "../model/sms-code.response";
+import { RecoverPasswordCodeAndClientId } from '../model/recover-password.response';
+import { CryptService } from 'src/utils/crypt/crypt.service';
 
 @Injectable()
 export class ClientService {
@@ -25,6 +27,7 @@ export class ClientService {
     private readonly emailService: EmailService,
     private readonly smsService: SmsService,
     private readonly photoService: PhotoService,
+    private readonly cryptService: CryptService
   ) {}
   async createClient(clientDTO: CreateClientInput): Promise<ClientEntity> {
     const client = this.clientRepository.create(clientDTO);
@@ -46,6 +49,14 @@ export class ClientService {
       switchMap((client) => {
         if (!client) {
           throw new NotFoundException();
+        }
+        if(updatedClient.password) {
+          return this.cryptService.hash(updatedClient.password).pipe(
+            switchMap((pw: string) =>{
+              client.password = pw
+              return from(this.clientRepository.save(client));
+            })
+          )
         }
         return from(this.clientRepository.save(client));
       }),
@@ -151,6 +162,18 @@ export class ClientService {
   }
   findAll(): Observable<ClientEntity[]> {
     return from(this.clientRepository.find());
+  }
+  checkClientAndGetCodeToValidate(rut: string) {
+    return this.findClientByRut(rut).pipe(switchMap((c) => {
+      return this.getClientEmailCode(c.email, c.fullname).pipe(
+        map((e) => {
+          const recoverPassword: RecoverPasswordCodeAndClientId = {
+            id: c.id,
+            code: e.code
+          }
+          return recoverPassword
+        }))
+    }))
   }
   setProfilePhoto(clientId: string, file: FileUpload, photoInput: CreatePhotoInput): Observable<ClientEntity> {
     return this.findClientById(clientId).pipe(
