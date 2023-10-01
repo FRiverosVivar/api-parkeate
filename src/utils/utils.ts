@@ -52,12 +52,15 @@ export async function readPdfTemplateFromFilesAndCompileWithData(data: Liquidati
 		printBackground: true,
 		path: pdfPath
 	}
-  const browser = await puppeteer.launch({
-		args: ['--no-sandbox'],
+  let puppeteerOptions: puppeteer.PuppeteerLaunchOptions = {
+		args: ['--no-sandbox', '--disable-setuid-sandbox'],
 		headless: 'new',
-    
-	});
-
+	}
+  if(process.env.EXECUTABLE_PATH !== '') {
+    puppeteerOptions.executablePath = process.env.EXECUTABLE_PATH
+  }
+  
+  const browser = await puppeteer.launch(puppeteerOptions);
 	const page = await browser.newPage();
   await page.goto(`data:text/html;charset=UTF-8,${html}`, {
 		waitUntil: 'networkidle0'
