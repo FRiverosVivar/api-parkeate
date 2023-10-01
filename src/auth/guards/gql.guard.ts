@@ -9,7 +9,8 @@ export class GqlAuthGuard extends AuthGuard('local') {
     const request = ctx.getContext();
     let loginUserInput = ctx.getArgs().loginUserInput;
     let loginClientInput = ctx.getArgs().loginClientInput;
-    loginClientInput.isClient = true
+    if(loginClientInput)
+      loginClientInput.isClient = true
     request.body = loginUserInput ? loginUserInput : loginClientInput;
     return request;
   }
