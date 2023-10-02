@@ -1,6 +1,6 @@
 
 export interface MinifiedBookingForPDF {
-    numberId: number,
+    numberId: string,
     dateStart: string,
     dateEnd: string,
     bookingType: string,
@@ -8,7 +8,7 @@ export interface MinifiedBookingForPDF {
 }
 export interface LiquidationPDFTemplate {
     liquidation: {
-        numberId: number,
+        numberId: string,
         totalAmount: string,
         parkeateTax: string,
         ivaTax: string,

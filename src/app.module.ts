@@ -26,6 +26,7 @@ import * as fs from 'fs'
 import { RequestModule } from "./requests/request.module";
 import { LiquidationModule } from "./liquidation/liquidation.module";
 import { LiquidationSubscriber } from './liquidation/subscriber/liquidation.subscriber';
+import { BookingSubscriber } from './booking/subscriber/booking.subscriber';
 
 @Module({
   imports: [
@@ -51,7 +52,10 @@ import { LiquidationSubscriber } from './liquidation/subscriber/liquidation.subs
       database: process.env.PG_DB,
       autoLoadEntities: true,
       synchronize: true,
-      subscribers: [LiquidationSubscriber],
+      subscribers: [
+        LiquidationSubscriber,
+        BookingSubscriber
+      ],
       // logger: "simple-console",
       // logging: ["query"],
       ssl: {

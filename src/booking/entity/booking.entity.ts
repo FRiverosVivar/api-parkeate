@@ -11,23 +11,9 @@ import { DateTime } from "luxon";
 @Entity('booking')
 @ObjectType()
 export class BookingEntity extends BaseEntityWithIdAbstract {
-  
-  @BeforeInsert() 
-  async generateNumberId() {
-      const date = DateTime.now().toFormat('ddMMyy')
-      const manager = getManager();
-      const bookingRepository = manager.getRepository(BookingEntity)
-      const lastLiq = await bookingRepository.findOne({
-        select: ['numberId'],
-        order: { numberId: 'DESC' },
-      })
-      const lastNum = lastLiq ? lastLiq.numberId + 1: 1
-      this.numberId = parseInt(`${lastNum}${date}`)
-  }
-
   @Column()
-  @Field(() => Int)
-  numberId: number;
+  @Field(() => String)
+  numberId: string;
   @Column()
   @Field(() => Int)
   bookingType: BookingTypesEnum

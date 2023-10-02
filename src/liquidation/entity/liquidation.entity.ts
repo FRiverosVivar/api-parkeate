@@ -8,8 +8,8 @@ import { LiquidationEnum } from "../model/liquidation.enum";
 @ObjectType()
 export class LiquidationEntity extends BaseEntityWithIdAbstract {
   @Column()
-  @Field(() => Int)
-  numberId: number;
+  @Field(() => String)
+  numberId: string;
   @ManyToOne(() => ClientEntity, (c) => c.liquidations)
   @Field(() => ClientEntity)
   client: ClientEntity;

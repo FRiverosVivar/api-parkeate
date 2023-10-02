@@ -24,6 +24,6 @@ export class LiquidationSubscriber implements EntitySubscriberInterface<Liquidat
         })
         const lastLiq = lastLiqs.pop()
         const lastNum = lastLiq ? lastLiq.numberId + 1: 1
-        event.entity.numberId = parseInt(`${lastNum}${date}`)
+        event.entity.numberId = `${lastNum}${date}`
     }
 }
