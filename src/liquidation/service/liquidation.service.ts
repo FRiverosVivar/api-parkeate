@@ -105,7 +105,6 @@ export class LiquidationService implements OnModuleInit {
   }
   onModuleInit(): any {
     Settings.defaultZone = 'America/Sao_Paulo';
-    this.generateLiquidations()
     // this.generate1stMonthDayLiquidations()
     // this.generate16thMonthDayLiquidations()
   }

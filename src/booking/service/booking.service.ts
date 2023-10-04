@@ -27,7 +27,9 @@ import { PageDto, PageOptionsDto, PaginationMeta } from "../../utils/interfaces/
 import { ClientEntity } from "../../client/entity/client.entity";
 import { UserTypesEnum } from "../../user/constants/constants";
 import { BookingDailyFinance, BookingDailyIncomeFinance } from "../model/finance-booking.output";
+import { HttpService } from "@nestjs/axios"
 import * as _ from "lodash";
+import { PaykuModel, PaykuResponse } from "../model/payku-model.input";
 
 @Injectable()
 export class BookingService implements OnModuleInit {
@@ -40,6 +42,7 @@ export class BookingService implements OnModuleInit {
     private readonly smsService: SmsService,
     private readonly scheduler: SchedulerRegistry,
     private readonly cronService: CronService,
+    private readonly httpService: HttpService
   ) {}
   @Cron(CronExpression.EVERY_DAY_AT_5AM, {
     name: 'checkMonthlyAndYearlyReservations',
@@ -55,10 +58,22 @@ export class BookingService implements OnModuleInit {
     this.checkMonthlyAndYearlyReservations()
     this.loadCronsFromRepository()
   }
-  getBookingCountForOrderNumber(): Observable<number> {
-    return from(
-      this.bookingRepository.query(`select count(id)+1 as order_number from booking`)
-    ).pipe(map((b) => +b[0].order_number))
+  async getBookingCountForOrderNumberAndCreatePaykuOrder(paykuModel: PaykuModel) {
+    const order = (await this.bookingRepository.query(`select count(id)+1 as order_number from booking`))[0].order_number
+    paykuModel.order = order
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer tkpue2f71dc20a0eaff2acc3af54e7f6',
+    }
+    const response = await this.httpService.post('https://app.payku.cl/api/transaction', paykuModel, {headers: headers}).toPromise()
+    console.log(response)
+    if(response) {
+      const paykuResponse: PaykuResponse = {
+        ...response.data
+      }
+      return paykuResponse
+    }
+    return undefined
   }
   createBooking(createBookingInput: CreateBookingInput, parkingId: string, userId: string): Observable<BookingEntity> {
     const booking = this.bookingRepository.create(createBookingInput);

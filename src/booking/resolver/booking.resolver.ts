@@ -15,6 +15,7 @@ import { BookingsPaginated, PageOptionsDto } from "../../utils/interfaces/pagina
 import { ClientEntity } from "../../client/entity/client.entity";
 import { BookingDailyFinance, BookingDailyIncomeFinance } from "../model/finance-booking.output";
 import { WeeklyBuildingProfit } from "../../building/model/finance-building.output";
+import { PaykuModel, PaykuResponse } from "../model/payku-model.input";
 
 @Resolver(BookingEntity)
 export class BookingResolver {
@@ -43,9 +44,11 @@ export class BookingResolver {
   ) {
     return this.bookingService.removeBooking(bookingId);
   }
-  @Query(() => Int)
-  getOrderNumberByCountingBookings(): Observable<number> {
-    return this.bookingService.getBookingCountForOrderNumber()
+  @Query(() => PaykuResponse)
+  getBookingCountForOrderNumberAndCreatePaykuOrder(
+    @Args('paykuModel') paykuModel: PaykuModel
+  ) {
+    return this.bookingService.getBookingCountForOrderNumberAndCreatePaykuOrder(paykuModel)
   }
   @Query(() => BookingsPaginated, { name: 'getPaginatedBookings' })
   @UseGuards(JwtAuthGuard)

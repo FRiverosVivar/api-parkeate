@@ -9,8 +9,8 @@ import { BookingResolver } from "./resolver/booking.resolver";
 import { EmailService } from "../utils/email/email.service";
 import { SmsService } from "../utils/sms/sms.service";
 import { SchedulerRegistry } from "@nestjs/schedule";
-import { CronService } from "../utils/cron/cron.service";
-import { CronModule } from "../utils/cron/cron.module";
+import { HttpModule, HttpService } from "@nestjs/axios"
+
 registerEnumType(BookingTypesEnum,{
   name: 'BookingTypes'
 })
@@ -19,7 +19,7 @@ registerEnumType(BookingStatesEnum,{
 })
 @Global()
 @Module({
-  imports: [TypeOrmModule.forFeature([BookingEntity])],
+  imports: [TypeOrmModule.forFeature([BookingEntity]), HttpModule],
   providers: [BookingService, BookingResolver, EmailService, SmsService, SchedulerRegistry],
   exports: [BookingService, BookingResolver],
 })
