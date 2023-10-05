@@ -14,10 +14,11 @@ export class BookingSubscriber implements EntitySubscriberInterface<BookingEntit
         const lastBookings = await bookingRepository.find({
             order: {
                 numberId: 'DESC'
-            }
+            },
+            take: 1
         })
         const lastBooking = lastBookings.pop()
-        const lastNum = lastBooking ? lastBooking.numberId + 1: 1
+        const lastNum = lastBooking ? lastBooking.numberId.slice(0, lastBooking.numberId.length-6) + 1: 1
         event.entity.numberId = `${lastNum}${date}`
     }
 }

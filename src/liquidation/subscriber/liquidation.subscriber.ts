@@ -23,7 +23,7 @@ export class LiquidationSubscriber implements EntitySubscriberInterface<Liquidat
             take: 1
         })
         const lastLiq = lastLiqs.pop()
-        const lastNum = lastLiq ? lastLiq.numberId + 1: 1
+        const lastNum = lastLiq ? lastLiq.numberId.slice(0,lastLiq.numberId.length-6) + 1: 1
         event.entity.numberId = `${lastNum}${date}`
     }
 }
