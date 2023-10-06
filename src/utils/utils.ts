@@ -78,7 +78,7 @@ export function generateLiquidationTemplateDataToFulfillPdfTemplate(liquidation:
       parkeateTax: getParkeateTaxFromAmount(liquidation.priceToBeLiquidated),
       ivaTax: getIvaFromAmount(liquidation.priceToBeLiquidated),
       totalAmountToPay: getPriceAfterTaxes(liquidation.priceToBeLiquidated),
-      dateLiquidationGenerated: DateTime.now().toISO()!,
+      dateLiquidationGenerated: DateTime.now().toFormat('yyyy MM dd hh:mm:ss'),
     },
     client: {
       rut: client.rut,
