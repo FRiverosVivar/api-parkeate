@@ -66,7 +66,6 @@ export class BookingService implements OnModuleInit {
       'Authorization': 'Bearer tkpue2f71dc20a0eaff2acc3af54e7f6',
     }
     const response = await this.httpService.post('https://app.payku.cl/api/transaction', paykuModel, {headers: headers}).toPromise()
-    console.log(response)
     if(response) {
       const paykuResponse: PaykuResponse = {
         ...response.data
@@ -393,7 +392,8 @@ export class BookingService implements OnModuleInit {
               id: clientId
             }
           }
-        }
+        },
+        bookingState: BookingStatesEnum.FINALIZED
       }
     })
   }

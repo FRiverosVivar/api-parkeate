@@ -18,7 +18,7 @@ export class BookingSubscriber implements EntitySubscriberInterface<BookingEntit
             take: 1
         })
         const lastBooking = lastBookings.pop()
-        const lastNum = lastBooking ? lastBooking.numberId.slice(0, lastBooking.numberId.length-6) + 1: 1
+        const lastNum = lastBooking ? parseInt(lastBooking.numberId.slice(0, lastBooking.numberId.length-6)) + 1: 1
         event.entity.numberId = `${lastNum}${date}`
     }
 }
