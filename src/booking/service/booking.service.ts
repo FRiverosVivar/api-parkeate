@@ -480,7 +480,7 @@ export class BookingService implements OnModuleInit {
   }
   private createBookingCronJobForOneHourStartPlus5Minutes(booking: BookingEntity): void {
     const firstHourEnd = DateTime.fromJSDate(booking.dateStart).plus({hour: 1, minute: 5})
-    this.createNewCron(DateTime.now(), firstHourEnd, BookingStatesEnum.RESERVED, booking.id)
+    this.createNewCron(DateTime.now(), firstHourEnd, BookingStatesEnum.RESERVED, booking.id, true)
   }
   private createBookingCronJobForPaying(booking: BookingEntity): void {
     const fiveMinutesToPay = DateTime.now().plus({minute: 6})
