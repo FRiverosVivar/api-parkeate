@@ -30,6 +30,7 @@ import { BookingDailyFinance, BookingDailyIncomeFinance } from "../model/finance
 import { HttpService } from "@nestjs/axios"
 import * as _ from "lodash";
 import { PaykuModel, PaykuResponse } from "../model/payku-model.input";
+import { BookingPriceCalculated } from "../model/booking-calculate-price.output";
 
 @Injectable()
 export class BookingService implements OnModuleInit {
@@ -59,7 +60,10 @@ export class BookingService implements OnModuleInit {
     this.loadCronsFromRepository()
   }
   async getBookingCountForOrderNumberAndCreatePaykuOrder(paykuModel: PaykuModel) {
-    const order = (await this.bookingRepository.query(`select count(id)+1 as order_number from booking`))[0].order_number
+    let order = (await this.bookingRepository.query(`select count(id)+1 as order_number from booking`))[0].order_number
+    if(paykuModel.order) {
+      order = +`${paykuModel.order}${order}`
+    }
     paykuModel.order = order
     const headers = {
       'Content-Type': 'application/json',
@@ -197,10 +201,14 @@ export class BookingService implements OnModuleInit {
     return this.findBookingById(bookingId).pipe(
       switchMap((b) => {
         if(b.dateExtended) {
-          const extendedMinutes = DateTime.fromJSDate(b.dateEnd).diff(DateTime.fromJSDate(b.dateExtended), ['minutes']).minutes
-          return of(Math.round(b.initialPrice + (extendedMinutes * +b.parking.pricePerMinute)))
+          const extendedMinutes = DateTime.now().diff(DateTime.fromJSDate(b.dateExtended), ['minutes']).minutes
+          return of({
+            priceToBePaid: Math.round(extendedMinutes * +b.parking.pricePerMinute)
+          } as BookingPriceCalculated)
         }
-        return of(Math.round(b.user.wallet + (b.initialPrice - b.finalPrice)))
+        return of({
+          priceToBePaid: Math.round(b.user.wallet + (b.initialPrice - b.finalPrice))
+        } as BookingPriceCalculated)
       })
     )
   }

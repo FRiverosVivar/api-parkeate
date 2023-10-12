@@ -16,6 +16,7 @@ import { ClientEntity } from "../../client/entity/client.entity";
 import { BookingDailyFinance, BookingDailyIncomeFinance } from "../model/finance-booking.output";
 import { WeeklyBuildingProfit } from "../../building/model/finance-building.output";
 import { PaykuModel, PaykuResponse } from "../model/payku-model.input";
+import { BookingPriceCalculated } from "../model/booking-calculate-price.output";
 
 @Resolver(BookingEntity)
 export class BookingResolver {
@@ -104,7 +105,7 @@ export class BookingResolver {
   getBookingWithPaymentRequiredToStart(@CurrentUser() user: UserEntity) {
     return this.bookingService.findBookingWithPaymentRequiredToStart(user.id)
   }
-  @Query(() => BookingEntity)
+  @Query(() => BookingPriceCalculated)
   @UseGuards(JwtAuthGuard)
   getBookingPriceCalculated(
     @Args('bookingId') bookingId: string) {
