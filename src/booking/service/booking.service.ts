@@ -202,12 +202,20 @@ export class BookingService implements OnModuleInit {
       switchMap((b) => {
         if(b.dateExtended) {
           const extendedMinutes = DateTime.now().diff(DateTime.fromJSDate(b.dateExtended), ['minutes']).minutes
+          const initialAmountToBePaid = Math.round(extendedMinutes * +b.parking.pricePerMinute)
+          const priceWith80Percent = Math.round((initialAmountToBePaid * 80)/ 100 )
+          let finalPriceToBePaid = 0
+          if(b.user.wallet >= priceWith80Percent) 
+            finalPriceToBePaid = Math.round(initialAmountToBePaid - priceWith80Percent)
+          else 
+            finalPriceToBePaid = Math.round(initialAmountToBePaid - b.user.wallet)
+          
           return of({
-            priceToBePaid: Math.round(extendedMinutes * +b.parking.pricePerMinute)
+            priceToBePaid: finalPriceToBePaid
           } as BookingPriceCalculated)
         }
         return of({
-          priceToBePaid: Math.round(b.user.wallet + (b.initialPrice - b.finalPrice))
+          priceToBePaid: Math.round(b.initialPrice - b.finalPrice)
         } as BookingPriceCalculated)
       })
     )
