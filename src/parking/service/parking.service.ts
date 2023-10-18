@@ -269,6 +269,8 @@ export class ParkingService {
       .leftJoinAndSelect('p.bookings', 'bookings')
       .select(`p.id, SUM(bookings."finalPrice") as "finalPrice"`)
       .where(`bookings."dateStart" BETWEEN '${todayStart.toISO()}' AND '${todayEnd.toISO()}'`)
+      .andWhere(`bookings."bookingState" = 3`)
+      .andWhere(`bookings.paid = TRUE`)
       .groupBy('p.id')
       .orderBy(`"finalPrice"`, 'DESC')
       .limit(1)
