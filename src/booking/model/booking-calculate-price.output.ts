@@ -4,4 +4,8 @@ import { Field, ObjectType } from "@nestjs/graphql";
 export class BookingPriceCalculated {
     @Field(() => Number)
     priceToBePaid: number
+    @Field(() => Number)
+    discount: number
+    @Field(() => Number)
+    originalPrice: number
 }

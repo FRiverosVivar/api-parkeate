@@ -205,17 +205,26 @@ export class BookingService implements OnModuleInit {
           const initialAmountToBePaid = Math.round(extendedMinutes * +b.parking.pricePerMinute)
           const priceWith80Percent = Math.round((initialAmountToBePaid * 80)/ 100 )
           let finalPriceToBePaid = 0
-          if(b.user.wallet >= priceWith80Percent) 
-            finalPriceToBePaid = Math.round(initialAmountToBePaid - priceWith80Percent)
-          else 
+          let discount = 0
+          if(b.user.wallet >= priceWith80Percent) {
+            discount = priceWith80Percent
+            finalPriceToBePaid = Math.round(initialAmountToBePaid - discount)
+          }
+          else {
+            discount = b.user.wallet
             finalPriceToBePaid = Math.round(initialAmountToBePaid - b.user.wallet)
+          }
           
           return of({
-            priceToBePaid: finalPriceToBePaid
+            priceToBePaid: finalPriceToBePaid,
+            discount: discount,
+            originalPrice: initialAmountToBePaid
           } as BookingPriceCalculated)
         }
         return of({
-          priceToBePaid: Math.round(b.initialPrice - b.finalPrice)
+          priceToBePaid: Math.round(b.initialPrice - b.finalPrice),
+          discount: 0,
+          originalPrice: Math.round(b.initialPrice - b.finalPrice)
         } as BookingPriceCalculated)
       })
     )
