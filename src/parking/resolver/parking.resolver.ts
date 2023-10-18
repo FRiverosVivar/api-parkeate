@@ -20,6 +20,7 @@ import {
 import { ClientEntity } from "../../client/entity/client.entity";
 import { MostProfitableBuilding } from "../../building/model/finance-building.output";
 import { MostProfitableParking, TopMostRentedParkings } from "../model/finance-parking.output";
+import { PrepaidHourParking } from "../model/prepaid-hour-parking.output";
 
 @Resolver(() => ParkingEntity)
 export class ParkingResolver {
@@ -118,5 +119,11 @@ export class ParkingResolver {
   @Query(() => TopMostRentedParkings, { name: 'findWeekMostRentedParkings', nullable: true })
   findWeekMostRentedParkings(): Observable<TopMostRentedParkings> {
     return from(this.parkingService.findWeekMostRentedParkings())
+  }
+  @Query(() => PrepaidHourParking)
+  calculatePrepaidHourForParking(
+    @Args('parkingId') parkingId: string,
+  ){
+    return this.parkingService.calculateParkingFirstHour(parkingId)
   }
 }

@@ -25,6 +25,8 @@ import {
   RawParkingMostRentedOfDay,
   TopMostRentedParkings
 } from "../model/finance-parking.output";
+import { PrepaidHourParking } from "../model/prepaid-hour-parking.output";
+import { ParkingType } from "../model/parking-type.enum";
 
 @Injectable()
 export class ParkingService {
@@ -324,6 +326,36 @@ export class ParkingService {
       topRentedParkings[keys[index] as keyof TopMostRentedParkings] = parkingsByDayOfWeek[day];
     }
     return topRentedParkings
+  }
+  calculateParkingFirstHour(parkingId: string) {
+    return this.findParkingById(parkingId)
+    .pipe(
+      map((p) => {
+        switch(p.type) {
+          case ParkingType.PER_MINUTE: {
+            const price: PrepaidHourParking = {
+              amountToBePaid: Math.round((+p.pricePerMinute * 65) * 1.19),
+              tax: Math.round((+p.pricePerMinute * 65) * 0.19),
+              initialPrice: Math.round(+p.pricePerMinute * 65)
+            }
+            return price
+          }
+          case ParkingType.MONTHLY: {
+            const price: PrepaidHourParking = {
+              amountToBePaid: Math.round(+p.priceMonthly * 1.19),
+              tax: Math.round(+p.priceMonthly * 0.19),
+              initialPrice: +p.priceMonthly,
+            }
+            return price
+          }
+          case ParkingType.YEARLY: {
+            break;
+          }
+        }
+        
+      })
+    )
+    
   }
   private getParkingByBuildingPositionCode(code: string, floor: number, section: string, buildingId: string ): Observable<ParkingEntity | null> {
     return from(
