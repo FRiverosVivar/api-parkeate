@@ -270,6 +270,8 @@ export class BuildingService {
       .leftJoinAndSelect('p.bookings', 'bookings')
       .select(`b.id, SUM(bookings."finalPrice") as "finalPrice"`)
       .where(`bookings."dateStart" BETWEEN '${todayStart.toISO()}' AND '${todayEnd.toISO()}'`)
+      .andWhere(`bookings."bookingState" = 3`)
+      .andWhere(`bookings.paid = TRUE`)
       .groupBy('b.id')
       .orderBy(`"finalPrice"`, 'DESC')
       .limit(1)
