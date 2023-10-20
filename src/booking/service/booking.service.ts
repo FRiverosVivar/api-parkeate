@@ -133,8 +133,9 @@ export class BookingService implements OnModuleInit {
               if(this.scheduler.doesExist("cron",booking.id)) {
                 console.log('exists job')
                 const job = this.scheduler.getCronJob(booking.id)
+                console.log(job)
                 if(job) {
-                  this.scheduler.deleteCronJob('booking.id')
+                  this.scheduler.deleteCronJob(booking.id)
                 }
                 this.cronService.findCronByBookingIdAndExecuteFalse(booking.id)
                   .pipe(
