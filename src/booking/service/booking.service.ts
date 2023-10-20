@@ -112,11 +112,14 @@ export class BookingService implements OnModuleInit {
           }),
         ).pipe(
           switchMap((booking) => {
+            console.log('a')
             if (!booking) {
               throw new NotFoundException();
             }
             const parking = previousBooking.parking;
             if(booking.bookingState === BookingStatesEnum.FINALIZED) {
+              console.log('b')
+
               if(booking.bookingType === BookingTypesEnum.NORMAL_BOOKING) {
                 const isoExtendedDate = DateTime.fromISO(booking.dateExtended as any as string)
                 const diff = isoExtendedDate.diffNow(['minutes'], {conversionAccuracy: "casual"})
@@ -124,9 +127,10 @@ export class BookingService implements OnModuleInit {
               }
               booking.dateEnd = DateTime.now().toJSDate();
               parking.reserved = false;
+              console.log('c')
+
               if(this.scheduler.doesExist("cron",booking.id)) {
-                const job = this.scheduler.getCronJob(booking.id)
-                job.stop();
+                this.scheduler.deleteCronJob('booking.id')
                 this.cronService.findCronByBookingIdAndExecuteFalse(booking.id)
                   .pipe(
                     switchMap((c) => {
@@ -173,8 +177,10 @@ export class BookingService implements OnModuleInit {
               }
               const updateParking: UpdateParkingInput = {
                 id: parking.id,
-                reserved: parking.reserved,
+                reserved: false,
               }
+              console.log('d')
+
               return from(this.parkingService.updateParking(updateParking)).pipe(switchMap(() => from(this.bookingRepository.save(booking))))
             }
             if(updateBookingInput.mountPaid) {
