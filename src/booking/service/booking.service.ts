@@ -121,16 +121,21 @@ export class BookingService implements OnModuleInit {
               console.log('b')
 
               if(booking.bookingType === BookingTypesEnum.NORMAL_BOOKING) {
-                const isoExtendedDate = DateTime.fromISO(booking.dateExtended as any as string)
-                const diff = isoExtendedDate.diffNow(['minutes'], {conversionAccuracy: "casual"})
-                booking.finalPrice = diff.minutes * +parking.pricePerMinute
+                const now = DateTime.now()
+                const isoExtendedDate = DateTime.fromJSDate(booking.dateExtended ? booking.dateExtended: booking.dateStart)
+                const diff = now.diff(isoExtendedDate, ['minutes'], {conversionAccuracy: "casual"})
+                booking.finalPrice = Math.round(diff.minutes * +parking.pricePerMinute)
               }
               booking.dateEnd = DateTime.now().toJSDate();
               parking.reserved = false;
               console.log('c')
 
               if(this.scheduler.doesExist("cron",booking.id)) {
-                this.scheduler.deleteCronJob('booking.id')
+                console.log('exists job')
+                const job = this.scheduler.getCronJob(booking.id)
+                if(job) {
+                  this.scheduler.deleteCronJob('booking.id')
+                }
                 this.cronService.findCronByBookingIdAndExecuteFalse(booking.id)
                   .pipe(
                     switchMap((c) => {
@@ -143,6 +148,7 @@ export class BookingService implements OnModuleInit {
             }
 
             if(previousBooking.bookingState === BookingStatesEnum.PAYMENT_REQUIRED && booking.bookingState === BookingStatesEnum.RESERVED) {
+              console.log('f')
 
               if(booking.bookingType === BookingTypesEnum.MONTHLY_BOOKING){
                 booking.dateEnd = DateTime.now().plus({days: 30}).toJSDate()
@@ -154,6 +160,7 @@ export class BookingService implements OnModuleInit {
 
               booking.dateStart = DateTime.now().toJSDate()
               parking.reserved = true;
+              console.log('g')
 
               const updateParking: UpdateParkingInput = {
                 id: parking.id,
@@ -163,6 +170,8 @@ export class BookingService implements OnModuleInit {
             }
 
             if(previousBooking.bookingState === BookingStatesEnum.RESERVED && booking.bookingState === BookingStatesEnum.FINALIZED && booking.bookingType === BookingTypesEnum.NORMAL_BOOKING) {
+              
+              console.log('inside pre reserved post finalized')
               if(booking.dateExtended){
                 const extendedMinutes = DateTime.fromJSDate(booking.dateEnd).diff(DateTime.fromJSDate(booking.dateExtended), ['minutes']).minutes
                 booking.finalPrice = Math.round(booking.initialPrice + (extendedMinutes * +parking.pricePerMinute))
@@ -183,6 +192,9 @@ export class BookingService implements OnModuleInit {
 
               return from(this.parkingService.updateParking(updateParking)).pipe(switchMap(() => from(this.bookingRepository.save(booking))))
             }
+            console.log('amountpaid')
+            console.log(updateBookingInput)
+
             if(updateBookingInput.mountPaid) {
               const updateUser: UpdateUserInput = {
                 id: previousBooking.user.id,
@@ -194,9 +206,11 @@ export class BookingService implements OnModuleInit {
                 updateUser.wallet = Math.round(user.wallet - preFinalPrice)
               else
                 updateUser.wallet = 0
-
+              
+              console.log(updateUser)
               this.userService.updateUser(updateUser).toPromise().then()
             }
+            console.log(booking)
             return from(this.bookingRepository.save(booking))
           }),
         );
