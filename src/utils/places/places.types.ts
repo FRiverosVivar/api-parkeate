@@ -36,4 +36,20 @@ export interface SearchByTextOptionsWithSearchAreaConstraints
 export type searchByPlaceIdOptions = {
   searchIndexName?: string;
 };
+export interface GooglePlacesResponse {
+  places: GooglePlace[]
+}
+export interface GooglePlace {
+  formattedAddress: string,
+  location: GoogleLocation,
+  displayName: GooglePlacesDisplayName,
+}
+export interface GoogleLocation {
+  latitude: number,
+  longitude: number,
+}
+export interface GooglePlacesDisplayName {
+  text: string
+  languageCode: string
+}
 

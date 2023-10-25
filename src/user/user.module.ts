@@ -16,7 +16,7 @@ registerEnumType(UserTypesEnum, {
 @Global()
 @Module({
   imports: [TypeOrmModule.forFeature([UserEntity, BaseCustomer])],
-  providers: [UserResolver, UserService, EmailService, SmsService, PlacesService],
+  providers: [UserResolver, UserService, EmailService, SmsService],
   exports: [UserService, UserResolver],
 })
 export class UserModule {}

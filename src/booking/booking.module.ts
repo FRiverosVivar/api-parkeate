@@ -9,7 +9,7 @@ import { BookingResolver } from "./resolver/booking.resolver";
 import { EmailService } from "../utils/email/email.service";
 import { SmsService } from "../utils/sms/sms.service";
 import { SchedulerRegistry } from "@nestjs/schedule";
-import { HttpModule, HttpService } from "@nestjs/axios"
+import { HttpModule } from "@nestjs/axios"
 
 registerEnumType(BookingTypesEnum,{
   name: 'BookingTypes'

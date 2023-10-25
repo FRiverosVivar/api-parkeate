@@ -1,5 +1,6 @@
-import { Injectable } from "@nestjs/common";
+import { HttpStatus, Injectable } from "@nestjs/common";
 import {
+  GooglePlacesResponse,
   SearchByTextOptions,
 } from "./places.types";
 import { CognitoIdentityClient } from "@aws-sdk/client-cognito-identity";
@@ -9,64 +10,60 @@ import {
   SearchPlaceIndexForTextCommand,
   SearchPlaceIndexForTextCommandInput
 } from "@aws-sdk/client-location";
-import { from, of } from "rxjs";
-export const MAPKEY = 'us-east-1:417b0fef-1fce-443d-b615-475fd70ae5c2'
+import { from, map, of } from "rxjs";
+import { HttpService } from "@nestjs/axios"
+import { GooglePlacesDefaultBody, GooglePlacesDefaultHeaders, GooglePlacesURL } from "./places.constants";
+import { AxiosResponse, HttpStatusCode } from "axios";
+
 
 @Injectable()
 export class PlacesService {
-  locationClient: LocationClient | undefined
-  constructor() {
-    this.startClient()
+  
+  constructor(private readonly httpService: HttpService) {
   }
-  async startClient() {
-    const input = {
-      IdentityId: MAPKEY,
+  
+  getPlacesByText(text: string) {
+    if(!text)
+      return of({
+        places: []
+      })
+
+    const body = {
+      ...GooglePlacesDefaultBody,
+      "textQuery": text
     }
-    this.locationClient = new LocationClient({
-      credentials: {
-        accessKeyId: FileConstants.BUCKET_ACCESS_KEY,
-        secretAccessKey: FileConstants.BUCKET_SECRET_KEY,
-      },
-      region: FileConstants.BUCKET_REGION,
-    })
+    return this.httpService.post(GooglePlacesURL, body, GooglePlacesDefaultHeaders).pipe(
+      map((response: AxiosResponse) => {
+        if(response.status === HttpStatus.OK) {
+          return {
+            ...response.data
+          } as GooglePlacesResponse
+        }
+        return response
+      })
+    )
   }
-  getPlacesByText(text: string, options: SearchByTextOptions) {
-    if(!this.locationClient)
-      return of(null)
+  // mapSearchOptions(options: any, locationServiceInput: SearchPlaceIndexForTextCommandInput ) {
+  //   const locationServiceModifiedInput = { ...locationServiceInput };
+  //   locationServiceModifiedInput.FilterCountries = options.countries;
+  //   locationServiceModifiedInput.FilterCategories = options.categories;
+  //   locationServiceModifiedInput.MaxResults = options.maxResults;
 
+  //   if (options.searchIndexName) {
+  //     locationServiceModifiedInput.IndexName = options.searchIndexName;
+  //   }
 
-    let locationServiceInput: SearchPlaceIndexForTextCommandInput = {
-      Text: text,
-      IndexName: 'parkingsearch',
-    };
-    locationServiceInput = {
-      ...locationServiceInput,
-      ...this.mapSearchOptions(options, locationServiceInput),
-    };
-    const command = new SearchPlaceIndexForTextCommand(locationServiceInput);
-    return from(this.locationClient.send(command));
-  }
-  mapSearchOptions(options: any, locationServiceInput: SearchPlaceIndexForTextCommandInput ) {
-    const locationServiceModifiedInput = { ...locationServiceInput };
-    locationServiceModifiedInput.FilterCountries = options.countries;
-    locationServiceModifiedInput.FilterCategories = options.categories;
-    locationServiceModifiedInput.MaxResults = options.maxResults;
-
-    if (options.searchIndexName) {
-      locationServiceModifiedInput.IndexName = options.searchIndexName;
-    }
-
-    if (options['biasPosition'] && options['searchAreaConstraints']) {
-      throw new Error(
-        'BiasPosition and SearchAreaConstraints are mutually exclusive, please remove one or the other from the options object'
-      );
-    }
-    if (options['biasPosition']) {
-      locationServiceModifiedInput.BiasPosition = options['biasPosition'];
-    }
-    if (options['searchAreaConstraints']) {
-      locationServiceModifiedInput.FilterBBox = options['searchAreaConstraints'];
-    }
-    return locationServiceModifiedInput;
-  }
+  //   if (options['biasPosition'] && options['searchAreaConstraints']) {
+  //     throw new Error(
+  //       'BiasPosition and SearchAreaConstraints are mutually exclusive, please remove one or the other from the options object'
+  //     );
+  //   }
+  //   if (options['biasPosition']) {
+  //     locationServiceModifiedInput.BiasPosition = options['biasPosition'];
+  //   }
+  //   if (options['searchAreaConstraints']) {
+  //     locationServiceModifiedInput.FilterBBox = options['searchAreaConstraints'];
+  //   }
+  //   return locationServiceModifiedInput;
+  // }
 }

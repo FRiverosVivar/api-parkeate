@@ -17,18 +17,13 @@ import * as uuid from 'uuid';
 import { UUIDBadFormatException } from '../../utils/exceptions/UUIDBadFormat.exception';
 import { CreateUserInput } from '../model/dto/create-user.input';
 import { FileUpload } from 'graphql-upload-minimal';
-import { FileService } from '../../file/service/file.service';
 import { EmailService } from '../../utils/email/email.service';
 import { EmailTypesEnum } from '../../utils/email/enum/email-types.enum';
 import { SmsService } from '../../utils/sms/sms.service';
 import { getCodeForRegister } from '../../utils/utils';
-import { UserWithVerificationCode } from '../model/dto/user-with-verification-code.response';
-import { UserWithSmsCode } from '../model/dto/user-with-sms-code.response';
 import { ExistingRutException } from "../../utils/exceptions/ExistingRut.exception";
 import { PhotoService } from "../../photo/service/photo.service";
 import { CreatePhotoInput } from "../../photo/model/create-photo.input";
-import { PlacesService } from "../../utils/places/places.service";
-import { SearchByTextOptions } from "../../utils/places/places.types";
 import { EmailVerificationCode } from "../../client/model/email-verification-code.response";
 import { SmsVerificationCode } from "../../client/model/sms-code.response";
 import { PageDto, PageOptionsDto, PaginationMeta } from "../../utils/interfaces/pagination.type";
@@ -40,11 +35,9 @@ export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-    private fileService: FileService,
     private emailService: EmailService,
     private smsService: SmsService,
     private photoService: PhotoService,
-    private placesService: PlacesService,
   ) {}
   createUser(userDTO: CreateUserInput): Observable<UserEntity> {
     userDTO.wallet = 0;
@@ -201,8 +194,5 @@ export class UserService {
     const query = this.userRepository.createQueryBuilder('u')
       .where(`LOWER(u.fullname) like '%${text.toLowerCase()}%' or LOWER(u.email) like '%${text.toLowerCase().replace('-', '')}%' or translate(u.rut, '-', '') like '%${text.toLowerCase()}%' or u.rut like '%${text.toLowerCase()}%'`)
     return from(query.getMany())
-  }
-  getAddressesForGivenText(text: string, options: SearchByTextOptions) {
-    return this.placesService.getPlacesByText(text, options)
   }
 }

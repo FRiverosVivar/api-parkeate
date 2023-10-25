@@ -84,6 +84,6 @@ import { BookingSubscriber } from './booking/subscriber/booking.subscriber';
     LiquidationModule,
   ],
   controllers: [AppController],
-  providers: [AppService, EmailService, PlacesService],
+  providers: [AppService, EmailService],
 })
 export class AppModule {}
