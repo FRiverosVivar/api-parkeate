@@ -27,6 +27,7 @@ import { RequestModule } from "./requests/request.module";
 import { LiquidationModule } from "./liquidation/liquidation.module";
 import { LiquidationSubscriber } from './liquidation/subscriber/liquidation.subscriber';
 import { BookingSubscriber } from './booking/subscriber/booking.subscriber';
+import { CouponModule } from './coupons/coupons.module';
 
 @Module({
   imports: [
@@ -82,6 +83,7 @@ import { BookingSubscriber } from './booking/subscriber/booking.subscriber';
     CronModule,
     RequestModule,
     LiquidationModule,
+    CouponModule
   ],
   controllers: [AppController],
   providers: [AppService, EmailService],
