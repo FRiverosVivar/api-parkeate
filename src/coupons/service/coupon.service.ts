@@ -84,6 +84,7 @@ export class CouponService {
   }
   async generateCoupons(generateCouponsInput: GenerateCouponOptions) {
     const codes = this.generateBulkOfCouponsCode(
+      generateCouponsInput.characters,
       generateCouponsInput.quantity,
       generateCouponsInput.prefix,
       generateCouponsInput.postfix,
@@ -100,12 +101,11 @@ export class CouponService {
     return coupons;
   }
   private generateCouponCode(
+    characters: string,
     prefix: string,
     postfix: string,
     long: number
   ): string {
-    const characters =
-      "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
     let code = prefix;
 
     for (let i = 0; i < long - (prefix.length + postfix.length); i++) {
@@ -119,6 +119,7 @@ export class CouponService {
   }
 
   private generateBulkOfCouponsCode(
+    characters: string,
     quantity: number,
     prefix: string,
     postfix: string,
@@ -127,7 +128,7 @@ export class CouponService {
     const coupons: string[] = [];
 
     for (let i = 0; i < quantity; i++) {
-      const cupon = this.generateCouponCode(prefix, postfix, long);
+      const cupon = this.generateCouponCode(characters, prefix, postfix, long);
       coupons.push(cupon);
     }
 
