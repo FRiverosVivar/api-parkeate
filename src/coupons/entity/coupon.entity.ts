@@ -26,7 +26,7 @@ export class CouponEntity extends BaseEntityWithIdAbstract {
   @Field(() => Int)
   use: CouponsUseEnum;
   @OneToMany(() => UserCouponEntity, (u) => u.coupon, { nullable: true })
-  @Field(() => [UserCouponEntity], { nullable: true })
+  @Field(() => [UserCouponEntity])
   assignedUsers: UserCouponEntity[];
   @Column()
   @Field(() => Boolean)

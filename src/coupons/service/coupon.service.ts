@@ -27,6 +27,7 @@ export class CouponService {
   ) {}
   createCoupon(createCouponInput: CreateCouponInput) {
     const coupon = this.couponRepository.create(createCouponInput);
+    coupon.assignedUsers = [];
     return this.couponRepository.save(coupon);
   }
   async updateCoupon(updateCouponInput: UpdateCouponInput) {
