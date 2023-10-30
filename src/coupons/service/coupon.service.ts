@@ -91,13 +91,13 @@ export class CouponService {
       generateCouponsInput.length
     );
     const coupons: CouponEntity[] = [];
-    await _.forEach(codes, async (codeOfCoupon) => {
+    for (let i = 0; i < codes.length; i++) {
       const coupon = await this.createCoupon({
         ...generateCouponsInput.couponInput,
-        code: codeOfCoupon,
+        code: codes[i],
       });
       coupons.push(coupon);
-    });
+    }
     return coupons;
   }
   private generateCouponCode(
