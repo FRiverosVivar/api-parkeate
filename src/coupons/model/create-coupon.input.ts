@@ -14,8 +14,6 @@ export class CreateCouponInput {
   type: CouponsTypeEnum;
   @Field(() => Int)
   behavior: CouponsBehaviorEnum;
-  @Field(() => Int)
-  use: CouponsUseEnum;
   // @Field(() => [String])
   // assignedUsers: string[]
   @Field(() => Boolean)
