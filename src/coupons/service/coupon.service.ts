@@ -16,6 +16,7 @@ import {
   PaginationMeta,
 } from "src/utils/interfaces/pagination.type";
 import { UserCouponEntity } from "../user-coupons/entity/user-coupons.entity";
+import { DateTime } from "luxon";
 @Injectable()
 export class CouponService {
   constructor(
@@ -32,7 +33,7 @@ export class CouponService {
   }
   async updateCoupon(updateCouponInput: UpdateCouponInput) {
     const coupon = await this.couponRepository.preload(updateCouponInput);
-    return coupon;
+    return this.couponRepository.save(coupon!);
   }
   async deleteCoupon(id: string) {
     if (!uuid.validate(id)) {
@@ -84,6 +85,10 @@ export class CouponService {
     return this.couponRepository.save(coupon);
   }
   async generateCoupons(generateCouponsInput: GenerateCouponOptions) {
+    generateCouponsInput.couponInput.valid = DateTime.fromJSDate(
+      generateCouponsInput.couponInput.dateStart
+    ).hasSame(DateTime.now(), "day");
+
     const codes = this.generateBulkOfCouponsCode(
       generateCouponsInput.characters,
       generateCouponsInput.quantity,

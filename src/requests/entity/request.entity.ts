@@ -1,20 +1,20 @@
-import { Column, Entity} from "typeorm";
+import { Column, Entity } from "typeorm";
 import { Field, Int, ObjectType } from "@nestjs/graphql";
 import { BaseEntityWithIdAbstract } from "../../utils/interfaces/base-entity-with-id.abstract";
 
-@Entity('request')
+@Entity("request")
 @ObjectType()
 export class RequestEntity extends BaseEntityWithIdAbstract {
   @Column()
   @Field(() => String)
-  subject: string
+  subject: string;
   @Column()
   @Field(() => String)
-  email: string
+  email: string;
+  @Column({ nullable: true })
+  @Field(() => String, { nullable: true })
+  phoneNumber: string;
   @Column()
   @Field(() => String)
-  phoneNumber: string
-  @Column()
-  @Field(() => String)
-  content: string
+  content: string;
 }

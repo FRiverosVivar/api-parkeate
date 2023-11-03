@@ -4,11 +4,11 @@ import { ArgsType, Field, InputType } from "@nestjs/graphql";
 @ArgsType()
 export class CreateRequestInput {
   @Field(() => String)
-  subject: string
+  subject: string;
   @Field(() => String)
-  email: string
+  email: string;
+  @Field(() => String, { nullable: true })
+  phoneNumber: string;
   @Field(() => String)
-  phoneNumber: string
-  @Field(() => String)
-  content: string
+  content: string;
 }

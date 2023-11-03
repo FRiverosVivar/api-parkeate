@@ -16,7 +16,7 @@ export class CreateCouponInput {
   behavior: CouponsBehaviorEnum;
   // @Field(() => [String])
   // assignedUsers: string[]
-  @Field(() => Boolean)
+  @Field(() => Boolean, { nullable: true })
   valid: boolean;
   @Field(() => Boolean)
   active: boolean;

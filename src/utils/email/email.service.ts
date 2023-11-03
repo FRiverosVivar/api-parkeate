@@ -4,10 +4,11 @@ import {
   CreateTemplateCommand,
   DeleteTemplateCommand,
   ListTemplatesCommand,
+  SendEmailCommand,
   SendTemplatedEmailCommand,
   SESClient,
   SESClientConfig,
-  TemplateMetadata
+  TemplateMetadata,
 } from "@aws-sdk/client-ses";
 import * as lodash from "lodash";
 import { EmailTypesEnum } from "./enum/email-types.enum";
@@ -22,10 +23,9 @@ export class EmailService implements OnModuleInit {
   private readonly SESClient: SESClient;
   constructor(private readonly configService: ConfigService) {
     const SESClientConfig = <SESClientConfig>(
-      this.configService.get<SESClientConfig>('uploader.sesConfig')
+      this.configService.get<SESClientConfig>("uploader.sesConfig")
     );
     this.SESClient = new SESClient(SESClientConfig);
-
   }
   async onModuleInit() {
     await this.verifyListOfEmailTemplates();
@@ -33,19 +33,40 @@ export class EmailService implements OnModuleInit {
   private getEmailTemplate(emailType: EmailTypesEnum): string | undefined {
     const template = readFileSync(
       path.resolve(
-        __dirname +
-          '/templates/' +
-          EmailTypesCode[emailType] +
-          '.template.html',
+        __dirname + "/templates/" + EmailTypesCode[emailType] + ".template.html"
       ),
-      'utf-8',
+      "utf-8"
     );
     return template;
+  }
+  sendRawEmail(destination: string, content: string, subject: string) {
+    return this.SESClient.send(
+      new SendEmailCommand({
+        Source: noReplyEmail,
+        Destination: {
+          ToAddresses: [
+            "francoriverosvivar@gmail.com",
+            "dduboish@gmail.com",
+            "no-reply@parkeateapp.com",
+          ],
+        },
+        Message: {
+          Subject: {
+            Data: subject,
+          },
+          Body: {
+            Text: {
+              Data: content,
+            },
+          },
+        },
+      })
+    );
   }
   sendEmail(
     emailType: EmailTypesEnum,
     destination: string,
-    properties: string,
+    properties: string
   ) {
     return this.SESClient.send(
       new SendTemplatedEmailCommand({
@@ -61,25 +82,25 @@ export class EmailService implements OnModuleInit {
         ],
         Template: EmailTypesCode[emailType],
         TemplateData: properties,
-      }),
+      })
     );
   }
-  publishEmailsToArrayOfDestinations(destinations: string[], emailType: EmailTypesEnum) {
-
-  }
+  publishEmailsToArrayOfDestinations(
+    destinations: string[],
+    emailType: EmailTypesEnum
+  ) {}
   private async verifyListOfEmailTemplates(): Promise<void> {
     const list = await this.SESClient.send(new ListTemplatesCommand({}));
     const result = this.filterTemplatesAndFindMissingTemplates(
-      list.TemplatesMetadata!,
+      list.TemplatesMetadata!
     );
     await this.createAWSEMailTemplates(result);
-
   }
   deleteTemplate(emailType: EmailTypesEnum) {
     return this.SESClient.send(
       new DeleteTemplateCommand({
         TemplateName: EmailTypesCode[emailType],
-      }),
+      })
     );
   }
   private async createAWSEMailTemplates(result: Array<any>) {
@@ -97,12 +118,12 @@ export class EmailService implements OnModuleInit {
       await this.createLiquidationGeneratedEmailTemplate();
   }
   private filterTemplatesAndFindMissingTemplates(
-    templates: TemplateMetadata[],
+    templates: TemplateMetadata[]
   ) {
     return lodash.map(EmailTypesCode, (codeName) => {
       const found = lodash.some(
         templates,
-        (template) => template.Name === codeName,
+        (template) => template.Name === codeName
       );
       return { name: codeName, found: found };
     });
@@ -115,9 +136,9 @@ export class EmailService implements OnModuleInit {
           TemplateName: EmailTypesCode[EmailTypesEnum.CODE],
           SubjectPart: EmailTypesSubjectCode[EmailTypesEnum.CODE],
           TextPart: this.getEmailTemplate(EmailTypesEnum.CODE),
-          HtmlPart: template ? template : 'NO Template found',
+          HtmlPart: template ? template : "NO Template found",
         },
-      }),
+      })
     );
   }
   private createRegisterEmailTemplate() {
@@ -128,9 +149,9 @@ export class EmailService implements OnModuleInit {
           TemplateName: EmailTypesCode[EmailTypesEnum.REGISTER],
           SubjectPart: EmailTypesSubjectCode[EmailTypesEnum.REGISTER],
           TextPart: this.getEmailTemplate(EmailTypesEnum.REGISTER),
-          HtmlPart: template ? template : 'NO Template found',
+          HtmlPart: template ? template : "NO Template found",
         },
-      }),
+      })
     );
   }
   private createForgottenPasswordEmailTemplate() {
@@ -141,9 +162,9 @@ export class EmailService implements OnModuleInit {
           TemplateName: EmailTypesCode[EmailTypesEnum.FORGOTTEN_PASSWORD],
           SubjectPart: EmailTypesSubjectCode[EmailTypesEnum.FORGOTTEN_PASSWORD],
           TextPart: this.getEmailTemplate(EmailTypesEnum.FORGOTTEN_PASSWORD),
-          HtmlPart: template ? template : 'NO Template found',
+          HtmlPart: template ? template : "NO Template found",
         },
-      }),
+      })
     );
   }
   private createChangePasswordEmailTemplate() {
@@ -154,9 +175,9 @@ export class EmailService implements OnModuleInit {
           TemplateName: EmailTypesCode[EmailTypesEnum.CHANGE_PASSWORD],
           SubjectPart: EmailTypesSubjectCode[EmailTypesEnum.CHANGE_PASSWORD],
           TextPart: this.getEmailTemplate(EmailTypesEnum.CHANGE_PASSWORD),
-          HtmlPart: template ? template : 'NO Template found',
+          HtmlPart: template ? template : "NO Template found",
         },
-      }),
+      })
     );
   }
   private createReservationCreatedEmailTemplate() {
@@ -165,24 +186,28 @@ export class EmailService implements OnModuleInit {
       new CreateTemplateCommand({
         Template: {
           TemplateName: EmailTypesCode[EmailTypesEnum.RESERVATION_CREATED],
-          SubjectPart: EmailTypesSubjectCode[EmailTypesEnum.RESERVATION_CREATED],
+          SubjectPart:
+            EmailTypesSubjectCode[EmailTypesEnum.RESERVATION_CREATED],
           TextPart: this.getEmailTemplate(EmailTypesEnum.RESERVATION_CREATED),
-          HtmlPart: template ? template : 'NO Template found',
+          HtmlPart: template ? template : "NO Template found",
         },
-      }),
+      })
     );
   }
   private createLiquidationGeneratedEmailTemplate() {
-    const template = this.getEmailTemplate(EmailTypesEnum.LIQUIDATION_GENERATED);
+    const template = this.getEmailTemplate(
+      EmailTypesEnum.LIQUIDATION_GENERATED
+    );
     this.SESClient.send(
       new CreateTemplateCommand({
         Template: {
           TemplateName: EmailTypesCode[EmailTypesEnum.LIQUIDATION_GENERATED],
-          SubjectPart: EmailTypesSubjectCode[EmailTypesEnum.LIQUIDATION_GENERATED],
+          SubjectPart:
+            EmailTypesSubjectCode[EmailTypesEnum.LIQUIDATION_GENERATED],
           TextPart: this.getEmailTemplate(EmailTypesEnum.LIQUIDATION_GENERATED),
-          HtmlPart: template ? template : 'NO Template found',
+          HtmlPart: template ? template : "NO Template found",
         },
-      }),
+      })
     );
   }
 }
