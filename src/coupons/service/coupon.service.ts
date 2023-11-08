@@ -48,8 +48,24 @@ export class CouponService {
     }
     return this.getCouponFromRepository(id);
   }
+  findUserCoupon(id: string) {
+    if (!uuid.validate(id)) {
+      throw new UUIDBadFormatException();
+    }
+    return this.getUserCouponFromRepository(id);
+  }
   private async getCouponFromRepository(id: string) {
     const coupon = await this.couponRepository.findOne({
+      where: {
+        id: id,
+      },
+    });
+    if (!coupon) throw new NotFoundException();
+
+    return coupon;
+  }
+  private async getUserCouponFromRepository(id: string) {
+    const coupon = await this.userCouponRepository.findOne({
       where: {
         id: id,
       },
@@ -139,5 +155,9 @@ export class CouponService {
     }
 
     return coupons;
+  }
+  async removeAssignedUserFromCoupon(userCouponId: string) {
+    const userCoupon = await this.findUserCoupon(userCouponId);
+    return this.userCouponRepository.remove(userCoupon);
   }
 }

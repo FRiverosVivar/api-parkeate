@@ -8,42 +8,61 @@ import { UserTypeGuard } from "src/auth/guards/user-type.guard";
 import { UserTypesEnum } from "src/user/constants/constants";
 import { UserType } from "src/auth/decorator/user-type.decorator";
 import { UpdateCouponInput } from "../model/update-coupon.input";
-import { CouponsPaginated, PageOptionsDto } from "src/utils/interfaces/pagination.type";
+import {
+  CouponsPaginated,
+  PageOptionsDto,
+} from "src/utils/interfaces/pagination.type";
+import { Observable, from } from "rxjs";
+import { UserCouponEntity } from "../user-coupons/entity/user-coupons.entity";
 
 @Resolver()
 export class CouponResolver {
-    constructor(
-        private readonly couponService: CouponService
-    ) {}
-    @Mutation(() => [CouponEntity])
-    @UserType(UserTypesEnum.ADMIN)
-    @UseGuards(JwtAuthGuard, UserTypeGuard)
-    generateBulkOfCodes(@Args('generateCouponsOptions') generateCouponsOptions: GenerateCouponOptions) {
-        return this.couponService.generateCoupons(generateCouponsOptions)
-    }
-    @Mutation(() => CouponEntity)
-    @UserType(UserTypesEnum.ADMIN)
-    @UseGuards(JwtAuthGuard, UserTypeGuard)
-    assignCouponToUser(@Args('userId') userId: string, @Args('couponId') couponId: string) {
-        return this.couponService.assignCouponToUser(userId, couponId)
-    }
-    @Mutation(() => CouponEntity)
-    @UseGuards(JwtAuthGuard)
-    updateCoupon(@Args('updateCouponInput') updateCouponInput: UpdateCouponInput) {
-        return this.couponService.updateCoupon(updateCouponInput)
-    }
-    @Mutation(() => CouponEntity)
-    @UserType(UserTypesEnum.ADMIN)
-    @UseGuards(JwtAuthGuard, UserTypeGuard)
-    deleteCoupon(@Args('id') id: string) {
-        return this.couponService.deleteCoupon(id)
-    }
-    @Query(() => CouponsPaginated, { name: 'getPaginatedCoupons' })
-    @UserType(UserTypesEnum.ADMIN)
-    @UseGuards(JwtAuthGuard, UserTypeGuard)
-    getPaginatedCoupons(
-      @Args('paginationOptions') paginationOptions: PageOptionsDto,
-    ) {
-      return this.couponService.findPaginatedCoupons(paginationOptions)
-    }
+  constructor(private readonly couponService: CouponService) {}
+  @Mutation(() => [CouponEntity])
+  @UserType(UserTypesEnum.ADMIN)
+  @UseGuards(JwtAuthGuard, UserTypeGuard)
+  generateBulkOfCodes(
+    @Args("generateCouponsOptions")
+    generateCouponsOptions: GenerateCouponOptions
+  ) {
+    return this.couponService.generateCoupons(generateCouponsOptions);
+  }
+  @Mutation(() => CouponEntity)
+  @UserType(UserTypesEnum.ADMIN)
+  @UseGuards(JwtAuthGuard, UserTypeGuard)
+  assignCouponToUser(
+    @Args("userId") userId: string,
+    @Args("couponId") couponId: string
+  ) {
+    return this.couponService.assignCouponToUser(userId, couponId);
+  }
+  @Mutation(() => CouponEntity)
+  @UseGuards(JwtAuthGuard)
+  updateCoupon(
+    @Args("updateCouponInput") updateCouponInput: UpdateCouponInput
+  ) {
+    return this.couponService.updateCoupon(updateCouponInput);
+  }
+  @Mutation(() => CouponEntity)
+  @UserType(UserTypesEnum.ADMIN)
+  @UseGuards(JwtAuthGuard, UserTypeGuard)
+  deleteCoupon(@Args("id") id: string) {
+    return this.couponService.deleteCoupon(id);
+  }
+  @Query(() => CouponsPaginated, { name: "getPaginatedCoupons" })
+  @UserType(UserTypesEnum.ADMIN)
+  @UseGuards(JwtAuthGuard, UserTypeGuard)
+  getPaginatedCoupons(
+    @Args("paginationOptions") paginationOptions: PageOptionsDto
+  ) {
+    return this.couponService.findPaginatedCoupons(paginationOptions);
+  }
+  @Mutation(() => UserCouponEntity)
+  @UserType(UserTypesEnum.ADMIN)
+  @UseGuards(JwtAuthGuard, UserTypeGuard)
+  removeAssignedUserFromCoupon(
+    @Args("userCouponId") userCouponId: string
+  ): Observable<UserCouponEntity> {
+    return from(this.couponService.removeAssignedUserFromCoupon(userCouponId));
+  }
 }

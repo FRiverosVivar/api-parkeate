@@ -15,7 +15,6 @@ export class PageOptionsDto {
   take?: number = 10;
   @Field(() => Number)
   skip?: number = 0;
-
 }
 
 export class PageDto<T> {
@@ -36,11 +35,11 @@ export interface PageMetaDtoParameters {
 @ObjectType()
 export class PaginationMeta {
   @Field(() => Number)
-  page: number
+  page: number;
   @Field(() => Number)
-  skip: number
+  skip: number;
   @Field(() => Number)
-  take: number
+  take: number;
   @Field(() => Number)
   itemCount: number;
   @Field(() => Number)
@@ -81,6 +80,13 @@ export class BookingsPaginated {
 }
 @ObjectType()
 export class ParkingBlockedUsersPaginated {
+  @Field(() => [UserEntity])
+  data: UserEntity[];
+  @Field(() => PaginationMeta)
+  meta: PaginationMeta;
+}
+@ObjectType()
+export class ParkingCouponAssignedUsersPaginated {
   @Field(() => [UserEntity])
   data: UserEntity[];
   @Field(() => PaginationMeta)

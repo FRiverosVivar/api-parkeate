@@ -26,4 +26,6 @@ export class CreateCouponInput {
   dateEnd: Date;
   @Field(() => Int, { nullable: true })
   useTimes: number;
+  @Field(() => Boolean)
+  global: boolean;
 }

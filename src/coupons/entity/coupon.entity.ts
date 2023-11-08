@@ -43,4 +43,7 @@ export class CouponEntity extends BaseEntityWithIdAbstract {
   @Column({ nullable: true })
   @Field(() => Int, { nullable: true })
   useTimes: number;
+  @Column()
+  @Field(() => Boolean)
+  global: boolean;
 }
