@@ -14,6 +14,9 @@ import {
 } from "src/utils/interfaces/pagination.type";
 import { Observable, from } from "rxjs";
 import { UserCouponEntity } from "../user-coupons/entity/user-coupons.entity";
+import { UpdateUserCouponInput } from "../model/update-user-coupon.input";
+import { CurrentUser } from "src/auth/decorator/current-user.decorator";
+import { UserEntity } from "src/user/entity/user.entity";
 
 @Resolver()
 export class CouponResolver {
@@ -64,5 +67,29 @@ export class CouponResolver {
     @Args("userCouponId") userCouponId: string
   ): Observable<UserCouponEntity> {
     return from(this.couponService.removeAssignedUserFromCoupon(userCouponId));
+  }
+  @Mutation(() => UserCouponEntity)
+  @UserType(UserTypesEnum.ADMIN)
+  @UseGuards(JwtAuthGuard, UserTypeGuard)
+  updateUserCoupon(
+    @Args("updateUserCouponInput") updateUserCouponInput: UpdateUserCouponInput
+  ): Observable<UserCouponEntity> {
+    return from(this.couponService.updateUserCoupon(updateUserCouponInput));
+  }
+  @Mutation(() => UserCouponEntity)
+  @UseGuards(JwtAuthGuard)
+  verifyIfCouponExistsAndThenAssignToUser(
+    @Args("couponText") couponText: string,
+    @CurrentUser() user: UserEntity
+  ) {
+    return this.couponService.verifyIfCouponExistsAndThenAssignToUser(
+      user,
+      couponText
+    );
+  }
+  @Query(() => [UserCouponEntity])
+  @UseGuards(JwtAuthGuard)
+  getUserCoupons(@CurrentUser() user: UserEntity) {
+    return this.couponService.getUserCoupons(user);
   }
 }

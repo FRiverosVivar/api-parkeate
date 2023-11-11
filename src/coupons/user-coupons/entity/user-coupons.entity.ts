@@ -16,4 +16,7 @@ export class UserCouponEntity extends BaseEntityWithIdAbstract {
   @Column()
   @Field(() => Int)
   quantityRemaining: number;
+  @Column()
+  @Field(() => Boolean)
+  valid: boolean;
 }

@@ -124,19 +124,24 @@ export class UserService {
     }
 
     return from(
-      this.userRepository.findBy({
-        id: Equal(userId),
+      this.userRepository.findOne({
+        relations: {
+          userCoupons: {
+            coupon: true,
+          },
+        },
+        where: {
+          id: Equal(userId),
+        },
       })
-    )
-      .pipe(map((users) => users[0]))
-      .pipe(
-        map((user) => {
-          if (!user) {
-            throw new NotFoundException();
-          }
-          return user;
-        })
-      );
+    ).pipe(
+      map((user) => {
+        if (!user) {
+          throw new NotFoundException();
+        }
+        return user;
+      })
+    );
   }
   findUserByRut(rut: string): Observable<UserEntity> {
     return this.getUserByRut(rut).pipe(
@@ -151,6 +156,11 @@ export class UserService {
   getUserByRut(rut: string): Observable<UserEntity | null> {
     return from(
       this.userRepository.findOne({
+        relations: {
+          userCoupons: {
+            coupon: true,
+          },
+        },
         where: {
           rut: rut,
         },

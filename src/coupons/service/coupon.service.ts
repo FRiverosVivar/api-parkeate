@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CouponEntity } from "../entity/coupon.entity";
-import { Repository } from "typeorm";
+import { Equal, Repository } from "typeorm";
 import { CreateCouponInput } from "../model/create-coupon.input";
 import { UpdateCouponInput } from "../model/update-coupon.input";
 import { GenerateCouponOptions } from "../model/generate-coupons-options.input";
@@ -17,6 +17,9 @@ import {
 } from "src/utils/interfaces/pagination.type";
 import { UserCouponEntity } from "../user-coupons/entity/user-coupons.entity";
 import { DateTime } from "luxon";
+import { UpdateUserCouponInput } from "../model/update-user-coupon.input";
+import { UserEntity } from "src/user/entity/user.entity";
+import { CurrentUser } from "src/auth/decorator/current-user.decorator";
 @Injectable()
 export class CouponService {
   constructor(
@@ -66,6 +69,9 @@ export class CouponService {
   }
   private async getUserCouponFromRepository(id: string) {
     const coupon = await this.userCouponRepository.findOne({
+      relations: {
+        coupon: true,
+      },
       where: {
         id: id,
       },
@@ -90,21 +96,22 @@ export class CouponService {
   }
   async assignCouponToUser(userId: string, couponId: string) {
     const coupon = await this.findCoupon(couponId);
-    const user = await this.userService.findUserById(userId).toPromise();
+    const user = (await this.userService.findUserById(userId).toPromise())!;
+    const uc = user.userCoupons.find((uc) => uc.coupon.code === coupon.code);
+    if (uc) {
+      return uc;
+    }
     const userCoupon = this.userCouponRepository.create({
       user,
       coupon,
       quantityRemaining: coupon.useTimes,
+      valid: true,
     });
     const userCouponCreated = await this.userCouponRepository.save(userCoupon);
     coupon.assignedUsers.push(userCouponCreated);
     return this.couponRepository.save(coupon);
   }
   async generateCoupons(generateCouponsInput: GenerateCouponOptions) {
-    generateCouponsInput.couponInput.valid = DateTime.fromJSDate(
-      generateCouponsInput.couponInput.dateStart
-    ).hasSame(DateTime.now(), "day");
-
     const codes = this.generateBulkOfCouponsCode(
       generateCouponsInput.characters,
       generateCouponsInput.quantity,
@@ -159,5 +166,38 @@ export class CouponService {
   async removeAssignedUserFromCoupon(userCouponId: string) {
     const userCoupon = await this.findUserCoupon(userCouponId);
     return this.userCouponRepository.remove(userCoupon);
+  }
+  async updateUserCoupon(updateUserCouponInput: UpdateUserCouponInput) {
+    const coupon = await this.userCouponRepository.preload(
+      updateUserCouponInput
+    );
+    return this.userCouponRepository.save(coupon!);
+  }
+  async verifyIfCouponExistsAndThenAssignToUser(
+    user: UserEntity,
+    couponText: string
+  ) {
+    const coupon = await this.couponRepository.findOne({
+      where: {
+        code: Equal(couponText),
+        active: true,
+      },
+    });
+    if (!coupon) return null;
+    return this.assignCouponToUser(user.id, coupon.id);
+  }
+  async getUserCoupons(user: UserEntity) {
+    const uc = await this.userCouponRepository.find({
+      relations: {
+        user: true,
+        coupon: true,
+      },
+      where: {
+        user: {
+          id: Equal(user.id),
+        },
+      },
+    });
+    return uc;
   }
 }
