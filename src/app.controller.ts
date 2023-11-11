@@ -30,12 +30,9 @@ export class AppController {
       id: bookingId,
       bookingState: BookingStatesEnum.RESERVED,
     };
-    console.log(couponId);
     return this.bookingService.updateBooking(updateBookingInput).pipe(
       switchMap((b) => {
-        console.log("couponId");
         if (couponId && couponId !== "") {
-          console.log("couponId");
           return from(this.couponService.findUserCoupon(couponId)).pipe(
             switchMap((uc: UserCouponEntity) => {
               const updateUserCouponInput: UpdateUserCouponInput = {
@@ -44,7 +41,6 @@ export class AppController {
                 valid: uc.quantityRemaining - 1 === 0 ? false : true,
               };
 
-              console.log(uc);
               return from(
                 this.couponService.updateUserCoupon(updateUserCouponInput)
               ).pipe(tap((uc) => console.log(uc)));
@@ -64,12 +60,9 @@ export class AppController {
       id: bookingId,
       bookingState: BookingStatesEnum.RESERVED,
     };
-    console.log(couponId);
     return this.bookingService.updateBooking(updateBookingInput).pipe(
       switchMap((b) => {
-        console.log("couponId");
         if (couponId && couponId !== "") {
-          console.log("couponId");
           return from(this.couponService.findUserCoupon(couponId)).pipe(
             switchMap((uc: UserCouponEntity) => {
               const updateUserCouponInput: UpdateUserCouponInput = {
@@ -78,7 +71,6 @@ export class AppController {
                 valid: uc.quantityRemaining - 1 === 0 ? false : true,
               };
 
-              console.log(uc);
               return from(
                 this.couponService.updateUserCoupon(updateUserCouponInput)
               ).pipe(tap((uc) => console.log(uc)));
