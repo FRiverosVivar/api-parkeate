@@ -5,7 +5,7 @@ import { UserEntity } from "../entity/user.entity";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { UseGuards } from "@nestjs/common";
 import { FileUpload, GraphQLUpload } from "graphql-upload-minimal";
-import { Observable, from, tap } from "rxjs";
+import { Observable, from, map, tap } from "rxjs";
 import { CreatePhotoInput } from "../../photo/model/create-photo.input";
 import { UserWithVerificationCode } from "../model/dto/user-with-verification-code.response";
 import { UserWithSmsCode } from "../model/dto/user-with-sms-code.response";
@@ -24,6 +24,8 @@ import { UserType } from "src/auth/decorator/user-type.decorator";
 import { UserTypesEnum } from "../constants/constants";
 import { UserTypeGuard } from "src/auth/guards/user-type.guard";
 import { type } from "os";
+import { Any } from "typeorm";
+import { Card, PaykuCustomer } from "../model/payku.model";
 
 @Resolver(() => UserEntity)
 export class UserResolver {
@@ -116,5 +118,27 @@ export class UserResolver {
     @Args("phoneNumber", { type: () => String }) phoneNumber: string
   ): Observable<SmsVerificationCode> {
     return this.userService.getUserSMSCode(phoneNumber);
+  }
+  @Query(() => [Card])
+  @UseGuards(JwtAuthGuard)
+  getPaykuClientCardData(@CurrentUser() user: UserEntity): Observable<any> {
+    return this.userService.getPaykuClientCardData(user).pipe(
+      map((r) => {
+        if (r.status === 200 && r.data.subscriptions.length > 0) {
+          console.log(r.data.subscriptions);
+          return r.data.subscriptions[0].active_cards;
+        }
+        return [];
+      })
+    );
+  }
+  @Query(() => String)
+  @UseGuards(JwtAuthGuard)
+  addCardToClient(@CurrentUser() user: UserEntity): Observable<any> {
+    return this.userService.addCardToClient(user).pipe(
+      map((r) => {
+        return r.data.url;
+      })
+    );
   }
 }

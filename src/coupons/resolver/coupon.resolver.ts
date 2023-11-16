@@ -76,7 +76,7 @@ export class CouponResolver {
   ): Observable<UserCouponEntity> {
     return from(this.couponService.updateUserCoupon(updateUserCouponInput));
   }
-  @Mutation(() => UserCouponEntity)
+  @Mutation(() => UserCouponEntity, { nullable: true })
   @UseGuards(JwtAuthGuard)
   verifyIfCouponExistsAndThenAssignToUser(
     @Args("couponText") couponText: string,

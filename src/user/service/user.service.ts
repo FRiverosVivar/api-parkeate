@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { DataSource, Equal, Like, Repository } from "typeorm";
 import { UserEntity } from "../entity/user.entity";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -34,6 +38,9 @@ import {
 } from "../../utils/interfaces/pagination.type";
 import { ClientEntity } from "../../client/entity/client.entity";
 import { UserTypesEnum } from "../constants/constants";
+import { HttpService } from "@nestjs/axios";
+import { CryptService } from "src/utils/crypt/crypt.service";
+import { PaykuCreateClientInput } from "src/utils/interfaces/payku-create-client.input";
 
 @Injectable()
 export class UserService {
@@ -42,7 +49,9 @@ export class UserService {
     private readonly userRepository: Repository<UserEntity>,
     private emailService: EmailService,
     private smsService: SmsService,
-    private photoService: PhotoService
+    private photoService: PhotoService,
+    private httpService: HttpService,
+    private readonly crypto: CryptService
   ) {}
   createUser(userDTO: CreateUserInput): Observable<UserEntity> {
     userDTO.wallet = 0;
@@ -263,5 +272,139 @@ export class UserService {
     const remainingCoupons = assignedCoupons.filter((c) => c.id !== couponId);
     user.userCoupons = remainingCoupons;
     return this.userRepository.save(user);
+  }
+  async createPaykuProfileWithUserData(user: UserEntity) {
+    const planId = "pl05251981dc944c6c4381";
+    const clientSubject = await this.createPaykuClient(user).toPromise();
+    if (!clientSubject || clientSubject.status !== 200) {
+      throw new BadRequestException();
+      return null;
+    }
+    const subSubject = await this.createPaykuSub(
+      clientSubject.data.id,
+      planId
+    ).toPromise();
+
+    if (!subSubject || subSubject.status !== 200) {
+      throw new BadRequestException();
+      return null;
+    }
+    console.log(subSubject);
+    user.paykuClientId = clientSubject.data.id;
+    user.paykuSubId = subSubject.data.id;
+    await this.userRepository.save(user);
+    return subSubject.data.url;
+  }
+  createAutomaticTransaction(body: any) {
+    const paykuApi = "https://app.payku.cl";
+    const transaction = "/api/sutransaction";
+    const data = {
+      suscription: body.suscription,
+      amount: body.amount,
+      order: body.order,
+      description: "desc",
+    };
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: "Bearer tkpu25bfea3a4e6a2ea96257103f9d89",
+      Sign: this.encryptForPayku(transaction, data),
+    };
+    console.log(headers);
+    console.log(`${paykuApi}${transaction}`);
+    return this.httpService.post(`${paykuApi}${transaction}`, data, {
+      headers: headers,
+    });
+  }
+  private createPaykuSub(clientId: string, planId: string) {
+    const paykuApi = "https://app.payku.cl";
+    const sub = "/api/sususcription";
+    const body: any = {
+      plan: planId,
+      client: clientId,
+    };
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: "Bearer tkpu25bfea3a4e6a2ea96257103f9d89",
+      Sign: this.encryptForPayku(sub, body),
+    };
+    return this.httpService.post(`${paykuApi}${sub}`, body, {
+      headers: headers,
+    });
+  }
+  private createPaykuClient(user: UserEntity) {
+    const paykuApi = "https://app.payku.cl";
+    const client = "/api/suclient";
+    const body: PaykuCreateClientInput = {
+      email: user.email,
+      name: user.fullname,
+      rut: user.rut,
+      phone: user.phoneNumber,
+    };
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: "Bearer tkpu25bfea3a4e6a2ea96257103f9d89",
+      Sign: this.encryptForPayku(client, body),
+    };
+    return this.httpService.post(`${paykuApi}${client}`, body, {
+      headers: headers,
+    });
+  }
+  encryptForPayku(endpoint: string, body: any) {
+    const path = encodeURIComponent(endpoint);
+    const data = {
+      ...body,
+    };
+    const orderedData: any = {};
+    Object.keys(body)
+      .sort()
+      .forEach((key: string) => {
+        orderedData[key] = data[key];
+        if (typeof orderedData[key] === "object") {
+          delete orderedData[key];
+        }
+      });
+    console.log(body);
+    const arrayConcat = new URLSearchParams(orderedData).toString();
+    const concat = path + "&" + arrayConcat;
+    console.log(concat);
+    const sign = this.crypto.HmacSHA256(concat);
+    console.log(sign);
+    return sign;
+  }
+  getPaykuClientCardData(user: UserEntity) {
+    const paykuApi = "https://app.payku.cl";
+
+    return this.findUserById(user.id).pipe(
+      switchMap((u) => {
+        const client = "/api/suclient/" + u.paykuClientId;
+        const headers = {
+          "Content-Type": "application/json",
+          Authorization: "Bearer tkpu25bfea3a4e6a2ea96257103f9d89",
+          Sign: this.encryptForPayku(client, {}),
+        };
+        return this.httpService.get(`${paykuApi}${client}`, {
+          headers: headers,
+        });
+      })
+    );
+  }
+  addCardToClient(user: UserEntity) {
+    const paykuApi = "https://app.payku.cl";
+    return this.findUserById(user.id).pipe(
+      switchMap((u) => {
+        const client = "/api/suinscriptionscards";
+        const body = {
+          suscription: u.paykuSubId,
+        };
+        const headers = {
+          "Content-Type": "application/json",
+          Authorization: "Bearer tkpu25bfea3a4e6a2ea96257103f9d89",
+          Sign: this.encryptForPayku(client, body),
+        };
+        return this.httpService.post(`${paykuApi}${client}`, body, {
+          headers: headers,
+        });
+      })
+    );
   }
 }

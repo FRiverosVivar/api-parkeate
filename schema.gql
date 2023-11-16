@@ -29,6 +29,43 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type CouponEntity {
+  """id of the entity"""
+  id: String!
+
+  """creation date of the entity"""
+  createdAt: DateTime!
+
+  """update date of the entity"""
+  updatedAt: DateTime!
+  code: String!
+  createdBy: String!
+  type: Int!
+  behavior: Int!
+  assignedUsers: [UserCouponEntity!]
+  active: Boolean!
+  dateStart: DateTime
+  dateEnd: DateTime
+  useTimes: Int
+  global: Boolean!
+  value: Int!
+}
+
+type UserCouponEntity {
+  """id of the entity"""
+  id: String!
+
+  """creation date of the entity"""
+  createdAt: DateTime!
+
+  """update date of the entity"""
+  updatedAt: DateTime!
+  user: UserEntity!
+  coupon: CouponEntity!
+  quantityRemaining: Int!
+  valid: Boolean!
+}
+
 type UserEntity {
   """id of the entity"""
   id: String!
@@ -74,6 +111,11 @@ type UserEntity {
   wallet: Int!
   licenseDriver: String
   dniPhoto: String
+
+  """coupons available for the user"""
+  userCoupons: [UserCouponEntity!]
+  paykuClientId: String
+  paykuSubId: String
 }
 
 enum UserTypesEnum {
@@ -172,7 +214,7 @@ type LiquidationEntity {
 
   """update date of the entity"""
   updatedAt: DateTime!
-  numberId: Int!
+  numberId: String!
   client: ClientEntity!
   bookings: [BookingEntity!]!
   priceToBeLiquidated: Float!
@@ -227,10 +269,10 @@ type ClientEntity {
   holding: HoldingEntity
   liquidations: [LiquidationEntity!]!
   preferedLiquidationPayRate: Int!
-  bankType: Int!
+  bankType: Int
   bankAccountName: String!
   bankAccountType: Int!
-  bankAccountNumber: Int!
+  bankAccountNumber: String!
   bankAccountEmail: String!
 }
 
@@ -291,7 +333,7 @@ type BookingEntity {
 
   """update date of the entity"""
   updatedAt: DateTime!
-  numberId: Int!
+  numberId: String!
   bookingType: Int!
   bookingState: Int!
   parking: ParkingEntity!
@@ -336,8 +378,18 @@ type ParkingBlockedUsersPaginated {
   meta: PaginationMeta!
 }
 
+type ParkingCouponAssignedUsersPaginated {
+  data: [UserEntity!]!
+  meta: PaginationMeta!
+}
+
 type LiquidationsPaginated {
   data: [LiquidationEntity!]!
+  meta: PaginationMeta!
+}
+
+type CouponsPaginated {
+  data: [CouponEntity!]!
   meta: PaginationMeta!
 }
 
@@ -359,6 +411,18 @@ type SmsVerificationCode {
   smsCode: Float!
 }
 
+type Card {
+  last_4_digits: String!
+  identifier: String!
+  card_type: String!
+  register: String!
+}
+
+type RecoverPasswordCodeAndClientId {
+  id: String!
+  code: Float!
+}
+
 type MostProfitableParking {
   parking: ParkingEntity!
   totalPrice: Float!
@@ -377,6 +441,13 @@ type TopMostRentedParkings {
   friday: MostRentedParking
   saturday: MostRentedParking
   sunday: MostRentedParking
+}
+
+type PrepaidHourParking {
+  amountToBePaid: Float!
+  tax: Float!
+  initialPrice: Float!
+  discount: Float
 }
 
 type BuildingOutput {
@@ -465,6 +536,18 @@ type BookingDailyIncomeFinance {
   numberOfIncomeToday: Float!
 }
 
+type PaykuResponse {
+  status: String!
+  id: String!
+  url: String!
+}
+
+type BookingPriceCalculated {
+  priceToBePaid: Float!
+  discount: Float!
+  originalPrice: Float!
+}
+
 type RequestEntity {
   """id of the entity"""
   id: String!
@@ -476,7 +559,7 @@ type RequestEntity {
   updatedAt: DateTime!
   subject: String!
   email: String!
-  phoneNumber: String!
+  phoneNumber: String
   content: String!
 }
 
@@ -489,6 +572,7 @@ type Query {
   getPaginatedParkings(paginationOptions: PageOptionsDto!, buildingId: String!): ParkingsPaginated!
   findMostProfitableParking: MostProfitableParking
   findWeekMostRentedParkings: TopMostRentedParkings
+  calculatePrepaidHourForParking(parkingId: String!, userCouponId: String): PrepaidHourParking!
   findBuildingById(buildingId: String!): BuildingEntity!
   findBuildingWithCoordsById(buildingId: String!): BuildingWithCoordsOutput!
   findBuildingByIdAndFilterParkingsByReservedStatus(buildingId: String!): BuildingEntity!
@@ -501,22 +585,26 @@ type Query {
   findTagById(tagId: String!): [TagsEntity!]!
   findTagsByBuildingId(buildingId: String!): [TagsEntity!]!
   users: [UserEntity!]!
+  getPaginatedCouponAssignedUsers(paginationOptions: PageOptionsDto!, couponId: String!): ParkingCouponAssignedUsersPaginated!
   getPaginatedParkingBlockedUsers(paginationOptions: PageOptionsDto!, parkingId: String): ParkingBlockedUsersPaginated!
-  searchUsersByGivenRutEmailOrFullname(text: String!): [UserEntity!]!
+  searchUsersByGivenRutEmailOrFullname(text: String!, restrictedIds: [String!]!): [UserEntity!]!
   userById(userId: String!): UserEntity!
   userByRut(rut: String!): UserEntity
   getUserEmailCode(fullname: String!, email: String!): EmailVerificationCode!
   getUserSMSCode(phoneNumber: String!): SmsVerificationCode!
+  getPaykuClientCardData: [Card!]!
+  addCardToClient: String!
   clientById(clientId: String!): ClientEntity!
   clients: [ClientEntity!]!
   clientByRut(rut: String!): ClientEntity
   getClientEmailCode(fullname: String!, email: String!): EmailVerificationCode!
   getClientSMSCode(phoneNumber: String!): SmsVerificationCode!
+  checkClientAndGetCodeToValidate(rut: String!): RecoverPasswordCodeAndClientId!
   findVehicleById(vehicleId: String!): VehicleEntity!
   findVehiclesByUserId: [VehicleEntity!]!
   getAllHoldings: [HoldingEntity!]!
   getHoldingById(holdingId: String!): HoldingEntity!
-  getOrderNumberByCountingBookings: Int!
+  getBookingCountForOrderNumberAndCreatePaykuOrder(paykuModel: PaykuModel!): PaykuResponse!
   getPaginatedBookings(paginationOptions: PageOptionsDto!, parkingId: String, displayAll: Boolean): BookingsPaginated!
   findBookingsMadeTodayAndYesterday: BookingDailyFinance!
   findBookingsAndGetDailyIncomeAndPercentage: BookingDailyIncomeFinance!
@@ -526,12 +614,14 @@ type Query {
   getActiveBookingByUserId: [BookingEntity!]!
   getUnPaidBookings: [BookingEntity!]!
   getBookingWithPaymentRequiredToStart: BookingEntity!
-  getBookingPriceCalculated(bookingId: String!): BookingEntity!
+  getBookingPriceCalculated(bookingId: String!): BookingPriceCalculated!
   resetCronJobsForBookingId(bookingId: String!): BookingEntity!
   findRecentBookingsFromBuildings: [BookingEntity!]!
   forceToLiquidateToAllBookings: [LiquidationEntity!]!
   getAllLiquidations(paginationOptions: PageOptionsDto!): LiquidationsPaginated!
   updateLiquidation(updateLiquidationInput: UpdateLiquidationInput!): LiquidationEntity!
+  getPaginatedCoupons(paginationOptions: PageOptionsDto!): CouponsPaginated!
+  getUserCoupons: [UserCouponEntity!]!
 }
 
 input PageOptionsDto {
@@ -543,6 +633,18 @@ input PageOptionsDto {
 input PointInput {
   type: String!
   coordinates: [Float!]!
+}
+
+input PaykuModel {
+  email: String!
+  order: Float
+  subject: String!
+  amount: Float!
+  currency: String!
+  payment: Float!
+  expired: String!
+  urlreturn: String!
+  urlnotify: String!
 }
 
 input UpdateLiquidationInput {
@@ -598,8 +700,16 @@ type Mutation {
   createBooking(createBookingInput: CreateBookingInput!, parkingId: String!): BookingEntity!
   updateBooking(updateBookingInput: UpdateBookingInput!): BookingEntity!
   removeBooking(bookingId: String!): BookingEntity!
+  generatePaymentFromPayku(bookingId: String!, couponId: String, paygate: String!, subId: String!, priceToPay: Float!): BookingEntity!
   createRequest(createRequestInput: CreateRequestInput!): RequestEntity!
   uploadPaymentReceipt(liquidationId: String!, receiptPdf: Upload!): LiquidationEntity!
+  generateBulkOfCodes(generateCouponsOptions: GenerateCouponOptions!): [CouponEntity!]!
+  assignCouponToUser(userId: String!, couponId: String!): CouponEntity!
+  updateCoupon(updateCouponInput: UpdateCouponInput!): CouponEntity!
+  deleteCoupon(id: String!): CouponEntity!
+  removeAssignedUserFromCoupon(userCouponId: String!): UserCouponEntity!
+  updateUserCoupon(updateUserCouponInput: UpdateUserCouponInput!): UserCouponEntity!
+  verifyIfCouponExistsAndThenAssignToUser(couponText: String!): UserCouponEntity
 }
 
 input CreateFileInput {
@@ -798,7 +908,7 @@ input CreateClientInput {
   bankAccountEmail: String!
   bankAccountName: String!
   bankAccountType: Int!
-  bankAccountNumber: Int!
+  bankAccountNumber: String!
 }
 
 input LoginClientInput {
@@ -884,7 +994,7 @@ input UpdateClientInput {
   bankAccountEmail: String
   bankAccountName: String
   bankAccountType: Int
-  bankAccountNumber: Int
+  bankAccountNumber: String
   id: String!
 }
 
@@ -976,6 +1086,48 @@ input UpdateBookingInput {
 input CreateRequestInput {
   subject: String!
   email: String!
-  phoneNumber: String!
+  phoneNumber: String
   content: String!
+}
+
+input GenerateCouponOptions {
+  prefix: String!
+  postfix: String!
+  length: Int!
+  characters: String!
+  quantity: Int!
+  couponInput: CreateCouponInput!
+}
+
+input CreateCouponInput {
+  code: String
+  createdBy: String!
+  type: Int!
+  behavior: Int!
+  active: Boolean!
+  dateStart: DateTime
+  dateEnd: DateTime
+  useTimes: Int
+  global: Boolean!
+  value: Int!
+}
+
+input UpdateCouponInput {
+  code: String
+  createdBy: String
+  type: Int
+  behavior: Int
+  active: Boolean
+  dateStart: DateTime
+  dateEnd: DateTime
+  useTimes: Int
+  global: Boolean
+  value: Int
+  id: String!
+}
+
+input UpdateUserCouponInput {
+  quantityRemaining: Int
+  valid: Boolean
+  id: String!
 }

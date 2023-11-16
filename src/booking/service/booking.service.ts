@@ -38,6 +38,10 @@ import { HttpService } from "@nestjs/axios";
 import * as _ from "lodash";
 import { PaykuModel, PaykuResponse } from "../model/payku-model.input";
 import { BookingPriceCalculated } from "../model/booking-calculate-price.output";
+import { CryptService } from "src/utils/crypt/crypt.service";
+import { CouponService } from "src/coupons/service/coupon.service";
+import { UserCouponEntity } from "src/coupons/user-coupons/entity/user-coupons.entity";
+import { UpdateUserCouponInput } from "src/coupons/model/update-user-coupon.input";
 
 @Injectable()
 export class BookingService implements OnModuleInit {
@@ -50,7 +54,9 @@ export class BookingService implements OnModuleInit {
     private readonly smsService: SmsService,
     private readonly scheduler: SchedulerRegistry,
     private readonly cronService: CronService,
-    private readonly httpService: HttpService
+    private readonly httpService: HttpService,
+    private readonly crypto: CryptService,
+    private readonly couponService: CouponService
   ) {}
   @Cron(CronExpression.EVERY_DAY_AT_5AM, {
     name: "checkMonthlyAndYearlyReservations",
@@ -80,7 +86,7 @@ export class BookingService implements OnModuleInit {
     paykuModel.order = order;
     const headers = {
       "Content-Type": "application/json",
-      Authorization: "Bearer tkpue2f71dc20a0eaff2acc3af54e7f6",
+      Authorization: "Bearer tkpu25bfea3a4e6a2ea96257103f9d89",
     };
     const response = await this.httpService
       .post("https://app.payku.cl/api/transaction", paykuModel, {
@@ -169,7 +175,14 @@ export class BookingService implements OnModuleInit {
               booking.dateEnd = DateTime.now().toJSDate();
               parking.reserved = false;
               console.log("c");
-
+              const parkingInput: UpdateParkingInput = {
+                id: parking.id,
+                reserved: false,
+              };
+              this.parkingService
+                .updateParking(parkingInput)
+                .toPromise()
+                .then();
               if (this.scheduler.doesExist("cron", booking.id)) {
                 console.log("exists job");
                 const job = this.scheduler.getCronJob(booking.id);
@@ -764,6 +777,87 @@ export class BookingService implements OnModuleInit {
         );
       })
     );
+  }
+  generatePaymentFromPayku(subId: string, paygate: string, priceToPay: number) {
+    const paykuApi = "https://app.payku.cl";
+    const transaction = "/api/sutransaction";
+    const data = {
+      suscription: subId,
+      amount: 50,
+      order: DateTime.now().toFormat("ddMMyyhhmmss"),
+      description: "desc",
+      card: paygate,
+    };
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: "Bearer tkpu25bfea3a4e6a2ea96257103f9d89",
+      Sign: this.encryptForPayku(transaction, data),
+    };
+    console.log(headers);
+    console.log(`${paykuApi}${transaction}`);
+    return this.httpService.post(`${paykuApi}${transaction}`, data, {
+      headers: headers,
+    });
+  }
+  async generateAutomaticPayment(
+    bookingId: string,
+    priceToPay: number,
+    subId: string,
+    paygate: string,
+    couponId: string
+  ) {
+    return this.generatePaymentFromPayku(subId, paygate, priceToPay).pipe(
+      switchMap((res) => {
+        if (res.status === 200) {
+          const updateBookingInput: UpdateBookingInput = {
+            id: bookingId,
+            bookingState: BookingStatesEnum.RESERVED,
+          };
+          return this.updateBooking(updateBookingInput).pipe(
+            switchMap((b) => {
+              if (couponId && couponId !== "") {
+                return from(this.couponService.findUserCoupon(couponId)).pipe(
+                  switchMap((uc: UserCouponEntity) => {
+                    const updateUserCouponInput: UpdateUserCouponInput = {
+                      id: uc.id,
+                      quantityRemaining: uc.quantityRemaining - 1,
+                      valid: uc.quantityRemaining - 1 === 0 ? false : true,
+                    };
+
+                    return from(
+                      this.couponService.updateUserCoupon(updateUserCouponInput)
+                    ).pipe(tap((uc) => console.log(uc)));
+                  }),
+                  map((uc) => b)
+                );
+              }
+              return of(b);
+            })
+          );
+        }
+        return of(null);
+      })
+    );
+  }
+  encryptForPayku(endpoint: string, body: any) {
+    const path = encodeURIComponent(endpoint);
+    const data = {
+      ...body,
+    };
+    const orderedData: any = {};
+    Object.keys(body)
+      .sort()
+      .forEach((key: string) => {
+        orderedData[key] = data[key];
+        if (typeof orderedData[key] === "object") {
+          delete orderedData[key];
+        }
+      });
+    const arrayConcat = new URLSearchParams(orderedData).toString();
+    const concat = path + "&" + arrayConcat;
+    const sign = this.crypto.HmacSHA256(concat);
+    console.log(sign);
+    return sign;
   }
   private getBookingsForParkingIdByDateRange(
     parkingId: string,

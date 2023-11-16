@@ -1,24 +1,24 @@
 import { Body, Controller, Get, Post, Query } from "@nestjs/common";
 import { BookingService } from "./booking/service/booking.service";
 import { BookingEntity } from "./booking/entity/booking.entity";
-import { Observable, from, of, switchMap, tap } from "rxjs";
+import { Observable, from, map, of, switchMap, tap } from "rxjs";
 import { UpdateBookingInput } from "./booking/model/update-booking.input";
 import { BookingStatesEnum } from "./booking/enum/booking-states.enum";
 import { ParkingService } from "./parking/service/parking.service";
 import { BuildingService } from "./building/service/building.service";
-import { TagsService } from "./tags/service/tags.service";
 import { CouponService } from "./coupons/service/coupon.service";
 import { UpdateUserCouponInput } from "./coupons/model/update-user-coupon.input";
-import { UserCode } from "aws-sdk/clients/alexaforbusiness";
 import { UserCouponEntity } from "./coupons/user-coupons/entity/user-coupons.entity";
-
+import { UserService } from "./user/service/user.service";
+import { UserEntity } from "./user/entity/user.entity";
 @Controller("/booking/confirmPayment")
 export class AppController {
   constructor(
     private readonly bookingService: BookingService,
     private buildingService: BuildingService,
     private parkingService: ParkingService,
-    private couponService: CouponService
+    private couponService: CouponService,
+    private readonly userService: UserService
   ) {}
 
   @Get("")
@@ -106,5 +106,23 @@ export class AppController {
       bookingState: BookingStatesEnum.FINALIZED,
     };
     return this.bookingService.updateBooking(updateBookingInput);
+  }
+  @Post("/new-client")
+  createPaykuClient(@Body() body: any): Observable<any> {
+    return this.userService
+      .findUserById(body.userId)
+      .pipe(
+        switchMap((u: UserEntity) =>
+          this.userService.createPaykuProfileWithUserData(u)
+        )
+      );
+  }
+  @Post("/new-transaction")
+  createPaykuTransactionAutomatic(@Body() body: any): Observable<any> {
+    return this.userService.createAutomaticTransaction(body);
+  }
+  @Post("/get-sign")
+  getSign(@Body() body: any) {
+    return this.userService.encryptForPayku("/api/suplan", body);
   }
 }

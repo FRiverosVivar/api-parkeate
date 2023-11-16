@@ -488,7 +488,7 @@ export class ParkingService {
               const price: PrepaidHourParking = {
                 amountToBePaid: Math.round(Math.round(PPM * 1.19)),
                 tax: Math.round(PPM * 0.19),
-                initialPrice: Math.round(+p.priceMonthly * 65),
+                initialPrice: Math.round(+p.priceMonthly),
                 discount: userCoupon.coupon.value,
               };
               return price;
@@ -498,7 +498,7 @@ export class ParkingService {
               const price: PrepaidHourParking = {
                 amountToBePaid: Math.round(Math.round(PPM * 1.19)),
                 tax: Math.round(PPM * 0.19),
-                initialPrice: Math.round(+p.priceMonthly * 65),
+                initialPrice: Math.round(+p.priceMonthly),
                 discount: userCoupon.coupon.value,
               };
               return price;
@@ -508,14 +508,12 @@ export class ParkingService {
                 Math.round(+p.priceMonthly * 1.19)
               );
               const discount = Math.round(
-                (amountToBePaid * userCoupon.coupon.value) / 100
+                (Math.round(+p.priceMonthly) * userCoupon.coupon.value) / 100
               );
               const price: PrepaidHourParking = {
                 amountToBePaid: Math.round(amountToBePaid - discount),
-                tax: Math.round(
-                  Math.round(amountToBePaid - discount) * 65 * 0.19
-                ),
-                initialPrice: Math.round(+p.priceMonthly * 65),
+                tax: Math.round(Math.round(amountToBePaid - discount) * 0.19),
+                initialPrice: Math.round(+p.priceMonthly),
                 discount: discount,
               };
               return price;
@@ -525,14 +523,12 @@ export class ParkingService {
                 Math.round(+p.priceMonthly * 1.19)
               );
               const discount = Math.round(
-                (amountToBePaid * userCoupon.coupon.value) / 100
+                (Math.round(+p.priceMonthly) * userCoupon.coupon.value) / 100
               );
               const price: PrepaidHourParking = {
                 amountToBePaid: Math.round(amountToBePaid - discount),
-                tax: Math.round(
-                  Math.round(amountToBePaid - discount) * 65 * 0.19
-                ),
-                initialPrice: Math.round(+p.priceMonthly * 65),
+                tax: Math.round(Math.round(amountToBePaid - discount) * 0.19),
+                initialPrice: Math.round(+p.priceMonthly),
                 discount: discount,
               };
               return price;
