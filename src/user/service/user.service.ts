@@ -289,11 +289,11 @@ export class UserService {
       throw new BadRequestException();
       return null;
     }
-    console.log(subSubject);
     user.paykuClientId = clientSubject.data.id;
     user.paykuSubId = subSubject.data.id;
     await this.userRepository.save(user);
-    return subSubject.data.url;
+    const url = subSubject.data.url;
+    return url;
   }
   createAutomaticTransaction(body: any) {
     const paykuApi = "https://app.payku.cl";
@@ -392,6 +392,8 @@ export class UserService {
     const paykuApi = "https://app.payku.cl";
     return this.findUserById(user.id).pipe(
       switchMap((u) => {
+        if (!u.paykuClientId || !u.paykuSubId)
+          return from(this.createPaykuProfileWithUserData(u));
         const client = "/api/suinscriptionscards";
         const body = {
           suscription: u.paykuSubId,
@@ -401,9 +403,15 @@ export class UserService {
           Authorization: "Bearer tkpu25bfea3a4e6a2ea96257103f9d89",
           Sign: this.encryptForPayku(client, body),
         };
-        return this.httpService.post(`${paykuApi}${client}`, body, {
-          headers: headers,
-        });
+        return this.httpService
+          .post(`${paykuApi}${client}`, body, {
+            headers: headers,
+          })
+          .pipe(
+            map((r) => {
+              return r.data.url;
+            })
+          );
       })
     );
   }

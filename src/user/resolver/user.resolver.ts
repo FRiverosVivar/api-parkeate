@@ -135,10 +135,6 @@ export class UserResolver {
   @Query(() => String)
   @UseGuards(JwtAuthGuard)
   addCardToClient(@CurrentUser() user: UserEntity): Observable<any> {
-    return this.userService.addCardToClient(user).pipe(
-      map((r) => {
-        return r.data.url;
-      })
-    );
+    return this.userService.addCardToClient(user);
   }
 }
