@@ -783,7 +783,7 @@ export class BookingService implements OnModuleInit {
     const transaction = "/api/sutransaction";
     const data = {
       suscription: subId,
-      amount: 50,
+      amount: priceToPay,
       order: DateTime.now().toFormat("ddMMyyhhmmss"),
       description: "desc",
       card: paygate,
