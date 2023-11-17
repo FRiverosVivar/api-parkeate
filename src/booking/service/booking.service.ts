@@ -972,7 +972,8 @@ export class BookingService implements OnModuleInit {
         job.stop();
       },
       async () => {
-        this.executeStateChangeFromBooking(cron, dateExtended);
+        if (hasPreviousJob)
+          this.executeStateChangeFromBooking(cron, dateExtended);
       },
       false,
       Settings.defaultZone.name
