@@ -13,7 +13,6 @@ import { UserService } from "./user/service/user.service";
 import { UserEntity } from "./user/entity/user.entity";
 @Controller("/booking/confirmPayment")
 export class AppController {
-  created = false;
   constructor(
     private readonly bookingService: BookingService,
     private buildingService: BuildingService,
