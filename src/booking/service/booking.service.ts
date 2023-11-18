@@ -804,14 +804,17 @@ export class BookingService implements OnModuleInit {
     priceToPay: number,
     subId: string,
     paygate: string,
-    couponId: string
+    couponId: string,
+    bookingNextState?: BookingStatesEnum
   ) {
     return this.generatePaymentFromPayku(subId, paygate, priceToPay).pipe(
       switchMap((res) => {
-        if (res.status === 200) {
+        if (res.status === 200 && res.data.status === "success") {
           const updateBookingInput: UpdateBookingInput = {
             id: bookingId,
-            bookingState: BookingStatesEnum.RESERVED,
+            bookingState: bookingNextState
+              ? bookingNextState
+              : BookingStatesEnum.RESERVED,
           };
           return this.updateBooking(updateBookingInput).pipe(
             switchMap((b) => {

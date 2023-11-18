@@ -23,6 +23,7 @@ import {
 import { WeeklyBuildingProfit } from "../../building/model/finance-building.output";
 import { PaykuModel, PaykuResponse } from "../model/payku-model.input";
 import { BookingPriceCalculated } from "../model/booking-calculate-price.output";
+import { BookingStatesEnum } from "../enum/booking-states.enum";
 
 @Resolver(BookingEntity)
 export class BookingResolver {
@@ -143,17 +144,20 @@ export class BookingResolver {
   @UseGuards(JwtAuthGuard)
   generatePaymentFromPayku(
     @Args("bookingId") bookingId: string,
-    @Args("couponId", { nullable: true }) couponId: string,
     @Args("paygate") paygate: string,
     @Args("subId") subId: string,
-    @Args("priceToPay") priceToPay: number
+    @Args("priceToPay") priceToPay: number,
+    @Args("couponId", { nullable: true }) couponId: string,
+    @Args("bookingNextState", { nullable: true })
+    bookingNextState?: BookingStatesEnum
   ) {
     return this.bookingService.generateAutomaticPayment(
       bookingId,
       priceToPay,
       subId,
       paygate,
-      couponId
+      couponId,
+      bookingNextState
     );
   }
 }
