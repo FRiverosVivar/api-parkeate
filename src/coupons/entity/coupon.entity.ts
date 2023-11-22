@@ -30,9 +30,6 @@ export class CouponEntity extends BaseEntityWithIdAbstract {
   assignedUsers: UserCouponEntity[];
   @Column()
   @Field(() => Boolean)
-  valid: boolean;
-  @Column()
-  @Field(() => Boolean)
   active: boolean;
   @Column({ type: "timestamptz", nullable: true })
   @Field(() => Date, { nullable: true })
@@ -43,4 +40,10 @@ export class CouponEntity extends BaseEntityWithIdAbstract {
   @Column({ nullable: true })
   @Field(() => Int, { nullable: true })
   useTimes: number;
+  @Column()
+  @Field(() => Boolean)
+  global: boolean;
+  @Column({ default: 0 })
+  @Field(() => Int)
+  value: number;
 }

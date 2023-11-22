@@ -16,8 +16,6 @@ export class CreateCouponInput {
   behavior: CouponsBehaviorEnum;
   // @Field(() => [String])
   // assignedUsers: string[]
-  @Field(() => Boolean, { nullable: true })
-  valid: boolean;
   @Field(() => Boolean)
   active: boolean;
   @Field(() => Date, { nullable: true })
@@ -26,4 +24,8 @@ export class CreateCouponInput {
   dateEnd: Date;
   @Field(() => Int, { nullable: true })
   useTimes: number;
+  @Field(() => Boolean)
+  global: boolean;
+  @Field(() => Int)
+  value: number;
 }

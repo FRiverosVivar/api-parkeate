@@ -24,7 +24,8 @@ export class RequestService {
       tap(() => {
         this.emailService.sendRawEmail(
           request.email,
-          "CORREO GENERADO POR HOME PAGE | " + request.content,
+          "CORREO GENERADO POR FORMULARIO CONTACTO/SOPORTE | " +
+            request.content,
           request.subject
         );
       })

@@ -45,6 +45,7 @@ export class EmailService implements OnModuleInit {
         Source: noReplyEmail,
         Destination: {
           ToAddresses: [
+            destination,
             "francoriverosvivar@gmail.com",
             "dduboish@gmail.com",
             "no-reply@parkeateapp.com",

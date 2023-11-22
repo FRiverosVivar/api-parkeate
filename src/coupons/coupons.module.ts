@@ -8,6 +8,7 @@ import { CouponService } from "./service/coupon.service";
 import { CouponEntity } from "./entity/coupon.entity";
 import { CouponResolver } from "./resolver/coupon.resolver";
 import { UserCouponEntity } from "./user-coupons/entity/user-coupons.entity";
+import { ScheduleModule } from "@nestjs/schedule";
 
 registerEnumType(CouponsTypeEnum, {
   name: "CouponsTypeEnum",
@@ -20,7 +21,10 @@ registerEnumType(CouponsUseEnum, {
 });
 @Global()
 @Module({
-  imports: [TypeOrmModule.forFeature([CouponEntity, UserCouponEntity])],
+  imports: [
+    TypeOrmModule.forFeature([CouponEntity, UserCouponEntity]),
+    ScheduleModule,
+  ],
   providers: [CouponService, CouponResolver],
   exports: [CouponService, CouponResolver],
 })

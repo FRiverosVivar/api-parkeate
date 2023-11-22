@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, OnModuleInit } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CouponEntity } from "../entity/coupon.entity";
-import { Repository } from "typeorm";
+import { Equal, LessThan, Repository } from "typeorm";
 import { CreateCouponInput } from "../model/create-coupon.input";
 import { UpdateCouponInput } from "../model/update-coupon.input";
 import { GenerateCouponOptions } from "../model/generate-coupons-options.input";
@@ -16,9 +16,13 @@ import {
   PaginationMeta,
 } from "src/utils/interfaces/pagination.type";
 import { UserCouponEntity } from "../user-coupons/entity/user-coupons.entity";
-import { DateTime } from "luxon";
+import { DateTime, Settings } from "luxon";
+import { UpdateUserCouponInput } from "../model/update-user-coupon.input";
+import { UserEntity } from "src/user/entity/user.entity";
+import { CurrentUser } from "src/auth/decorator/current-user.decorator";
+import { Cron, CronExpression } from "@nestjs/schedule";
 @Injectable()
-export class CouponService {
+export class CouponService implements OnModuleInit {
   constructor(
     @InjectRepository(CouponEntity)
     private readonly couponRepository: Repository<CouponEntity>,
@@ -26,6 +30,24 @@ export class CouponService {
     private readonly userCouponRepository: Repository<UserCouponEntity>,
     private readonly userService: UserService
   ) {}
+  onModuleInit() {
+    Settings.defaultZone = "America/Sao_Paulo";
+  }
+  @Cron(CronExpression.EVERY_DAY_AT_5AM, {
+    name: "checkValidityOfCoupons",
+  })
+  private async checkValidityOfCoupons(): Promise<CouponEntity[]> {
+    const date = DateTime.now().toJSDate();
+    const coupons = await this.couponRepository.find({
+      where: {
+        dateEnd: LessThan(date),
+      },
+    });
+    _.forEach(coupons, (coupon) => {
+      coupon.active = false;
+    });
+    return this.couponRepository.save(coupons);
+  }
   createCoupon(createCouponInput: CreateCouponInput) {
     const coupon = this.couponRepository.create(createCouponInput);
     coupon.assignedUsers = [];
@@ -48,8 +70,27 @@ export class CouponService {
     }
     return this.getCouponFromRepository(id);
   }
+  findUserCoupon(id: string) {
+    if (!uuid.validate(id)) {
+      throw new UUIDBadFormatException();
+    }
+    return this.getUserCouponFromRepository(id);
+  }
   private async getCouponFromRepository(id: string) {
     const coupon = await this.couponRepository.findOne({
+      where: {
+        id: id,
+      },
+    });
+    if (!coupon) throw new NotFoundException();
+
+    return coupon;
+  }
+  private async getUserCouponFromRepository(id: string) {
+    const coupon = await this.userCouponRepository.findOne({
+      relations: {
+        coupon: true,
+      },
       where: {
         id: id,
       },
@@ -72,23 +113,25 @@ export class CouponService {
     pageMetaDto.skip = (pageMetaDto.page - 1) * pageMetaDto.take;
     return new PageDto(coupons, pageMetaDto);
   }
-  async assignCouponToUser(userId: string, couponId: string) {
+  async assignCouponToUser(userId: string, couponId: string, getUC?: boolean) {
     const coupon = await this.findCoupon(couponId);
-    const user = await this.userService.findUserById(userId).toPromise();
+    const user = (await this.userService.findUserById(userId).toPromise())!;
+    const uc = user.userCoupons.find((uc) => uc.coupon.code === coupon.code);
+    if (uc) {
+      return uc;
+    }
     const userCoupon = this.userCouponRepository.create({
       user,
       coupon,
       quantityRemaining: coupon.useTimes,
+      valid: true,
     });
     const userCouponCreated = await this.userCouponRepository.save(userCoupon);
     coupon.assignedUsers.push(userCouponCreated);
-    return this.couponRepository.save(coupon);
+    const savedCoupon = this.couponRepository.save(coupon);
+    return getUC ? userCouponCreated : savedCoupon;
   }
   async generateCoupons(generateCouponsInput: GenerateCouponOptions) {
-    generateCouponsInput.couponInput.valid = DateTime.fromJSDate(
-      generateCouponsInput.couponInput.dateStart
-    ).hasSame(DateTime.now(), "day");
-
     const codes = this.generateBulkOfCouponsCode(
       generateCouponsInput.characters,
       generateCouponsInput.quantity,
@@ -139,5 +182,42 @@ export class CouponService {
     }
 
     return coupons;
+  }
+  async removeAssignedUserFromCoupon(userCouponId: string) {
+    const userCoupon = await this.findUserCoupon(userCouponId);
+    return this.userCouponRepository.remove(userCoupon);
+  }
+  async updateUserCoupon(updateUserCouponInput: UpdateUserCouponInput) {
+    const coupon = await this.userCouponRepository.preload(
+      updateUserCouponInput
+    );
+    return this.userCouponRepository.save(coupon!);
+  }
+  async verifyIfCouponExistsAndThenAssignToUser(
+    user: UserEntity,
+    couponText: string
+  ) {
+    const coupon = await this.couponRepository.findOne({
+      where: {
+        code: Equal(couponText),
+        active: true,
+      },
+    });
+    if (!coupon) return null;
+    return this.assignCouponToUser(user.id, coupon.id, true);
+  }
+  async getUserCoupons(user: UserEntity) {
+    const uc = await this.userCouponRepository.find({
+      relations: {
+        user: true,
+        coupon: true,
+      },
+      where: {
+        user: {
+          id: Equal(user.id),
+        },
+      },
+    });
+    return uc;
   }
 }

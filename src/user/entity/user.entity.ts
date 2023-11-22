@@ -7,6 +7,7 @@ import { VehicleEntity } from "../../vehicle/entity/vehicle.entity";
 import { BookingEntity } from "../../booking/entity/booking.entity";
 import { CouponEntity } from "src/coupons/entity/coupon.entity";
 import { UserCouponEntity } from "src/coupons/user-coupons/entity/user-coupons.entity";
+import { CardEntity } from "./card.entity";
 
 @Entity("user")
 @ObjectType()
@@ -51,4 +52,10 @@ export class UserEntity extends BaseCustomer {
     nullable: true,
   })
   userCoupons: UserCouponEntity[];
+  @Column({ nullable: true })
+  @Field(() => String, { nullable: true })
+  paykuClientId: string;
+  @Column({ nullable: true })
+  @Field(() => String, { nullable: true })
+  paykuSubId: string;
 }
