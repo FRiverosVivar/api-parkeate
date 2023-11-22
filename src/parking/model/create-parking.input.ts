@@ -9,35 +9,37 @@ import { ParkingType } from "./parking-type.enum";
 @ArgsType()
 export class CreateParkingInput {
   @Field(() => String)
-  name: string
+  name: string;
   @Field(() => String)
-  address: string
+  address: string;
   @Field(() => Boolean)
-  reserved: boolean
+  reserved: boolean;
   @Field(() => Boolean)
-  active: boolean
+  active: boolean;
   @Field(() => Boolean)
-  blocked: boolean
+  blocked: boolean;
   @Field(() => String)
-  tax: string
+  tax: string;
   @Field(() => Int)
-  floor: number
+  floor: number;
   @Field(() => String)
-  section: string
+  section: string;
   @Field(() => String)
-  code: string
-  @Field(() => String, {nullable: true})
-  photo: string
+  code: string;
+  @Field(() => String, { nullable: true })
+  photo: string;
   @Field(() => String)
-  pricePerMinute: string
+  pricePerMinute: string;
   @Field(() => String)
-  priceMonthly: string
+  priceMonthly: string;
   @Field(() => String)
-  priceYearly: string
+  priceYearly: string;
   @Field(() => Int)
   type: number;
-  @Field(() => String, {nullable: true})
-  description?: string
+  @Field(() => String, { nullable: true })
+  description?: string;
   @Field(() => String)
-  phone: string
+  phone: string;
+  @Field(() => String)
+  contactEmail: string;
 }
