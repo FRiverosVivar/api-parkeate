@@ -322,6 +322,7 @@ type ParkingEntity {
   building: BuildingEntity!
   bookings: [BookingEntity!]!
   phone: String
+  contactEmail: String
 }
 
 type BookingEntity {
@@ -346,6 +347,7 @@ type BookingEntity {
   finalPrice: Float
   paid: Boolean!
   liquidation: LiquidationEntity!
+  vehicle: VehicleEntity!
 }
 
 type PaginationMeta {
@@ -697,10 +699,10 @@ type Mutation {
   setHoldingPhoto(holdingId: String!, photoInput: CreatePhotoInput!, photo: Upload!): HoldingEntity!
   removeHolding(holdingId: String!): UserEntity!
   createHolding(createHoldingInput: CreateHoldingInput!, clientsIds: String!): UserEntity!
-  createBooking(createBookingInput: CreateBookingInput!, parkingId: String!): BookingEntity!
+  createBooking(createBookingInput: CreateBookingInput!, parkingId: String!, vehicleId: String): BookingEntity!
   updateBooking(updateBookingInput: UpdateBookingInput!): BookingEntity!
   removeBooking(bookingId: String!): BookingEntity!
-  generatePaymentFromPayku(bookingId: String!, couponId: String, paygate: String!, subId: String!, priceToPay: Float!): BookingEntity!
+  generatePaymentFromPayku(bookingId: String!, paygate: String!, subId: String!, priceToPay: Float!, couponId: String, bookingNextState: Float): BookingEntity!
   createRequest(createRequestInput: CreateRequestInput!): RequestEntity!
   uploadPaymentReceipt(liquidationId: String!, receiptPdf: Upload!): LiquidationEntity!
   generateBulkOfCodes(generateCouponsOptions: GenerateCouponOptions!): [CouponEntity!]!
@@ -748,6 +750,7 @@ input UpdateParkingInput {
   type: Int
   description: String
   phone: String
+  contactEmail: String
   id: String!
 }
 
@@ -768,6 +771,7 @@ input CreateParkingInput {
   type: Int!
   description: String
   phone: String!
+  contactEmail: String!
 }
 
 input CreatePhotoInput {

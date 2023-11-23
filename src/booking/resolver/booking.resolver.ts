@@ -34,12 +34,14 @@ export class BookingResolver {
   createBooking(
     @Args("createBookingInput") createBookingInput: CreateBookingInput,
     @Args("parkingId") parkingId: string,
-    @CurrentUser() user: UserEntity
+    @CurrentUser() user: UserEntity,
+    @Args("vehicleId", { nullable: true }) vehicleId: string
   ) {
     return this.bookingService.createBooking(
       createBookingInput,
       parkingId,
-      user.id
+      user.id,
+      vehicleId
     );
   }
   @Mutation(() => BookingEntity)

@@ -1,5 +1,12 @@
 import { Field, Int, ObjectType } from "@nestjs/graphql";
-import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, getManager } from "typeorm";
+import {
+  BeforeInsert,
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  getManager,
+} from "typeorm";
 import { BaseEntityWithIdAbstract } from "../../utils/interfaces/base-entity-with-id.abstract";
 import { BookingTypesEnum } from "../enum/booking-types.enum";
 import { BookingStatesEnum } from "../enum/booking-states.enum";
@@ -7,8 +14,9 @@ import { ParkingEntity } from "../../parking/entity/parking.entity";
 import { UserEntity } from "../../user/entity/user.entity";
 import { LiquidationEntity } from "../../liquidation/entity/liquidation.entity";
 import { DateTime } from "luxon";
+import { VehicleEntity } from "src/vehicle/entity/vehicle.entity";
 
-@Entity('booking')
+@Entity("booking")
 @ObjectType()
 export class BookingEntity extends BaseEntityWithIdAbstract {
   @Column()
@@ -16,38 +24,41 @@ export class BookingEntity extends BaseEntityWithIdAbstract {
   numberId: string;
   @Column()
   @Field(() => Int)
-  bookingType: BookingTypesEnum
+  bookingType: BookingTypesEnum;
   @Column()
   @Field(() => Int)
-  bookingState: BookingStatesEnum
-  @ManyToOne(() => ParkingEntity, (p) => p.bookings, {eager: true})
+  bookingState: BookingStatesEnum;
+  @ManyToOne(() => ParkingEntity, (p) => p.bookings, { eager: true })
   @Field(() => ParkingEntity)
-  parking: ParkingEntity
-  @ManyToOne(() => UserEntity, (p) => p.bookings, {eager: true})
+  parking: ParkingEntity;
+  @ManyToOne(() => UserEntity, (p) => p.bookings, { eager: true })
   @Field(() => UserEntity)
-  user: UserEntity
+  user: UserEntity;
   @Column()
   @Field(() => Number)
-  initialPrice: number
-  @Column({type: 'timestamptz', nullable: true})
+  initialPrice: number;
+  @Column({ type: "timestamptz", nullable: true })
   @Field(() => Date)
-  dateStart: Date
-  @Column({type: 'timestamptz', nullable: true})
+  dateStart: Date;
+  @Column({ type: "timestamptz", nullable: true })
   @Field(() => Date)
-  dateEnd: Date
-  @Column({type: 'timestamptz', nullable: true})
-  @Field(() => Date, {nullable: true})
-  dateExtended: Date
-  @Column({type: 'timestamptz', nullable: true})
-  @Field(() => Date, {nullable: true})
-  timeFinalized: Date
-  @Column({nullable: true})
-  @Field(() => Number,{nullable: true})
-  finalPrice: number
-  @Column({nullable: true})
+  dateEnd: Date;
+  @Column({ type: "timestamptz", nullable: true })
+  @Field(() => Date, { nullable: true })
+  dateExtended: Date;
+  @Column({ type: "timestamptz", nullable: true })
+  @Field(() => Date, { nullable: true })
+  timeFinalized: Date;
+  @Column({ nullable: true })
+  @Field(() => Number, { nullable: true })
+  finalPrice: number;
+  @Column({ nullable: true })
   @Field(() => Boolean)
-  paid: boolean
-  @ManyToOne(() => LiquidationEntity, (l ) => l.bookings, {nullable: true})
+  paid: boolean;
+  @ManyToOne(() => LiquidationEntity, (l) => l.bookings, { nullable: true })
   @Field(() => LiquidationEntity)
-  liquidation: LiquidationEntity
+  liquidation: LiquidationEntity;
+  @ManyToOne(() => VehicleEntity, (v) => v.bookings, { nullable: true })
+  @Field(() => VehicleEntity)
+  vehicle: VehicleEntity;
 }
