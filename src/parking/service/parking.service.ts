@@ -474,8 +474,8 @@ export class ParkingService {
           }
         }
         const price: PrepaidHourParking = {
-          amountToBePaid: 50,
-          tax: 1,
+          amountToBePaid: Math.round(+p.pricePerMinute * 65 * 1.19),
+          tax: Math.round(+p.pricePerMinute * 65 * 0.19),
           initialPrice: Math.round(+p.pricePerMinute * 65),
         };
         return price;
