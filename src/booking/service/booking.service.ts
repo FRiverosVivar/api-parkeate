@@ -1000,7 +1000,9 @@ export class BookingService implements OnModuleInit {
     }
     const job = new CronJob(
       dateEnd.toJSDate(),
-      () => {},
+      () => {
+        job.stop();
+      },
       async () => {
         if (hasPreviousJob)
           this.executeStateChangeFromBooking(cron, dateExtended);
@@ -1031,7 +1033,9 @@ export class BookingService implements OnModuleInit {
     );
     const job = new CronJob(
       dateEnd.toJSDate(),
-      () => {},
+      () => {
+        job.stop();
+      },
       async () => {
         if (hasPreviousJob)
           this.executeStateChangeFromBooking(cron, dateExtended);
