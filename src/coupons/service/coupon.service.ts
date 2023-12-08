@@ -31,7 +31,7 @@ export class CouponService implements OnModuleInit {
     private readonly userService: UserService
   ) {}
   onModuleInit() {
-    Settings.defaultZone = "America/Sao_Paulo";
+    Settings.defaultZone = "America/Santiago";
   }
   @Cron(CronExpression.EVERY_DAY_AT_5AM, {
     name: "checkValidityOfCoupons",

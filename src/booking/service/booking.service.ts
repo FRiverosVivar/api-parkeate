@@ -72,7 +72,7 @@ export class BookingService implements OnModuleInit {
   }
 
   onModuleInit(): any {
-    Settings.defaultZone = "America/Sao_Paulo";
+    Settings.defaultZone = "America/Santiago";
     this.checkMonthlyAndYearlyReservations();
     this.loadCronsFromRepository();
   }
