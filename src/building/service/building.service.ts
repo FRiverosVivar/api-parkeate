@@ -399,12 +399,12 @@ export class BuildingService {
     `
     );
   }
-  async findDailyIncomeOfAllBuildingsInAMonth() {
+  async findDailyIncomeOfAllBuildingsInAMonth(days?: number) {
     const profit: MonthlyBuildingProfit = {
       monthlyBuildingProfit: [],
     };
     const dateStart = DateTime.now()
-      .minus({ days: 30 })
+      .minus({ days: days ? days : 30 })
       .startOf("day")
       .toISO()!;
     const dateEnd = DateTime.now().endOf("day").toISO()!;
@@ -412,11 +412,9 @@ export class BuildingService {
       dateStart,
       dateEnd
     );
-    console.log(results);
     profit.monthlyBuildingProfit = profit.monthlyBuildingProfit.concat(
       results ? results : []
     );
-    console.log(profit);
     return profit;
   }
   getAllNearbyAndReservableBuildings(

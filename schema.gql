@@ -116,6 +116,7 @@ type UserEntity {
   userCoupons: [UserCouponEntity!]
   paykuClientId: String
   paykuSubId: String
+  supplier: String!
 }
 
 enum UserTypesEnum {
@@ -274,6 +275,7 @@ type ClientEntity {
   bankAccountType: Int!
   bankAccountNumber: String!
   bankAccountEmail: String!
+  supplier: String!
 }
 
 type ScheduleEntity {
@@ -524,8 +526,14 @@ type MostProfitableBuilding {
   totalPrice: Float!
 }
 
-type WeeklyBuildingProfit {
-  weeklyBuildingProfit: [Float!]!
+type MonthlyBuildingProfit {
+  monthlyBuildingProfit: [MonthlyFinalPrice!]!
+}
+
+type MonthlyFinalPrice {
+  dailyIncome: Float
+  bookingsCount: Float
+  day: DateTime!
 }
 
 type BookingDailyFinance {
@@ -583,7 +591,7 @@ type Query {
   getAllNearbyAndBuildings(distance: Float!, point: PointInput!): [BuildingOutput!]!
   getPaginatedBuildings(paginationOptions: PageOptionsDto!): BuildingsPaginated!
   findMostProfitableBuilding: MostProfitableBuilding
-  findWeeklyProfitOfAllBuildings: WeeklyBuildingProfit!
+  findDailyIncomeOfAllBuildingsInAMonth(days: Float): MonthlyBuildingProfit!
   findTagById(tagId: String!): [TagsEntity!]!
   findTagsByBuildingId(buildingId: String!): [TagsEntity!]!
   users: [UserEntity!]!
@@ -877,6 +885,7 @@ input CreateUserInput {
   wallet: Int
   licenseDriver: String
   dniPhoto: String
+  supplier: String
 }
 
 input CreateClientInput {
@@ -908,11 +917,12 @@ input CreateClientInput {
   """type of the user"""
   userType: Int!
   preferedLiquidationPayRate: Int!
-  bankType: Int!
-  bankAccountEmail: String!
-  bankAccountName: String!
-  bankAccountType: Int!
-  bankAccountNumber: String!
+  bankType: Int
+  bankAccountEmail: String
+  bankAccountName: String
+  bankAccountType: Int
+  bankAccountNumber: String
+  supplier: String
 }
 
 input LoginClientInput {
@@ -962,6 +972,7 @@ input UpdateUserInput {
   wallet: Int
   licenseDriver: String
   dniPhoto: String
+  supplier: String
   id: String!
 }
 
@@ -999,6 +1010,7 @@ input UpdateClientInput {
   bankAccountName: String
   bankAccountType: Int
   bankAccountNumber: String
+  supplier: String
   id: String!
 }
 

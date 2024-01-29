@@ -452,6 +452,7 @@ export class BookingService implements OnModuleInit {
           ? `u.id = '${user.id}'::uuid`
           : ""
       )
+      .andWhere(parkingId ? `p.id = '${parkingId}'::uuid` : "")
       .skip(pagination.skip)
       .take(pagination.take);
     const itemCount = await query.getCount();

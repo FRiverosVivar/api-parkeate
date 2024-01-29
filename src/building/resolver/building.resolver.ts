@@ -145,7 +145,11 @@ export class BuildingResolver {
     name: "findDailyIncomeOfAllBuildingsInAMonth",
   })
   @UseGuards(JwtAuthGuard)
-  findDailyIncomeOfAllBuildingsInAMonth() {
-    return from(this.buildingService.findDailyIncomeOfAllBuildingsInAMonth());
+  findDailyIncomeOfAllBuildingsInAMonth(
+    @Args("days", { nullable: true }) days?: number
+  ) {
+    return from(
+      this.buildingService.findDailyIncomeOfAllBuildingsInAMonth(days)
+    );
   }
 }
