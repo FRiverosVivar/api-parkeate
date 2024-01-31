@@ -10,6 +10,6 @@ export class CreateUserInput extends BasicCustomerInputAbstract {
   licenseDriver: string;
   @Field(() => String, { nullable: true })
   dniPhoto: string;
-  @Field(() => String, { nullable: true })
+  @Field(() => Boolean, { nullable: true })
   supplier: boolean;
 }
