@@ -163,14 +163,24 @@ export class ClientService {
     );
   }
   getClientsToLiquidate() {
-    return this.clientRepository
-      .createQueryBuilder("c")
-      .leftJoin(`c.buildings`, "b")
-      .leftJoin(`b.parkingList`, "p")
-      .leftJoin(`p.bookings`, "bk")
-      .where(`bk.id is not null`)
-      .andWhere(`bk.liquidationId is null`)
-      .getMany();
+    return this.clientRepository.query(
+      `select c.* from client as c
+      left join parking as p 
+      on p."clientId"  = c.id
+      left join booking as bk
+      on p.id = bk."parkingId"
+      where bk.id is not null
+      and bk."liquidationId" is null
+      group by c.id`
+    );
+    // return this.clientRepository
+    //   .createQueryBuilder("c")
+    //   .leftJoin(`c.buildings`, "b")
+    //   .leftJoin(`b.parkingList`, "p")
+    //   .leftJoin(`p.bookings`, "bk")
+    //   .where(`bk.id is not null`)
+    //   .andWhere(`bk.liquidationId is null`)
+    //   .getMany();
   }
   findAll(): Observable<ClientEntity[]> {
     return from(this.clientRepository.find());

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, OnModuleInit } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { BookingEntity } from "../entity/booking.entity";
-import { Between, Repository } from "typeorm";
+import { Between, IsNull, Not, Repository } from "typeorm";
 import { forkJoin, from, map, Observable, of, switchMap, tap } from "rxjs";
 import * as uuid from "uuid";
 import { UUIDBadFormatException } from "../../utils/exceptions/UUIDBadFormat.exception";
@@ -594,20 +594,17 @@ export class BookingService implements OnModuleInit {
     return this.bookingRepository.find({
       relations: {
         parking: {
-          building: {
-            client: true,
-          },
+          client: true,
         },
       },
       where: {
         parking: {
-          building: {
-            client: {
-              id: clientId,
-            },
+          client: {
+            id: clientId,
           },
         },
         bookingState: BookingStatesEnum.FINALIZED,
+        finalPrice: Not(IsNull()),
       },
     });
   }
