@@ -595,6 +595,7 @@ export class BookingService implements OnModuleInit {
       relations: {
         parking: {
           client: true,
+          building: true,
         },
       },
       where: {

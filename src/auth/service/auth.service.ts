@@ -20,13 +20,15 @@ import { ClientLoginResponse } from "../../client/model/client-login.response";
 import { NotValidatedAccountException } from "../../utils/exceptions/not-validated-account.exception";
 import { LoginClientInput } from "../../client/model/login-client.input";
 import { UpdateUserInput } from "../../user/model/dto/update-user.input";
+import { NotificationService } from "src/utils/notification/notification.service";
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UserService,
     private clientService: ClientService,
     private jwtService: JwtService,
-    private bcryptService: CryptService
+    private bcryptService: CryptService,
+    private notificationService: NotificationService
   ) {}
   createUser(createUserInput: CreateUserInput): Observable<UserEntity> {
     if (!createUserInput.wallet) createUserInput.wallet = 0;
@@ -116,7 +118,11 @@ export class AuthService {
   }
   login(user: UserEntity) {
     if (!user.validatedAccount) throw new NotValidatedAccountException();
-
+    this.notificationService.sendNotificationToListOfUsers(
+      [user.id],
+      "login exitoso!",
+      "sesion iniciada"
+    );
     return {
       user: user,
       access_token: this.jwtService.sign(

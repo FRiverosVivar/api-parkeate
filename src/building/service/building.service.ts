@@ -441,4 +441,21 @@ export class BuildingService {
       `;
     return from(this.buildingRepository.query(query));
   }
+  verifyCustomerPositionIsCloseTo100MtsOrLessFromBuilding(
+    point: PointInput,
+    buildingId: string
+  ) {
+    const query = `
+    SELECT coalesce(
+      bool_or(ST_DWITHIN(geography(location), ST_SetSRID(ST_MakePoint('${point.coordinates[1]}', '${point.coordinates[0]}'), 4326), 100, true))
+      ,false) as isCloseToBuilding
+    FROM building as b
+    WHERE id = '${buildingId}'::uuid
+    `;
+    return from(this.buildingRepository.query(query)).pipe(
+      map((b) => {
+        return b.pop().isclosetobuilding;
+      })
+    );
+  }
 }

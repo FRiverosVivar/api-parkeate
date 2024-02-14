@@ -152,4 +152,17 @@ export class BuildingResolver {
       this.buildingService.findDailyIncomeOfAllBuildingsInAMonth(days)
     );
   }
+  @Query(() => Boolean, {
+    name: "verifyCustomerPositionIsCloseTo100MtsOrLessFromBuilding",
+  })
+  @UseGuards(JwtAuthGuard)
+  verifyCustomerPositionIsCloseTo100MtsOrLessFromBuilding(
+    @Args("buildingId") buildingId: string,
+    @Args("point") point: PointInput
+  ): Observable<Boolean> {
+    return this.buildingService.verifyCustomerPositionIsCloseTo100MtsOrLessFromBuilding(
+      point,
+      buildingId
+    );
+  }
 }

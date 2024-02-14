@@ -147,14 +147,17 @@ export function mapBookingsToPDFTemplateBookings(
 export function mapBookingToMinifiedBookingForPDFTemplate(
   booking: BookingEntity
 ): MinifiedBookingForPDF {
+  const dateStart = DateTime.fromJSDate(booking.dateStart);
   const minifiedBooking: MinifiedBookingForPDF = {
     numberId: booking.numberId,
-    dateStart: DateTime.fromJSDate(booking.dateStart).toFormat(
-      "yyyy MM dd hh:mm:ss"
-    ),
-    dateEnd: DateTime.fromJSDate(
+    buildingName: booking.parking.building.name,
+    parkingName: booking.parking.name,
+    totalMinutes: DateTime.fromJSDate(
       booking.dateExtended ? booking.dateExtended : booking.dateEnd
-    ).toFormat("yyyy MM dd hh:mm:ss"),
+    )
+      .diff(dateStart, "minutes")
+      .as("minutes")
+      .toString(),
     bookingType: BookingTypeNameEnum[booking.bookingType],
     finalPrice: formatearMonedaChilena(booking.finalPrice),
   };

@@ -153,6 +153,7 @@ export class LiquidationService implements OnModuleInit {
       liquidation,
       client
     );
+    "a".trim()
     const pdf = await readPdfTemplateFromFilesAndCompileWithData(data);
     const date = DateTime.now().toFormat("yyyy-MM-dd");
     return (await this.fileService

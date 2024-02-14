@@ -24,6 +24,7 @@ import { WeeklyBuildingProfit } from "../../building/model/finance-building.outp
 import { PaykuModel, PaykuResponse } from "../model/payku-model.input";
 import { BookingPriceCalculated } from "../model/booking-calculate-price.output";
 import { BookingStatesEnum } from "../enum/booking-states.enum";
+import { type } from "os";
 
 @Resolver(BookingEntity)
 export class BookingResolver {
@@ -94,8 +95,14 @@ export class BookingResolver {
     return this.bookingService.findBookingsAndGetDailyIncomeAndPercentage();
   }
   @Query(() => BookingEntity)
-  findBookingById(@Args("bookingId") bookingId: string) {
-    return this.bookingService.findBookingById(bookingId);
+  findBookingById(
+    @Args("bookingId") bookingId: string,
+    @Args("relations", { nullable: true }) relations: string
+  ) {
+    return this.bookingService.findBookingById(
+      bookingId,
+      JSON.parse(relations)
+    );
   }
   @Query(() => BookingEntity)
   updateBookingParking(
