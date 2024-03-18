@@ -1,7 +1,14 @@
 import { Injectable, NotFoundException, OnModuleInit } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { BookingEntity } from "../entity/booking.entity";
-import { Between, IsNull, Not, Repository } from "typeorm";
+import {
+  Between,
+  Equal,
+  IsNull,
+  MoreThanOrEqual,
+  Not,
+  Repository,
+} from "typeorm";
 import { forkJoin, from, map, Observable, of, switchMap, tap } from "rxjs";
 import * as uuid from "uuid";
 import { UUIDBadFormatException } from "../../utils/exceptions/UUIDBadFormat.exception";
@@ -45,6 +52,9 @@ import { UpdateUserCouponInput } from "src/coupons/model/update-user-coupon.inpu
 import { getBookingDataForNewBookingEmailTemplate } from "src/utils/utils";
 import { VehicleService } from "src/vehicle/service/vehicle.service";
 import { VehicleEntity } from "src/vehicle/entity/vehicle.entity";
+import { CronExpressionExtendedEnum } from "src/utils/cron/cron-expression-extended.enum";
+import { InAdvanceBooking } from "../enum/in-advance-booking.enum";
+import { NotificationService } from "src/utils/notification/notification.service";
 
 @Injectable()
 export class BookingService implements OnModuleInit {
@@ -60,7 +70,8 @@ export class BookingService implements OnModuleInit {
     private readonly httpService: HttpService,
     private readonly crypto: CryptService,
     private readonly couponService: CouponService,
-    private readonly vehicleService: VehicleService
+    private readonly vehicleService: VehicleService,
+    private readonly notificationService: NotificationService
   ) {}
   @Cron(CronExpression.EVERY_DAY_AT_5AM, {
     name: "checkMonthlyAndYearlyReservations",
@@ -75,6 +86,92 @@ export class BookingService implements OnModuleInit {
     Settings.defaultZone = "America/Santiago";
     this.checkMonthlyAndYearlyReservations();
     this.loadCronsFromRepository();
+  }
+  @Cron(CronExpressionExtendedEnum.EVERY_15_MINUTES)
+  private async checkAnticipatedBookings() {
+    const bookings = await this.bookingRepository.findBy({
+      bookingState: BookingStatesEnum.IN_ADVANCE_RESERVED,
+    });
+    const now = DateTime.now();
+    const notify = [];
+    const bookingsToUpdate = [];
+    for (let booking of bookings) {
+      const bookingCurrentMinutesUntilStartState =
+        this.determineRemainingMinutesFromBooking(
+          now,
+          DateTime.fromJSDate(booking.dateStart)
+        );
+      if (
+        booking.lastestNotifiedState !== bookingCurrentMinutesUntilStartState &&
+        bookingCurrentMinutesUntilStartState !== InAdvanceBooking.IGNORE
+      ) {
+        if (
+          bookingCurrentMinutesUntilStartState ===
+          InAdvanceBooking.STATE_TO_RESERVED
+        ) {
+          const updateBooking: UpdateBookingInput = {
+            id: booking.id,
+            bookingState: booking.bookingState,
+          };
+          this.updateBooking(updateBooking);
+          continue;
+        }
+        booking.lastestNotifiedState = bookingCurrentMinutesUntilStartState;
+        notify.push(booking.user.id);
+        bookingsToUpdate.push(booking);
+      }
+    }
+    console.log("notify");
+    console.log(notify);
+    console.log("bookingsToUpdate");
+    console.log(bookingsToUpdate);
+    if (notify.length > 0)
+      this.notificationService.sendNotificationToListOfUsers(
+        notify,
+        "Reserva Anticipada",
+        "Tu reserva está próxima a comenzar!"
+      );
+    if (bookingsToUpdate.length > 0)
+      this.bookingRepository.save(
+        bookingsToUpdate
+          .filter((b) => b.lastestNotifiedState !== InAdvanceBooking.IGNORE)
+          .filter(
+            (b) => b.lastestNotifiedState !== InAdvanceBooking.STATE_TO_RESERVED
+          )
+      );
+  }
+  private determineRemainingMinutesFromBooking(
+    now: DateTime,
+    dateStart: DateTime
+  ) {
+    const minutes = dateStart.diff(now, "minutes").minutes;
+    switch (true) {
+      case minutes < 0: {
+        return InAdvanceBooking.STATE_TO_RESERVED;
+      }
+      case minutes < 15: {
+        return InAdvanceBooking.LESS_THAN_15;
+      }
+      case minutes < 30 && minutes > 15: {
+        return InAdvanceBooking.LESS_THAN_30;
+      }
+      case minutes < 60 && minutes > 30: {
+        return InAdvanceBooking.LESS_THAN_60;
+      }
+      case minutes < 180 && minutes > 60: {
+        return InAdvanceBooking.LESS_THAN_180;
+      }
+      case minutes < 360 && minutes > 180: {
+        return InAdvanceBooking.LESS_THAN_360;
+      }
+      case minutes < 1440 && minutes > 360: {
+        return InAdvanceBooking.LESS_THAN_1440;
+      }
+      case minutes < 10080 && minutes > 1440: {
+        return InAdvanceBooking.LESS_THAN_10080;
+      }
+    }
+    return InAdvanceBooking.IGNORE;
   }
   async getBookingCountForOrderNumberAndCreatePaykuOrder(
     paykuModel: PaykuModel
@@ -230,8 +327,10 @@ export class BookingService implements OnModuleInit {
             }
 
             if (
-              previousBooking.bookingState ===
-                BookingStatesEnum.PAYMENT_REQUIRED &&
+              (previousBooking.bookingState ===
+                BookingStatesEnum.PAYMENT_REQUIRED ||
+                previousBooking.bookingState ===
+                  BookingStatesEnum.IN_ADVANCE_RESERVED) &&
               booking.bookingState === BookingStatesEnum.RESERVED
             ) {
               console.log("f");
@@ -447,6 +546,7 @@ export class BookingService implements OnModuleInit {
       .createQueryBuilder("b")
       .leftJoinAndSelect("b.parking", "p")
       .leftJoinAndSelect("b.user", "u")
+      .leftJoinAndSelect("b.vehicle", "v")
       .where(
         user.userType < UserTypesEnum.ADMIN && displayAll
           ? `u.id = '${user.id}'::uuid`
@@ -1075,5 +1175,24 @@ export class BookingService implements OnModuleInit {
       await this.updateBooking(updateBookingInput).toPromise().then();
     cron.executed = true;
     await this.cronService.saveCron(cron).then();
+  }
+  getBookingsFromTheCurrentDayOfBuilding(buildingId: string) {
+    return this.bookingRepository.find({
+      relations: {
+        parking: {
+          building: true,
+        },
+        vehicle: true,
+      },
+      where: {
+        parking: {
+          building: Equal(buildingId),
+        },
+        bookingState: MoreThanOrEqual(BookingStatesEnum.PAYMENT_REQUIRED),
+      },
+      order: {
+        dateStart: "DESC",
+      },
+    });
   }
 }

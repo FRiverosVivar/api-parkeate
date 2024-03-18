@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Equal, Repository } from "typeorm";
 import { BuildingEntity } from "../entity/building.entity";
 import { forkJoin, from, map, Observable, of, switchMap, tap } from "rxjs";
 import { CreateBuildingInput } from "../model/create-building.input";
@@ -59,6 +59,7 @@ export class BuildingService {
     newBuilding.active = false;
     const tags$ = this.tagsService.findAllTagsByIds(tags);
     newBuilding.parkingList = [];
+    newBuilding.guardsAssigned = [];
     const subject = forkJoin([
       tags$,
       client,
@@ -113,6 +114,25 @@ export class BuildingService {
         return from(this.buildingRepository.save(b));
       })
     );
+  }
+  async addGuard(buildingId: string, guardId: string) {
+    if (!uuid.validate(buildingId) || !uuid.validate(guardId)) {
+      throw new UUIDBadFormatException();
+    }
+    const building = await this.findBuildingById(buildingId).toPromise();
+    const guard = await this.clientService.findClientById(guardId).toPromise();
+    building!.guardsAssigned.push(guard!);
+    return this.buildingRepository.save(building!);
+  }
+  async removeGuard(buildingId: string, guardId: string) {
+    if (!uuid.validate(buildingId) || !uuid.validate(guardId)) {
+      throw new UUIDBadFormatException();
+    }
+    const building = await this.findBuildingById(buildingId).toPromise();
+    building!.guardsAssigned = building!.guardsAssigned.filter(
+      (g) => g.id !== guardId
+    );
+    return this.buildingRepository.save(building!);
   }
   async findPaginatedBuildings(pagination: PageOptionsDto, user: ClientEntity) {
     const query = this.buildingRepository
@@ -457,5 +477,14 @@ export class BuildingService {
         return b.pop().isclosetobuilding;
       })
     );
+  }
+  getBuildingsAssigedToAGuard(guardId: string) {
+    return this.buildingRepository.find({
+      where: {
+        guardsAssigned: {
+          id: Equal(guardId),
+        },
+      },
+    });
   }
 }

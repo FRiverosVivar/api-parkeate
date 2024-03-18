@@ -18,7 +18,7 @@ import { CurrentUser } from "../../auth/decorator/current-user.decorator";
 import { ParkingType } from "../../parking/model/parking-type.enum";
 import {
   BuildingsPaginated,
-  PageDto,
+  ClientsPaginated,
   PageOptionsDto,
 } from "../../utils/interfaces/pagination.type";
 import { ClientEntity } from "../../client/entity/client.entity";
@@ -121,6 +121,7 @@ export class BuildingResolver {
       user as any as ClientEntity
     );
   }
+
   @Mutation(() => BuildingEntity)
   setBuildingPhoto(
     @Args("buildingId") buildingId: string,
@@ -164,5 +165,14 @@ export class BuildingResolver {
       point,
       buildingId
     );
+  }
+  @Query(() => [BuildingEntity], {
+    name: "getBuildingsAssigedToAGuard",
+  })
+  @UseGuards(JwtAuthGuard)
+  getBuildingsAssigedToAGuard(
+    @Args("guardId") guardId: string
+  ): Promise<BuildingEntity[]> {
+    return this.buildingService.getBuildingsAssigedToAGuard(guardId);
   }
 }

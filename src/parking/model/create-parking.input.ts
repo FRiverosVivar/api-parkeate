@@ -4,6 +4,7 @@ import { Column, Point } from "typeorm";
 import { Geometry } from "geojson";
 import { PointInput } from "./point.input";
 import { ParkingType } from "./parking-type.enum";
+import { EventEntity } from "src/event/entity/event.entity";
 
 @InputType()
 @ArgsType()
@@ -42,4 +43,8 @@ export class CreateParkingInput {
   phone: string;
   @Field(() => String)
   contactEmail: string;
+  @Field(() => Boolean)
+  canBookAnticipated: boolean;
+  @Field(() => Number)
+  percentageSurchargeForReservation: number;
 }

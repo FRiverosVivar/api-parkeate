@@ -169,4 +169,15 @@ export class BookingResolver {
       bookingNextState
     );
   }
+  @Query(() => [BookingEntity], {
+    name: "GetBookingsFromTheCurrentDayOfBuilding",
+  })
+  @UseGuards(JwtAuthGuard)
+  GetBookingsFromTheCurrentDayOfBuilding(
+    @Args("buildingId") buildingId: string
+  ) {
+    return this.bookingService.getBookingsFromTheCurrentDayOfBuilding(
+      buildingId
+    );
+  }
 }

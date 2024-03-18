@@ -6,6 +6,9 @@ import { UserEntity } from "../../user/entity/user.entity";
 import { BookingEntity } from "../../booking/entity/booking.entity";
 import { LiquidationEntity } from "src/liquidation/entity/liquidation.entity";
 import { CouponEntity } from "src/coupons/entity/coupon.entity";
+import { EventEntity } from "src/event/entity/event.entity";
+import { ClientEntity } from "src/client/entity/client.entity";
+import { ParkingGuardEntity } from "src/parkingGuard/entity/parkingGuard.entity";
 @InputType()
 @ArgsType()
 export class PageOptionsDto {
@@ -65,6 +68,20 @@ export class BuildingsPaginated {
   meta: PaginationMeta;
 }
 @ObjectType()
+export class ClientsPaginated {
+  @Field(() => [ClientEntity])
+  data: ClientEntity[];
+  @Field(() => PaginationMeta)
+  meta: PaginationMeta;
+}
+@ObjectType()
+export class GuardsPaginated {
+  @Field(() => [ParkingGuardEntity])
+  data: ParkingGuardEntity[];
+  @Field(() => PaginationMeta)
+  meta: PaginationMeta;
+}
+@ObjectType()
 export class ParkingsPaginated {
   @Field(() => [ParkingEntity])
   data: ParkingEntity[];
@@ -103,6 +120,13 @@ export class LiquidationsPaginated {
 export class CouponsPaginated {
   @Field(() => [CouponEntity])
   data: CouponEntity[];
+  @Field(() => PaginationMeta)
+  meta: PaginationMeta;
+}
+@ObjectType()
+export class EventsPaginated {
+  @Field(() => [EventEntity])
+  data: EventEntity[];
   @Field(() => PaginationMeta)
   meta: PaginationMeta;
 }

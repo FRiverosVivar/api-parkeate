@@ -20,6 +20,7 @@ import { BookingEntity } from "../../booking/entity/booking.entity";
 import { GeometryGQL } from "../scalar/point.scalar";
 import { Geometry } from "geojson";
 import { ParkingType } from "../model/parking-type.enum";
+import { EventEntity } from "src/event/entity/event.entity";
 
 @Entity("parking")
 @ObjectType()
@@ -101,4 +102,15 @@ export class ParkingEntity extends BaseEntityWithIdAbstract {
   @Column({ nullable: true })
   @Field(() => String, { nullable: true })
   contactEmail: string;
+  @Column({ nullable: true, default: false })
+  @Field(() => Boolean, { nullable: true })
+  canBookAnticipated: boolean;
+  @Column({ nullable: true, default: 100 })
+  @Field(() => Number, { nullable: true })
+  percentageSurchargeForReservation: number;
+  @ManyToOne(() => ParkingEntity, (p) => p.event, {
+    nullable: true,
+  })
+  @Field(() => EventEntity, { nullable: true })
+  event: EventEntity;
 }

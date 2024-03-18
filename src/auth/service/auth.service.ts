@@ -20,7 +20,11 @@ import { ClientLoginResponse } from "../../client/model/client-login.response";
 import { NotValidatedAccountException } from "../../utils/exceptions/not-validated-account.exception";
 import { LoginClientInput } from "../../client/model/login-client.input";
 import { UpdateUserInput } from "../../user/model/dto/update-user.input";
-import { NotificationService } from "src/utils/notification/notification.service";
+import { CreateParkingGuardInput } from "src/parkingGuard/model/create-parking-guard.input";
+import { ParkingGuardService } from "src/parkingGuard/service/parkingGuard.service";
+import { ParkingGuardLoginResponse } from "src/parkingGuard/model/parking-guard-login-response.response";
+import { LoginGuardInput } from "src/event/model/login-guard.input";
+import { ParkingGuardEntity } from "src/parkingGuard/entity/parkingGuard.entity";
 @Injectable()
 export class AuthService {
   constructor(
@@ -28,7 +32,7 @@ export class AuthService {
     private clientService: ClientService,
     private jwtService: JwtService,
     private bcryptService: CryptService,
-    private notificationService: NotificationService
+    private parkingGuardService: ParkingGuardService
   ) {}
   createUser(createUserInput: CreateUserInput): Observable<UserEntity> {
     if (!createUserInput.wallet) createUserInput.wallet = 0;
@@ -60,6 +64,9 @@ export class AuthService {
         );
       })
     );
+  }
+  createGuard(createGuardInput: CreateParkingGuardInput) {
+    return this.parkingGuardService.createParkingGuard(createGuardInput);
   }
   updateUserPassword(updateUserInput: UpdateUserInput): Observable<UserEntity> {
     return this.userService.findUserById(updateUserInput.id).pipe(
@@ -93,8 +100,21 @@ export class AuthService {
   validateCredentials(
     username: string,
     password: string,
-    isClient: boolean
-  ): Observable<UserEntity | ClientEntity | undefined> {
+    isClient: boolean,
+    isGuard: boolean
+  ): Observable<UserEntity | ClientEntity | ParkingGuardEntity | undefined> {
+    if (isGuard) {
+      return this.parkingGuardService.findParkingGuardByRut(username).pipe(
+        switchMap((c) => {
+          return this.bcryptService.compare(password, c.password).pipe(
+            map((areSamePassword) => {
+              return areSamePassword ? c : undefined;
+            })
+          );
+        })
+      );
+    }
+
     if (isClient) {
       return this.clientService.findClientByRut(username).pipe(
         switchMap((c) => {
@@ -118,11 +138,6 @@ export class AuthService {
   }
   login(user: UserEntity) {
     if (!user.validatedAccount) throw new NotValidatedAccountException();
-    this.notificationService.sendNotificationToListOfUsers(
-      [user.id],
-      "login exitoso!",
-      "sesion iniciada"
-    );
     return {
       user: user,
       access_token: this.jwtService.sign(
@@ -154,6 +169,26 @@ export class AuthService {
         { secret: jwtConstants.secret, expiresIn: "60s" }
       ),
     } as ClientLoginResponse;
+  }
+  async parkingGuardLogin(loginInput: LoginGuardInput) {
+    const user = await this.parkingGuardService
+      .findParkingGuardByRut(loginInput.username)
+      .toPromise();
+    if (!user) throw new NotFoundException();
+
+    if (!user.validatedAccount) throw new NotValidatedAccountException();
+
+    return {
+      guard: user,
+      access_token: this.jwtService.sign(
+        {
+          username: user.rut,
+          userType: user.userType,
+          sub: user.id,
+        },
+        { secret: jwtConstants.secret, expiresIn: "60s" }
+      ),
+    } as ParkingGuardLoginResponse;
   }
   refreshToken(token: string): Observable<UserLoginResponse> {
     const user = this.jwtService.decode(token) as UserPayload;
@@ -194,6 +229,27 @@ export class AuthService {
             { secret: jwtConstants.secret, expiresIn: "60s" }
           ),
         } as ClientLoginResponse);
+      })
+    );
+  }
+  refreshGuardToken(token: string): Observable<ParkingGuardLoginResponse> {
+    const user = this.jwtService.decode(token) as UserPayload;
+    if (!user) {
+      throw new NotFoundException();
+    }
+    return this.parkingGuardService.findGuardById(user.sub).pipe(
+      switchMap((guardEntity) => {
+        return of({
+          guard: guardEntity,
+          access_token: this.jwtService.sign(
+            {
+              username: user.username,
+              userType: user.userType,
+              sub: user.sub,
+            },
+            { secret: jwtConstants.secret, expiresIn: "60s" }
+          ),
+        } as ParkingGuardLoginResponse);
       })
     );
   }

@@ -11,7 +11,7 @@ import { UserModule } from "../user/user.module";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import { UserTypeGuard } from "./guards/user-type.guard";
 import { ClientModule } from "../client/client.module";
-import { NotificationService } from "src/utils/notification/notification.service";
+import { HttpModule } from "@nestjs/axios";
 
 @Global()
 @Module({
@@ -35,6 +35,7 @@ import { NotificationService } from "src/utils/notification/notification.service
     }),
     UserModule,
     ClientModule,
+    HttpModule,
   ],
   providers: [
     AuthService,
@@ -45,7 +46,6 @@ import { NotificationService } from "src/utils/notification/notification.service
     JwtService,
     JwtAuthGuard,
     UserTypeGuard,
-    NotificationService,
   ],
   exports: [AuthService, CryptService, AuthResolver, JwtAuthGuard, JwtService],
 })

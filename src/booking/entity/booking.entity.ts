@@ -15,6 +15,7 @@ import { UserEntity } from "../../user/entity/user.entity";
 import { LiquidationEntity } from "../../liquidation/entity/liquidation.entity";
 import { DateTime } from "luxon";
 import { VehicleEntity } from "src/vehicle/entity/vehicle.entity";
+import { InAdvanceBooking } from "../enum/in-advance-booking.enum";
 
 @Entity("booking")
 @ObjectType()
@@ -59,6 +60,12 @@ export class BookingEntity extends BaseEntityWithIdAbstract {
   @Field(() => LiquidationEntity)
   liquidation: LiquidationEntity;
   @ManyToOne(() => VehicleEntity, (v) => v.bookings, { nullable: true })
-  @Field(() => VehicleEntity)
+  @Field(() => VehicleEntity, { nullable: true })
   vehicle: VehicleEntity;
+  @Column({ nullable: true })
+  @Field(() => Boolean, { nullable: true })
+  anticipatedBooking: boolean;
+  @Column({ nullable: true })
+  @Field(() => Boolean, { nullable: true })
+  lastestNotifiedState: InAdvanceBooking;
 }

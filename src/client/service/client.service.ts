@@ -24,6 +24,11 @@ import {
   UserTypesEnum,
   UserTypesEnumNames,
 } from "src/user/constants/constants";
+import {
+  PageDto,
+  PageOptionsDto,
+  PaginationMeta,
+} from "src/utils/interfaces/pagination.type";
 
 @Injectable()
 export class ClientService {
@@ -182,6 +187,30 @@ export class ClientService {
     //   .andWhere(`bk.liquidationId is null`)
     //   .getMany();
   }
+  // async getPaginatedGuardsFromBuilding(
+  //   buildingId: string,
+  //   pagination: PageOptionsDto
+  // ) {
+  //   const clients = await this.clientRepository.find({
+  //     where: {
+  //       guardBuildings: {
+  //         id: Equal(buildingId),
+  //       },
+  //     },
+  //     skip: pagination.skip,
+  //     take: pagination.take,
+  //     order: {
+  //       createdAt: "DESC",
+  //     },
+  //   });
+  //   const itemCount = clients.length;
+  //   const pageMetaDto = new PaginationMeta({
+  //     pageOptionsDto: pagination,
+  //     itemCount,
+  //   });
+  //   pageMetaDto.skip = (pageMetaDto.page - 1) * pageMetaDto.take;
+  //   return new PageDto(clients, pageMetaDto);
+  // }
   findAll(): Observable<ClientEntity[]> {
     return from(this.clientRepository.find());
   }

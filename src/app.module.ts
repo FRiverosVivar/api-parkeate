@@ -31,6 +31,8 @@ import { CouponModule } from "./coupons/coupons.module";
 import { HttpModule } from "@nestjs/axios";
 import { CryptService } from "./utils/crypt/crypt.service";
 import { UserService } from "./user/service/user.service";
+import { EventModule } from "./event/event.module";
+import { ParkingGuardModule } from "./parkingGuard/parkingGuard.module";
 
 @Module({
   imports: [
@@ -71,6 +73,7 @@ import { UserService } from "./user/service/user.service";
       },
     }),
     FileModule.forRoot(config()),
+    EventModule,
     PhotoModule,
     ParkingModule,
     SchedulesModule,
@@ -87,6 +90,7 @@ import { UserService } from "./user/service/user.service";
     LiquidationModule,
     CouponModule,
     HttpModule,
+    ParkingGuardModule,
   ],
   controllers: [AppController],
   providers: [AppService, EmailService],

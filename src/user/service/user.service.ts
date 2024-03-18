@@ -148,8 +148,6 @@ export class UserService {
       })
     ).pipe(
       map((user) => {
-        console.log("u");
-        console.log(user);
         if (!user) {
           throw new NotFoundException();
         }

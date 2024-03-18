@@ -1,4 +1,11 @@
-import { Column, Entity, ManyToOne, OneToMany } from "typeorm";
+import {
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+} from "typeorm";
 import { Field, Float, Int, ObjectType } from "@nestjs/graphql";
 import { BaseCustomer } from "../../utils/interfaces/base-customer.abstract";
 import { ParkingEntity } from "../../parking/entity/parking.entity";

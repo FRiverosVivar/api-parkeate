@@ -6,15 +6,17 @@ import { BookingStatesEnum } from "../enum/booking-states.enum";
 @ArgsType()
 export class CreateBookingInput {
   @Field(() => Int)
-  bookingType: BookingTypesEnum
+  bookingType: BookingTypesEnum;
   @Field(() => Int)
-  bookingState: BookingStatesEnum
+  bookingState: BookingStatesEnum;
   @Field(() => Number)
-  initialPrice: number
+  initialPrice: number;
   @Field(() => String)
-  dateStart: string
-  @Field(() => String, {nullable: true})
-  dateEnd: string
+  dateStart: string;
+  @Field(() => String, { nullable: true })
+  dateEnd: string;
   @Field(() => Boolean)
-  paid: boolean
+  paid: boolean;
+  @Field(() => Boolean, { nullable: true })
+  anticipatedBooking: boolean;
 }
