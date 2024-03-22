@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { VehicleEntity } from "../entity/vehicle.entity";
-import { Repository } from "typeorm";
+import { Like, Repository } from "typeorm";
 import { CreateVehicleInput } from "../model/create-vehicle.input";
 import { from, map, Observable, switchMap } from "rxjs";
 import * as uuid from "uuid";
@@ -130,5 +130,18 @@ export class VehicleService {
         },
       })
     );
+  }
+  findVehiclesWithModelPlateOrOwner(text: string) {
+    return this.vehicleRepository.find({
+      relations: {
+        bookings: true,
+        owner: true,
+      },
+      where: [
+        { model: Like(`%${text}%`) },
+        { carPlate: Like(`%${text}%`) },
+        { owner: { rut: Like(`%${text}%`) } },
+      ],
+    });
   }
 }

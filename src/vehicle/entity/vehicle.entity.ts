@@ -31,5 +31,6 @@ export class VehicleEntity extends BaseEntityWithIdAbstract {
   @Field(() => UserEntity)
   owner: UserEntity;
   @OneToMany(() => BookingEntity, (b) => b.vehicle, { nullable: true })
+  @Field(() => [BookingEntity])
   bookings: BookingEntity[];
 }
