@@ -134,7 +134,11 @@ export class VehicleService {
   findVehiclesWithModelPlateOrOwner(text: string) {
     return this.vehicleRepository.find({
       relations: {
-        bookings: true,
+        bookings: {
+          parking: {
+            building: true,
+          },
+        },
         owner: true,
       },
       where: [
@@ -142,6 +146,11 @@ export class VehicleService {
         { carPlate: Like(`%${text}%`) },
         { owner: { rut: Like(`%${text}%`) } },
       ],
+      order: {
+        bookings: {
+          dateStart: "DESC",
+        },
+      },
     });
   }
 }
