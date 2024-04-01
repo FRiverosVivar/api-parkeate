@@ -11,6 +11,7 @@ import { SmsService } from "../utils/sms/sms.service";
 import { SchedulerRegistry } from "@nestjs/schedule";
 import { HttpModule } from "@nestjs/axios";
 import { CryptService } from "src/utils/crypt/crypt.service";
+import { NotificationService } from "src/utils/notification/notification.service";
 
 registerEnumType(BookingTypesEnum, {
   name: "BookingTypes",
@@ -28,6 +29,7 @@ registerEnumType(BookingStatesEnum, {
     SmsService,
     SchedulerRegistry,
     CryptService,
+    NotificationService,
   ],
   exports: [BookingService, BookingResolver],
 })

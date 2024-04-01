@@ -16,10 +16,18 @@ import { PointInput } from "../../parking/model/point.input";
 import { UserEntity } from "../../user/entity/user.entity";
 import { CurrentUser } from "../../auth/decorator/current-user.decorator";
 import { ParkingType } from "../../parking/model/parking-type.enum";
-import { BuildingsPaginated, PageDto, PageOptionsDto } from "../../utils/interfaces/pagination.type";
+import {
+  BuildingsPaginated,
+  ClientsPaginated,
+  PageOptionsDto,
+} from "../../utils/interfaces/pagination.type";
 import { ClientEntity } from "../../client/entity/client.entity";
 import { BuildingWithCoordsOutput } from "../model/building-coords.output";
-import { MostProfitableBuilding, WeeklyBuildingProfit } from "../model/finance-building.output";
+import {
+  MonthlyBuildingProfit,
+  MostProfitableBuilding,
+  WeeklyBuildingProfit,
+} from "../model/finance-building.output";
 
 @Resolver(BuildingEntity)
 export class BuildingResolver {
@@ -27,84 +35,144 @@ export class BuildingResolver {
 
   @Mutation(() => BuildingEntity)
   createBuilding(
-    @Args('createBuildingEntity') createBuildingEntity: CreateBuildingInput,
-    @Args('ownerId', { type: () => String}) ownerId: string,
-    @Args('tags', { type: () => [String]}) tags: string[]
+    @Args("createBuildingEntity") createBuildingEntity: CreateBuildingInput,
+    @Args("ownerId", { type: () => String }) ownerId: string,
+    @Args("tags", { type: () => [String] }) tags: string[]
   ) {
-    return this.buildingService.createBuilding(createBuildingEntity, ownerId, tags);
+    return this.buildingService.createBuilding(
+      createBuildingEntity,
+      ownerId,
+      tags
+    );
   }
-  @Query(() => BuildingEntity, { name: 'findBuildingById' })
-  findBuildingById(@Args('buildingId', { type: () => String }) buildingId: string) {
-    return this.buildingService.findBuildingById(buildingId)
+  @Query(() => BuildingEntity, { name: "findBuildingById" })
+  findBuildingById(
+    @Args("buildingId", { type: () => String }) buildingId: string
+  ) {
+    return this.buildingService.findBuildingById(buildingId);
   }
-  @Query(() => BuildingWithCoordsOutput, { name: 'findBuildingWithCoordsById' })
-  findBuildingWithCoordsById(@Args('buildingId', { type: () => String }) buildingId: string) {
-    return this.buildingService.findBuildingWithCoordsById(buildingId)
+  @Query(() => BuildingWithCoordsOutput, { name: "findBuildingWithCoordsById" })
+  findBuildingWithCoordsById(
+    @Args("buildingId", { type: () => String }) buildingId: string
+  ) {
+    return this.buildingService.findBuildingWithCoordsById(buildingId);
   }
-  @Query(() => BuildingEntity, { name: 'findBuildingByIdAndFilterParkingsByReservedStatus' })
-  findBuildingByIdAndFilterParkingsByReservedStatus(@Args('buildingId', { type: () => String }) buildingId: string) {
-    return this.buildingService.findBuildingByIdAndFilterParkingsByReservedStatus(buildingId)
+  @Query(() => BuildingEntity, {
+    name: "findBuildingByIdAndFilterParkingsByReservedStatus",
+  })
+  findBuildingByIdAndFilterParkingsByReservedStatus(
+    @Args("buildingId", { type: () => String }) buildingId: string
+  ) {
+    return this.buildingService.findBuildingByIdAndFilterParkingsByReservedStatus(
+      buildingId
+    );
   }
-  @Query(() => BuildingEntity, { name: 'findBuildingByAddress' })
-  findBuildingByAddress(@Args('buildingId', { type: () => String }) buildingId: string) {
+  @Query(() => BuildingEntity, { name: "findBuildingByAddress" })
+  findBuildingByAddress(
+    @Args("buildingId", { type: () => String }) buildingId: string
+  ) {
     return this.buildingService.findBuildingByAddress(buildingId);
   }
   @Mutation(() => BuildingEntity)
   updateBuilding(
-    @Args('updateBuildingInput') updateBuildingInput: UpdateBuildingInput,
-    @Args('tags', {type: () => [String], nullable: true}) tags?: string[],
+    @Args("updateBuildingInput") updateBuildingInput: UpdateBuildingInput,
+    @Args("tags", { type: () => [String], nullable: true }) tags?: string[]
   ) {
     return this.buildingService.updateBuilding(updateBuildingInput, tags);
   }
   @Mutation(() => BuildingEntity)
-  removeTag(@Args('buildingId') buildingId: string) {
+  removeTag(@Args("buildingId") buildingId: string) {
     return this.buildingService.removeBuilding(buildingId);
   }
-  @Query(() => [BuildingOutput], { name: 'getAllNearbyAndReservableBuildings' })
+  @Query(() => [BuildingOutput], { name: "getAllNearbyAndReservableBuildings" })
   @UserType(UserTypesEnum.USER)
   @UseGuards(JwtAuthGuard, UserTypeGuard)
   getAllNearbyAndReservableBuildings(
-    @Args('distance') distance: number,
-    @Args( 'point') point: PointInput,
+    @Args("distance") distance: number,
+    @Args("point") point: PointInput,
     @CurrentUser() user: UserEntity,
-    @Args('parkingType', { nullable: true}) parkingType?: ParkingType,
+    @Args("parkingType", { nullable: true }) parkingType?: ParkingType
   ): any {
-    return this.buildingService.getAllNearbyAndReservableBuildings(user, point, distance, parkingType)
+    return this.buildingService.getAllNearbyAndReservableBuildings(
+      user,
+      point,
+      distance,
+      parkingType
+    );
   }
-  @Query(() => [BuildingOutput], { name: 'getAllNearbyAndBuildings' })
+  @Query(() => [BuildingOutput], { name: "getAllNearbyAndBuildings" })
   @UserType(UserTypesEnum.USER)
   @UseGuards(JwtAuthGuard, UserTypeGuard)
   getAllNearbyAndBuildings(
-    @Args('distance') distance: number,
-    @Args( 'point') point: PointInput,
-    @CurrentUser() user: UserEntity,
+    @Args("distance") distance: number,
+    @Args("point") point: PointInput,
+    @CurrentUser() user: UserEntity
   ): any {
-    return this.buildingService.getAllNearbyAndBuildings(point, distance)
+    return this.buildingService.getAllNearbyAndBuildings(point, distance);
   }
-  @Query(() => BuildingsPaginated, { name: 'getPaginatedBuildings' })
+  @Query(() => BuildingsPaginated, { name: "getPaginatedBuildings" })
   @UseGuards(JwtAuthGuard)
   getPaginatedBuildings(
-    @Args('paginationOptions') paginationOptions: PageOptionsDto,
+    @Args("paginationOptions") paginationOptions: PageOptionsDto,
     @CurrentUser() user: UserEntity
   ) {
-    return this.buildingService.findPaginatedBuildings(paginationOptions, user as any as ClientEntity)
+    return this.buildingService.findPaginatedBuildings(
+      paginationOptions,
+      user as any as ClientEntity
+    );
   }
+
   @Mutation(() => BuildingEntity)
   setBuildingPhoto(
-    @Args('buildingId') buildingId: string,
-    @Args('createPhotoInput') createPhotoInput: CreatePhotoInput,
-    @Args('file', { type: () => GraphQLUpload }) file: FileUpload,
+    @Args("buildingId") buildingId: string,
+    @Args("createPhotoInput") createPhotoInput: CreatePhotoInput,
+    @Args("file", { type: () => GraphQLUpload }) file: FileUpload
   ): Observable<BuildingEntity> {
-    return this.buildingService.setBuildingPhoto(buildingId, createPhotoInput, file);
+    return this.buildingService.setBuildingPhoto(
+      buildingId,
+      createPhotoInput,
+      file
+    );
   }
-  @Query(() => MostProfitableBuilding, { name: 'findMostProfitableBuilding', nullable: true })
+  @Query(() => MostProfitableBuilding, {
+    name: "findMostProfitableBuilding",
+    nullable: true,
+  })
   @UseGuards(JwtAuthGuard)
   findMostProfitableBuilding(): Observable<MostProfitableBuilding | null> {
-    return this.buildingService.findMostProfitableBuilding()
+    return this.buildingService.findMostProfitableBuilding();
   }
-  @Query(() => WeeklyBuildingProfit, { name: 'findWeeklyProfitOfAllBuildings'})
+  @Query(() => MonthlyBuildingProfit, {
+    name: "findDailyIncomeOfAllBuildingsInAMonth",
+  })
   @UseGuards(JwtAuthGuard)
-  findWeeklyProfitOfAllBuildings() {
-    return from(this.buildingService.findWeeklyProfitOfAllBuildings())
+  findDailyIncomeOfAllBuildingsInAMonth(
+    @Args("days", { nullable: true }) days?: number
+  ) {
+    return from(
+      this.buildingService.findDailyIncomeOfAllBuildingsInAMonth(days)
+    );
+  }
+  @Query(() => Boolean, {
+    name: "verifyCustomerPositionIsCloseTo100MtsOrLessFromBuilding",
+  })
+  @UseGuards(JwtAuthGuard)
+  verifyCustomerPositionIsCloseTo100MtsOrLessFromBuilding(
+    @Args("buildingId") buildingId: string,
+    @Args("point") point: PointInput
+  ): Observable<Boolean> {
+    return this.buildingService.verifyCustomerPositionIsCloseTo100MtsOrLessFromBuilding(
+      point,
+      buildingId
+    );
+  }
+  @Query(() => [BuildingEntity], {
+    name: "getBuildingsAssigedToAGuard",
+  })
+  @UseGuards(JwtAuthGuard)
+  getBuildingsAssigedToAGuard(
+    @Args("guardId") guardId: string
+  ): Promise<BuildingEntity[]> {
+    return this.buildingService.getBuildingsAssigedToAGuard(guardId);
   }
 }

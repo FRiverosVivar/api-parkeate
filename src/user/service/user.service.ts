@@ -37,10 +37,12 @@ import {
   PaginationMeta,
 } from "../../utils/interfaces/pagination.type";
 import { ClientEntity } from "../../client/entity/client.entity";
-import { UserTypesEnum } from "../constants/constants";
+import { UserTypesEnum, UserTypesEnumNames } from "../constants/constants";
 import { HttpService } from "@nestjs/axios";
 import { CryptService } from "src/utils/crypt/crypt.service";
 import { PaykuCreateClientInput } from "src/utils/interfaces/payku-create-client.input";
+import { ExcelService } from "src/utils/excel/excel.service";
+import * as _ from "lodash";
 
 @Injectable()
 export class UserService {
@@ -51,7 +53,8 @@ export class UserService {
     private smsService: SmsService,
     private photoService: PhotoService,
     private httpService: HttpService,
-    private readonly crypto: CryptService
+    private readonly crypto: CryptService,
+    private readonly excelService: ExcelService
   ) {}
   createUser(userDTO: CreateUserInput): Observable<UserEntity> {
     userDTO.wallet = 0;
@@ -414,5 +417,48 @@ export class UserService {
           );
       })
     );
+  }
+  async exportUsers() {
+    const columns = [
+      { header: "Id", key: "id" },
+      { header: "Nombre Completo", key: "fullname" },
+      { header: "Email", key: "email" },
+      { header: "Telefono", key: "phoneNumber" },
+      { header: "Tipo de Usuario", key: "userType" },
+    ];
+    const clients = await this.userRepository.find();
+    const data = this.mapClientsToExcelData(clients);
+    const worksheet = await this.excelService.createExcelFromDataArray(
+      data,
+      columns
+    );
+    return worksheet;
+  }
+  mapClientsToExcelData(clients: UserEntity[]) {
+    const dataClients: Array<{
+      id: string;
+      fullname: string;
+      email: string;
+      phoneNumber: string;
+      userType: string;
+    }> = [];
+    _.forEach(clients, (c) => {
+      const client: {
+        id: string;
+        fullname: string;
+        email: string;
+        phoneNumber: string;
+        userType: string;
+      } = c as unknown as {
+        id: string;
+        fullname: string;
+        email: string;
+        phoneNumber: string;
+        userType: string;
+      };
+      client.userType = UserTypesEnumNames[c.userType];
+      dataClients.push(client);
+    });
+    return dataClients;
   }
 }

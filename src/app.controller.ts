@@ -1,22 +1,35 @@
-import { Body, Controller, Get, Post, Query } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Res,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
 import { BookingService } from "./booking/service/booking.service";
 import { BookingEntity } from "./booking/entity/booking.entity";
 import { Observable, from, map, of, switchMap, tap } from "rxjs";
 import { UpdateBookingInput } from "./booking/model/update-booking.input";
 import { BookingStatesEnum } from "./booking/enum/booking-states.enum";
-import { ParkingService } from "./parking/service/parking.service";
 import { BuildingService } from "./building/service/building.service";
 import { CouponService } from "./coupons/service/coupon.service";
 import { UpdateUserCouponInput } from "./coupons/model/update-user-coupon.input";
 import { UserCouponEntity } from "./coupons/user-coupons/entity/user-coupons.entity";
 import { UserService } from "./user/service/user.service";
 import { UserEntity } from "./user/entity/user.entity";
+import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
+import { UserTypeGuard } from "./auth/guards/user-type.guard";
+import { UserType } from "./auth/decorator/user-type.decorator";
+import { UserTypesEnum } from "./user/constants/constants";
+import { ClientService } from "./client/service/client.service";
+import type { Response } from "express";
 @Controller("/booking/confirmPayment")
 export class AppController {
   constructor(
     private readonly bookingService: BookingService,
     private buildingService: BuildingService,
-    private parkingService: ParkingService,
+    private clientService: ClientService,
     private couponService: CouponService,
     private readonly userService: UserService
   ) {}
@@ -124,5 +137,23 @@ export class AppController {
   @Post("/get-sign")
   getSign(@Body() body: any) {
     return this.userService.encryptForPayku("/api/suplan", body);
+  }
+  @Get("/exportClients")
+  @UserType(UserTypesEnum.ADMIN)
+  @UseGuards(JwtAuthGuard, UserTypeGuard)
+  async getExportedClients(@Res() res: Response) {
+    const buffer = await this.clientService.exportClients();
+    return res
+      .set("Content-Disposition", `attachment; filename=example.xlsx`)
+      .send(buffer);
+  }
+  @Get("/exportUsers")
+  @UserType(UserTypesEnum.ADMIN)
+  @UseGuards(JwtAuthGuard, UserTypeGuard)
+  async getExportedUsers(@Res() res: Response) {
+    const buffer = await this.userService.exportUsers();
+    return res
+      .set("Content-Disposition", `attachment; filename=example.xlsx`)
+      .send(buffer);
   }
 }

@@ -24,6 +24,7 @@ import { WeeklyBuildingProfit } from "../../building/model/finance-building.outp
 import { PaykuModel, PaykuResponse } from "../model/payku-model.input";
 import { BookingPriceCalculated } from "../model/booking-calculate-price.output";
 import { BookingStatesEnum } from "../enum/booking-states.enum";
+import { type } from "os";
 
 @Resolver(BookingEntity)
 export class BookingResolver {
@@ -34,12 +35,14 @@ export class BookingResolver {
   createBooking(
     @Args("createBookingInput") createBookingInput: CreateBookingInput,
     @Args("parkingId") parkingId: string,
-    @CurrentUser() user: UserEntity
+    @CurrentUser() user: UserEntity,
+    @Args("vehicleId", { nullable: true }) vehicleId: string
   ) {
     return this.bookingService.createBooking(
       createBookingInput,
       parkingId,
-      user.id
+      user.id,
+      vehicleId
     );
   }
   @Mutation(() => BookingEntity)
@@ -92,8 +95,14 @@ export class BookingResolver {
     return this.bookingService.findBookingsAndGetDailyIncomeAndPercentage();
   }
   @Query(() => BookingEntity)
-  findBookingById(@Args("bookingId") bookingId: string) {
-    return this.bookingService.findBookingById(bookingId);
+  findBookingById(
+    @Args("bookingId") bookingId: string,
+    @Args("relations", { nullable: true }) relations: string
+  ) {
+    return this.bookingService.findBookingById(
+      bookingId,
+      JSON.parse(relations)
+    );
   }
   @Query(() => BookingEntity)
   updateBookingParking(
@@ -158,6 +167,17 @@ export class BookingResolver {
       paygate,
       couponId,
       bookingNextState
+    );
+  }
+  @Query(() => [BookingEntity], {
+    name: "GetBookingsFromTheCurrentDayOfBuilding",
+  })
+  @UseGuards(JwtAuthGuard)
+  GetBookingsFromTheCurrentDayOfBuilding(
+    @Args("buildingId") buildingId: string
+  ) {
+    return this.bookingService.getBookingsFromTheCurrentDayOfBuilding(
+      buildingId
     );
   }
 }

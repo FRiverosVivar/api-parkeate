@@ -14,31 +14,38 @@ import { UserEntity } from "../../user/entity/user.entity";
 @Resolver(VehicleEntity)
 @UseGuards(JwtAuthGuard)
 export class VehicleResolver {
-  constructor(
-    private readonly vehicleService: VehicleService,
-  ) {
-  }
+  constructor(private readonly vehicleService: VehicleService) {}
   @Mutation(() => VehicleEntity)
   createVehicle(
-    @Args('createVehicleInput') createVehicleInput: CreateVehicleInput,
-    @Args('ownerId') ownerId: string
+    @Args("createVehicleInput") createVehicleInput: CreateVehicleInput,
+    @Args("ownerId") ownerId: string
   ) {
-    return this.vehicleService.createVehicle(createVehicleInput, ownerId)
+    return this.vehicleService.createVehicle(createVehicleInput, ownerId);
   }
-  @Query(() => VehicleEntity, { name: 'findVehicleById' })
-  findVehicleById(@Args('vehicleId', { type: () => String }) vehicleId: string) {
+  @Query(() => VehicleEntity, { name: "findVehicleById" })
+  findVehicleById(
+    @Args("vehicleId", { type: () => String }) vehicleId: string
+  ) {
     return this.vehicleService.findVehicleById(vehicleId);
   }
   @Mutation(() => VehicleEntity)
-  updateVehicle(@Args('updateVehicleInput') updateVehicleInput: UpdateVehicleInput) {
+  updateVehicle(
+    @Args("updateVehicleInput") updateVehicleInput: UpdateVehicleInput
+  ) {
     return this.vehicleService.updateVehicle(updateVehicleInput);
   }
   @Mutation(() => VehicleEntity)
-  removeVehicle(@Args('vehicleId') vehicleId: string) {
+  removeVehicle(@Args("vehicleId") vehicleId: string) {
     return this.vehicleService.removeVehicle(vehicleId);
   }
-  @Query(() => [VehicleEntity], { name: 'findVehiclesByUserId' })
+  @Query(() => [VehicleEntity], { name: "findVehiclesByUserId" })
   findVehiclesByUserId(@CurrentUser() user: UserEntity) {
     return this.vehicleService.findVehiclesByUserId(user.id);
+  }
+  @Query(() => [VehicleEntity], { name: "findVehiclesWithModelPlateOrOwner" })
+  findVehiclesWithModelPlateOrOwner(
+    @Args("text", { type: () => String }) text: string
+  ) {
+    return this.vehicleService.findVehiclesWithModelPlateOrOwner(text);
   }
 }

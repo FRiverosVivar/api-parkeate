@@ -1,7 +1,14 @@
 import { Injectable, NotFoundException, OnModuleInit } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { BookingEntity } from "../entity/booking.entity";
-import { Between, Repository } from "typeorm";
+import {
+  Between,
+  Equal,
+  IsNull,
+  MoreThanOrEqual,
+  Not,
+  Repository,
+} from "typeorm";
 import { forkJoin, from, map, Observable, of, switchMap, tap } from "rxjs";
 import * as uuid from "uuid";
 import { UUIDBadFormatException } from "../../utils/exceptions/UUIDBadFormat.exception";
@@ -42,6 +49,12 @@ import { CryptService } from "src/utils/crypt/crypt.service";
 import { CouponService } from "src/coupons/service/coupon.service";
 import { UserCouponEntity } from "src/coupons/user-coupons/entity/user-coupons.entity";
 import { UpdateUserCouponInput } from "src/coupons/model/update-user-coupon.input";
+import { getBookingDataForNewBookingEmailTemplate } from "src/utils/utils";
+import { VehicleService } from "src/vehicle/service/vehicle.service";
+import { VehicleEntity } from "src/vehicle/entity/vehicle.entity";
+import { CronExpressionExtendedEnum } from "src/utils/cron/cron-expression-extended.enum";
+import { InAdvanceBooking } from "../enum/in-advance-booking.enum";
+import { NotificationService } from "src/utils/notification/notification.service";
 
 @Injectable()
 export class BookingService implements OnModuleInit {
@@ -56,7 +69,9 @@ export class BookingService implements OnModuleInit {
     private readonly cronService: CronService,
     private readonly httpService: HttpService,
     private readonly crypto: CryptService,
-    private readonly couponService: CouponService
+    private readonly couponService: CouponService,
+    private readonly vehicleService: VehicleService,
+    private readonly notificationService: NotificationService
   ) {}
   @Cron(CronExpression.EVERY_DAY_AT_5AM, {
     name: "checkMonthlyAndYearlyReservations",
@@ -68,9 +83,95 @@ export class BookingService implements OnModuleInit {
   }
 
   onModuleInit(): any {
-    Settings.defaultZone = "America/Sao_Paulo";
+    Settings.defaultZone = "America/Santiago";
     this.checkMonthlyAndYearlyReservations();
     this.loadCronsFromRepository();
+  }
+  @Cron(CronExpressionExtendedEnum.EVERY_15_MINUTES)
+  private async checkAnticipatedBookings() {
+    const bookings = await this.bookingRepository.findBy({
+      bookingState: BookingStatesEnum.IN_ADVANCE_RESERVED,
+    });
+    const now = DateTime.now();
+    const notify = [];
+    const bookingsToUpdate = [];
+    for (let booking of bookings) {
+      const bookingCurrentMinutesUntilStartState =
+        this.determineRemainingMinutesFromBooking(
+          now,
+          DateTime.fromJSDate(booking.dateStart)
+        );
+      if (
+        booking.lastestNotifiedState !== bookingCurrentMinutesUntilStartState &&
+        bookingCurrentMinutesUntilStartState !== InAdvanceBooking.IGNORE
+      ) {
+        if (
+          bookingCurrentMinutesUntilStartState ===
+          InAdvanceBooking.STATE_TO_RESERVED
+        ) {
+          const updateBooking: UpdateBookingInput = {
+            id: booking.id,
+            bookingState: booking.bookingState,
+          };
+          this.updateBooking(updateBooking);
+          continue;
+        }
+        booking.lastestNotifiedState = bookingCurrentMinutesUntilStartState;
+        notify.push(booking.user.id);
+        bookingsToUpdate.push(booking);
+      }
+    }
+    console.log("notify");
+    console.log(notify);
+    console.log("bookingsToUpdate");
+    console.log(bookingsToUpdate);
+    if (notify.length > 0)
+      this.notificationService.sendNotificationToListOfUsers(
+        notify,
+        "Reserva Anticipada",
+        "Tu reserva está próxima a comenzar!"
+      );
+    if (bookingsToUpdate.length > 0)
+      this.bookingRepository.save(
+        bookingsToUpdate
+          .filter((b) => b.lastestNotifiedState !== InAdvanceBooking.IGNORE)
+          .filter(
+            (b) => b.lastestNotifiedState !== InAdvanceBooking.STATE_TO_RESERVED
+          )
+      );
+  }
+  private determineRemainingMinutesFromBooking(
+    now: DateTime,
+    dateStart: DateTime
+  ) {
+    const minutes = dateStart.diff(now, "minutes").minutes;
+    switch (true) {
+      case minutes < 0: {
+        return InAdvanceBooking.STATE_TO_RESERVED;
+      }
+      case minutes < 15: {
+        return InAdvanceBooking.LESS_THAN_15;
+      }
+      case minutes < 30 && minutes > 15: {
+        return InAdvanceBooking.LESS_THAN_30;
+      }
+      case minutes < 60 && minutes > 30: {
+        return InAdvanceBooking.LESS_THAN_60;
+      }
+      case minutes < 180 && minutes > 60: {
+        return InAdvanceBooking.LESS_THAN_180;
+      }
+      case minutes < 360 && minutes > 180: {
+        return InAdvanceBooking.LESS_THAN_360;
+      }
+      case minutes < 1440 && minutes > 360: {
+        return InAdvanceBooking.LESS_THAN_1440;
+      }
+      case minutes < 10080 && minutes > 1440: {
+        return InAdvanceBooking.LESS_THAN_10080;
+      }
+    }
+    return InAdvanceBooking.IGNORE;
   }
   async getBookingCountForOrderNumberAndCreatePaykuOrder(
     paykuModel: PaykuModel
@@ -104,8 +205,11 @@ export class BookingService implements OnModuleInit {
   createBooking(
     createBookingInput: CreateBookingInput,
     parkingId: string,
-    userId: string
+    userId: string,
+    vehicleId?: string
   ): Observable<BookingEntity> {
+    let vehicle: Observable<VehicleEntity | null> = of(null);
+    if (vehicleId) vehicle = this.vehicleService.getVehicleById(vehicleId);
     const booking = this.bookingRepository.create(createBookingInput);
     const parking = this.parkingService.findParkingById(parkingId);
     const user = this.userService.findUserById(userId);
@@ -120,9 +224,16 @@ export class BookingService implements OnModuleInit {
         if (bookings && bookings.length > 0) {
           throw new ExistingBookingDateException();
         }
-
-        return forkJoin([parking, user]).pipe(
-          switchMap(([parking, user]) => {
+        this.emailService
+          .sendEmail(
+            EmailTypesEnum.CODE,
+            "zekropls@gmail.com",
+            `{"name":"123"}`
+          )
+          .then();
+        return forkJoin([parking, user, vehicle]).pipe(
+          switchMap(([parking, user, v]) => {
+            if (v) booking.vehicle = v;
             booking.parking = parking;
             booking.user = user;
             booking.dateStart = DateTime.now().toJSDate();
@@ -141,7 +252,18 @@ export class BookingService implements OnModuleInit {
   updateBooking(
     updateBookingInput: UpdateBookingInput
   ): Observable<BookingEntity> {
-    const booking$ = this.findBookingById(updateBookingInput.id);
+    let relations = undefined;
+    if (updateBookingInput.bookingState === BookingStatesEnum.RESERVED)
+      relations = {
+        relations: {
+          parking: {
+            building: true,
+          },
+          vehicle: true,
+        },
+      };
+
+    const booking$ = this.findBookingById(updateBookingInput.id, relations);
     return booking$.pipe(
       switchMap((previousBooking) => {
         return from(
@@ -188,7 +310,7 @@ export class BookingService implements OnModuleInit {
                 const job = this.scheduler.getCronJob(booking.id);
                 console.log(job);
                 if (job) {
-                  this.scheduler.deleteCronJob(booking.id);
+                  this.scheduler.getCronJobs().delete(booking.id);
                 }
                 this.cronService
                   .findCronByBookingIdAndExecuteFalse(booking.id)
@@ -205,8 +327,10 @@ export class BookingService implements OnModuleInit {
             }
 
             if (
-              previousBooking.bookingState ===
-                BookingStatesEnum.PAYMENT_REQUIRED &&
+              (previousBooking.bookingState ===
+                BookingStatesEnum.PAYMENT_REQUIRED ||
+                previousBooking.bookingState ===
+                  BookingStatesEnum.IN_ADVANCE_RESERVED) &&
               booking.bookingState === BookingStatesEnum.RESERVED
             ) {
               console.log("f");
@@ -229,6 +353,33 @@ export class BookingService implements OnModuleInit {
                 id: parking.id,
                 reserved: parking.reserved,
               };
+              console.log(parking.contactEmail);
+              if (parking.contactEmail) {
+                return forkJoin([
+                  from(
+                    this.emailService.sendEmail(
+                      EmailTypesEnum.RESERVATION_CREATED,
+                      parking.contactEmail,
+                      JSON.stringify(
+                        getBookingDataForNewBookingEmailTemplate(
+                          parking.building,
+                          parking,
+                          booking,
+                          previousBooking.user,
+                          previousBooking.vehicle
+                        )
+                      )
+                    )
+                  ),
+                  from(this.parkingService.updateParking(updateParking)),
+                ]).pipe(
+                  switchMap(([s, parking]) => {
+                    console.log(s);
+                    return from(this.bookingRepository.save(booking));
+                  })
+                );
+              }
+
               return from(
                 this.parkingService.updateParking(updateParking)
               ).pipe(
@@ -395,11 +546,13 @@ export class BookingService implements OnModuleInit {
       .createQueryBuilder("b")
       .leftJoinAndSelect("b.parking", "p")
       .leftJoinAndSelect("b.user", "u")
+      .leftJoinAndSelect("b.vehicle", "v")
       .where(
         user.userType < UserTypesEnum.ADMIN && displayAll
           ? `u.id = '${user.id}'::uuid`
           : ""
       )
+      .andWhere(parkingId ? `p.id = '${parkingId}'::uuid` : "")
       .skip(pagination.skip)
       .take(pagination.take);
     const itemCount = await query.getCount();
@@ -541,20 +694,18 @@ export class BookingService implements OnModuleInit {
     return this.bookingRepository.find({
       relations: {
         parking: {
-          building: {
-            client: true,
-          },
+          client: true,
+          building: true,
         },
       },
       where: {
         parking: {
-          building: {
-            client: {
-              id: clientId,
-            },
+          client: {
+            id: clientId,
           },
         },
         bookingState: BookingStatesEnum.FINALIZED,
+        finalPrice: Not(IsNull()),
       },
     });
   }
@@ -633,11 +784,14 @@ export class BookingService implements OnModuleInit {
       })
     );
   }
-  findBookingById(bookingId: string): Observable<BookingEntity> {
+  findBookingById(
+    bookingId: string,
+    relations?: any
+  ): Observable<BookingEntity> {
     if (!uuid.validate(bookingId)) {
       throw new UUIDBadFormatException();
     }
-    return this.getBookingById(bookingId).pipe(
+    return this.getBookingById(bookingId, relations).pipe(
       map((t) => {
         if (!t) throw new NotFoundException();
         return t;
@@ -809,6 +963,7 @@ export class BookingService implements OnModuleInit {
   ) {
     return this.generatePaymentFromPayku(subId, paygate, priceToPay).pipe(
       switchMap((res) => {
+        console.log(res);
         if (res.status === 200 && res.data.status === "success") {
           const updateBookingInput: UpdateBookingInput = {
             id: bookingId,
@@ -879,9 +1034,14 @@ export class BookingService implements OnModuleInit {
       })
     );
   }
-  private getBookingById(bookingId: string): Observable<BookingEntity | null> {
+  private getBookingById(
+    bookingId: string,
+    relations?: any
+  ): Observable<BookingEntity | null> {
+    console.log(relations);
     return from(
       this.bookingRepository.findOne({
+        ...relations,
         where: {
           id: bookingId,
         },
@@ -943,7 +1103,8 @@ export class BookingService implements OnModuleInit {
         job.stop();
       },
       async () => {
-        this.executeStateChangeFromBooking(cron, dateExtended);
+        if (hasPreviousJob)
+          this.executeStateChangeFromBooking(cron, dateExtended);
       },
       false,
       Settings.defaultZone.name
@@ -1009,8 +1170,29 @@ export class BookingService implements OnModuleInit {
         updateBookingInput.dateExtended = book.dateEnd;
       }
     }
-    await this.updateBooking(updateBookingInput).toPromise().then();
+    console.log(book);
+    if (book && book.bookingState <= cron.stateWhenEnd)
+      await this.updateBooking(updateBookingInput).toPromise().then();
     cron.executed = true;
     await this.cronService.saveCron(cron).then();
+  }
+  getBookingsFromTheCurrentDayOfBuilding(buildingId: string) {
+    return this.bookingRepository.find({
+      relations: {
+        parking: {
+          building: true,
+        },
+        vehicle: true,
+      },
+      where: {
+        parking: {
+          building: Equal(buildingId),
+        },
+        bookingState: MoreThanOrEqual(BookingStatesEnum.PAYMENT_REQUIRED),
+      },
+      order: {
+        dateStart: "DESC",
+      },
+    });
   }
 }

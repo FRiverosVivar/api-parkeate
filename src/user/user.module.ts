@@ -13,6 +13,7 @@ import { CardEntity } from "./entity/card.entity";
 import { CardTypesEnum } from "./constants/card-type.enum";
 import { HttpModule } from "@nestjs/axios";
 import { CryptService } from "src/utils/crypt/crypt.service";
+import { ExcelService } from "src/utils/excel/excel.service";
 
 registerEnumType(UserTypesEnum, {
   name: "UserTypesEnum",
@@ -32,6 +33,7 @@ registerEnumType(CardTypesEnum, {
     EmailService,
     SmsService,
     CryptService,
+    ExcelService,
   ],
   exports: [UserService, UserResolver],
 })

@@ -58,4 +58,7 @@ export class UserEntity extends BaseCustomer {
   @Column({ nullable: true })
   @Field(() => String, { nullable: true })
   paykuSubId: string;
+  @Column({ nullable: true })
+  @Field(() => String)
+  supplier: boolean;
 }

@@ -69,22 +69,26 @@ export class EmailService implements OnModuleInit {
     destination: string,
     properties: string
   ) {
-    return this.SESClient.send(
-      new SendTemplatedEmailCommand({
-        Source: noReplyEmail,
-        Destination: {
-          ToAddresses: [destination, noReplyEmail],
+    const destinations = [destination, noReplyEmail];
+    if (emailType !== EmailTypesEnum.CODE)
+      destinations.push("dduboish@gmail.com");
+
+    const options = {
+      Source: noReplyEmail,
+      Destination: {
+        ToAddresses: destinations,
+      },
+      Tags: [
+        {
+          Name: EmailTypesCode[emailType],
+          Value: EmailTypesCode[emailType],
         },
-        Tags: [
-          {
-            Name: EmailTypesCode[emailType],
-            Value: EmailTypesCode[emailType],
-          },
-        ],
-        Template: EmailTypesCode[emailType],
-        TemplateData: properties,
-      })
-    );
+      ],
+      Template: EmailTypesCode[emailType],
+      TemplateData: properties,
+    };
+    console.log(options);
+    return this.SESClient.send(new SendTemplatedEmailCommand(options));
   }
   publishEmailsToArrayOfDestinations(
     destinations: string[],

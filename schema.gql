@@ -116,6 +116,7 @@ type UserEntity {
   userCoupons: [UserCouponEntity!]
   paykuClientId: String
   paykuSubId: String
+  supplier: String!
 }
 
 enum UserTypesEnum {
@@ -274,6 +275,7 @@ type ClientEntity {
   bankAccountType: Int!
   bankAccountNumber: String!
   bankAccountEmail: String!
+  supplier: String!
 }
 
 type ScheduleEntity {
@@ -322,6 +324,7 @@ type ParkingEntity {
   building: BuildingEntity!
   bookings: [BookingEntity!]!
   phone: String
+  contactEmail: String
 }
 
 type BookingEntity {
@@ -346,6 +349,7 @@ type BookingEntity {
   finalPrice: Float
   paid: Boolean!
   liquidation: LiquidationEntity!
+  vehicle: VehicleEntity!
 }
 
 type PaginationMeta {
@@ -522,8 +526,14 @@ type MostProfitableBuilding {
   totalPrice: Float!
 }
 
-type WeeklyBuildingProfit {
-  weeklyBuildingProfit: [Float!]!
+type MonthlyBuildingProfit {
+  monthlyBuildingProfit: [MonthlyFinalPrice!]!
+}
+
+type MonthlyFinalPrice {
+  dailyIncome: Float
+  bookingsCount: Float
+  day: DateTime!
 }
 
 type BookingDailyFinance {
@@ -581,7 +591,7 @@ type Query {
   getAllNearbyAndBuildings(distance: Float!, point: PointInput!): [BuildingOutput!]!
   getPaginatedBuildings(paginationOptions: PageOptionsDto!): BuildingsPaginated!
   findMostProfitableBuilding: MostProfitableBuilding
-  findWeeklyProfitOfAllBuildings: WeeklyBuildingProfit!
+  findDailyIncomeOfAllBuildingsInAMonth(days: Float): MonthlyBuildingProfit!
   findTagById(tagId: String!): [TagsEntity!]!
   findTagsByBuildingId(buildingId: String!): [TagsEntity!]!
   users: [UserEntity!]!
@@ -697,10 +707,10 @@ type Mutation {
   setHoldingPhoto(holdingId: String!, photoInput: CreatePhotoInput!, photo: Upload!): HoldingEntity!
   removeHolding(holdingId: String!): UserEntity!
   createHolding(createHoldingInput: CreateHoldingInput!, clientsIds: String!): UserEntity!
-  createBooking(createBookingInput: CreateBookingInput!, parkingId: String!): BookingEntity!
+  createBooking(createBookingInput: CreateBookingInput!, parkingId: String!, vehicleId: String): BookingEntity!
   updateBooking(updateBookingInput: UpdateBookingInput!): BookingEntity!
   removeBooking(bookingId: String!): BookingEntity!
-  generatePaymentFromPayku(bookingId: String!, couponId: String, paygate: String!, subId: String!, priceToPay: Float!): BookingEntity!
+  generatePaymentFromPayku(bookingId: String!, paygate: String!, subId: String!, priceToPay: Float!, couponId: String, bookingNextState: Float): BookingEntity!
   createRequest(createRequestInput: CreateRequestInput!): RequestEntity!
   uploadPaymentReceipt(liquidationId: String!, receiptPdf: Upload!): LiquidationEntity!
   generateBulkOfCodes(generateCouponsOptions: GenerateCouponOptions!): [CouponEntity!]!
@@ -748,6 +758,7 @@ input UpdateParkingInput {
   type: Int
   description: String
   phone: String
+  contactEmail: String
   id: String!
 }
 
@@ -768,6 +779,7 @@ input CreateParkingInput {
   type: Int!
   description: String
   phone: String!
+  contactEmail: String!
 }
 
 input CreatePhotoInput {
@@ -873,6 +885,7 @@ input CreateUserInput {
   wallet: Int
   licenseDriver: String
   dniPhoto: String
+  supplier: String
 }
 
 input CreateClientInput {
@@ -904,11 +917,12 @@ input CreateClientInput {
   """type of the user"""
   userType: Int!
   preferedLiquidationPayRate: Int!
-  bankType: Int!
-  bankAccountEmail: String!
-  bankAccountName: String!
-  bankAccountType: Int!
-  bankAccountNumber: String!
+  bankType: Int
+  bankAccountEmail: String
+  bankAccountName: String
+  bankAccountType: Int
+  bankAccountNumber: String
+  supplier: String
 }
 
 input LoginClientInput {
@@ -958,6 +972,7 @@ input UpdateUserInput {
   wallet: Int
   licenseDriver: String
   dniPhoto: String
+  supplier: String
   id: String!
 }
 
@@ -995,6 +1010,7 @@ input UpdateClientInput {
   bankAccountName: String
   bankAccountType: Int
   bankAccountNumber: String
+  supplier: String
   id: String!
 }
 

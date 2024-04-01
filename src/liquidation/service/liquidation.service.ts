@@ -116,7 +116,7 @@ export class LiquidationService implements OnModuleInit {
     return liquidations;
   }
   onModuleInit(): any {
-    Settings.defaultZone = "America/Sao_Paulo";
+    Settings.defaultZone = "America/Santiago";
     // this.generate1stMonthDayLiquidations()
     // this.generate16thMonthDayLiquidations()
   }
@@ -153,6 +153,7 @@ export class LiquidationService implements OnModuleInit {
       liquidation,
       client
     );
+    "a".trim()
     const pdf = await readPdfTemplateFromFilesAndCompileWithData(data);
     const date = DateTime.now().toFormat("yyyy-MM-dd");
     return (await this.fileService

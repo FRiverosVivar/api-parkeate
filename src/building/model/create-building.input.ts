@@ -1,21 +1,22 @@
 import { ArgsType, Field, InputType } from "@nestjs/graphql";
 import { PointInput } from "../../parking/model/point.input";
+import { ClientEntity } from "src/client/entity/client.entity";
 
 @InputType()
 @ArgsType()
 export class CreateBuildingInput {
-  @Field(() => String, { description: 'address of the building' })
+  @Field(() => String, { description: "address of the building" })
   address: string;
-  @Field(() => String, { description: 'phone number of the building' })
+  @Field(() => String, { description: "phone number of the building" })
   phoneNumber: string;
-  @Field(() => String, { description: 'photo of the building', nullable: true})
+  @Field(() => String, { description: "photo of the building", nullable: true })
   photo: string;
-  @Field(() => String, { description: 'name of the building' })
+  @Field(() => String, { description: "name of the building" })
   name: string;
   @Field(() => PointInput)
-  location: PointInput
+  location: PointInput;
   @Field(() => String)
-  floors: string
-  @Field(() => String, {nullable: true})
-  description?: string
+  floors: string;
+  @Field(() => String, { nullable: true })
+  description?: string;
 }

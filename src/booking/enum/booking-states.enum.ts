@@ -3,4 +3,5 @@ export enum BookingStatesEnum {
   PAYMENT_REQUIRED,
   RESERVED,
   FINALIZED,
+  IN_ADVANCE_RESERVED,
 }
