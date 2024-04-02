@@ -112,6 +112,9 @@ export class VehicleService {
   private getVehicleByPlate(plate: string): Observable<VehicleEntity | null> {
     return from(
       this.vehicleRepository.findOne({
+        relations: {
+          owner: true,
+        },
         where: {
           carPlate: plate,
         },
