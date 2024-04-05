@@ -101,7 +101,7 @@ export class BookingResolver {
   ) {
     return this.bookingService.findBookingById(
       bookingId,
-      JSON.parse(relations)
+      relations ? JSON.parse(relations) : undefined
     );
   }
   @Query(() => BookingEntity)
