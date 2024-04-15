@@ -155,7 +155,7 @@ export class BookingService implements OnModuleInit {
   ) {
     const minutes = dateStart.diff(now, "minutes").minutes;
     switch (true) {
-      case minutes < 0: {
+      case minutes <= 0: {
         return InAdvanceBooking.STATE_TO_RESERVED;
       }
       case minutes < 15: {
