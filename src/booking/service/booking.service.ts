@@ -4,12 +4,22 @@ import { BookingEntity } from "../entity/booking.entity";
 import {
   Between,
   Equal,
+  In,
   IsNull,
   MoreThanOrEqual,
   Not,
   Repository,
 } from "typeorm";
-import { forkJoin, from, map, Observable, of, switchMap, tap } from "rxjs";
+import {
+  forkJoin,
+  from,
+  map,
+  Observable,
+  of,
+  switchMap,
+  take,
+  tap,
+} from "rxjs";
 import * as uuid from "uuid";
 import { UUIDBadFormatException } from "../../utils/exceptions/UUIDBadFormat.exception";
 import { UpdateBookingInput } from "../model/update-booking.input";
@@ -95,12 +105,14 @@ export class BookingService implements OnModuleInit {
     const now = DateTime.now();
     const notify = [];
     const bookingsToUpdate = [];
-    for (let booking of bookings) {
+    bookings: for (let booking of bookings) {
       const bookingCurrentMinutesUntilStartState =
         this.determineRemainingMinutesFromBooking(
           now,
           DateTime.fromJSDate(booking.dateStart)
         );
+      console.log(booking);
+      console.log(bookingCurrentMinutesUntilStartState);
       if (
         booking.lastestNotifiedState !== bookingCurrentMinutesUntilStartState &&
         bookingCurrentMinutesUntilStartState !== InAdvanceBooking.IGNORE
@@ -111,20 +123,15 @@ export class BookingService implements OnModuleInit {
         ) {
           const updateBooking: UpdateBookingInput = {
             id: booking.id,
-            bookingState: booking.bookingState,
+            bookingState: BookingStatesEnum.RESERVED,
           };
-          this.updateBooking(updateBooking);
-          continue;
+          await this.updateBooking(updateBooking).toPromise();
         }
         booking.lastestNotifiedState = bookingCurrentMinutesUntilStartState;
         notify.push(booking.user.id);
         bookingsToUpdate.push(booking);
       }
     }
-    console.log("notify");
-    console.log(notify);
-    console.log("bookingsToUpdate");
-    console.log(bookingsToUpdate);
     if (notify.length > 0)
       this.notificationService.sendNotificationToListOfUsers(
         notify,
@@ -139,6 +146,8 @@ export class BookingService implements OnModuleInit {
             (b) => b.lastestNotifiedState !== InAdvanceBooking.STATE_TO_RESERVED
           )
       );
+    console.log(bookingsToUpdate);
+    console.log(notify);
   }
   private determineRemainingMinutesFromBooking(
     now: DateTime,
@@ -206,11 +215,20 @@ export class BookingService implements OnModuleInit {
     createBookingInput: CreateBookingInput,
     parkingId: string,
     userId: string,
-    vehicleId?: string
+    vehicleId?: string,
+    selectedDate?: string
   ): Observable<BookingEntity> {
     let vehicle: Observable<VehicleEntity | null> = of(null);
     if (vehicleId) vehicle = this.vehicleService.getVehicleById(vehicleId);
     const booking = this.bookingRepository.create(createBookingInput);
+    if (selectedDate) {
+      booking.anticipatedBooking = true;
+      const date = DateTime.fromISO(selectedDate);
+      booking.lastestNotifiedState = this.determineRemainingMinutesFromBooking(
+        DateTime.now(),
+        date
+      );
+    }
     const parking = this.parkingService.findParkingById(parkingId);
     const user = this.userService.findUserById(userId);
     return this.getBookingsForParkingIdByDateRange(
@@ -236,8 +254,12 @@ export class BookingService implements OnModuleInit {
             if (v) booking.vehicle = v;
             booking.parking = parking;
             booking.user = user;
-            booking.dateStart = DateTime.now().toJSDate();
-            booking.dateEnd = DateTime.now().plus({ minutes: 1 }).toJSDate();
+            booking.dateStart = selectedDate
+              ? DateTime.fromISO(selectedDate).toJSDate()
+              : DateTime.now().toJSDate();
+            booking.dateEnd = selectedDate
+              ? DateTime.fromISO(selectedDate).plus({ minutes: 5 }).toJSDate()
+              : DateTime.now().plus({ minutes: 5 }).toJSDate();
             return from(this.bookingRepository.save(booking)).pipe(
               tap((b) => {
                 if (booking.bookingState === BookingStatesEnum.PAYMENT_REQUIRED)
@@ -334,7 +356,7 @@ export class BookingService implements OnModuleInit {
               booking.bookingState === BookingStatesEnum.RESERVED
             ) {
               console.log("f");
-
+              booking.dateStart = DateTime.now().toJSDate();
               if (booking.bookingType === BookingTypesEnum.MONTHLY_BOOKING) {
                 booking.dateEnd = DateTime.now().plus({ days: 30 }).toJSDate();
                 booking.paid = true;
@@ -345,7 +367,6 @@ export class BookingService implements OnModuleInit {
                 this.createBookingCronJobForOneHourStartPlus5Minutes(booking);
               }
 
-              booking.dateStart = DateTime.now().toJSDate();
               parking.reserved = true;
               console.log("g");
 
@@ -385,8 +406,52 @@ export class BookingService implements OnModuleInit {
               ).pipe(
                 switchMap(() => from(this.bookingRepository.save(booking)))
               );
-            }
+            } else if (
+              previousBooking.bookingState ===
+                BookingStatesEnum.PAYMENT_REQUIRED &&
+              booking.bookingState === BookingStatesEnum.IN_ADVANCE_RESERVED
+            ) {
+              const now = DateTime.now();
+              const diff = DateTime.fromJSDate(booking.dateStart).diff(
+                now,
+                "days"
+              ).days;
+              if (diff === 0) {
+                parking.reserved = true;
+                console.log("abcdef111");
 
+                const updateParking: UpdateParkingInput = {
+                  id: parking.id,
+                  reserved: parking.reserved,
+                };
+                console.log(parking.contactEmail);
+                if (parking.contactEmail) {
+                  return forkJoin([
+                    from(
+                      this.emailService.sendEmail(
+                        EmailTypesEnum.RESERVATION_CREATED,
+                        parking.contactEmail,
+                        JSON.stringify(
+                          getBookingDataForNewBookingEmailTemplate(
+                            parking.building,
+                            parking,
+                            booking,
+                            previousBooking.user,
+                            previousBooking.vehicle
+                          )
+                        )
+                      )
+                    ),
+                    from(this.parkingService.updateParking(updateParking)),
+                  ]).pipe(
+                    switchMap(([s, parking]) => {
+                      console.log(s);
+                      return from(this.bookingRepository.save(booking));
+                    })
+                  );
+                }
+              }
+            }
             if (
               previousBooking.bookingState === BookingStatesEnum.RESERVED &&
               booking.bookingState === BookingStatesEnum.FINALIZED &&
@@ -802,7 +867,7 @@ export class BookingService implements OnModuleInit {
     booking: BookingEntity
   ): void {
     const firstHourEnd = DateTime.fromJSDate(booking.dateStart).plus({
-      hour: 1,
+      // hour: 1,
       minute: 5,
     });
     this.createNewCron(
@@ -899,10 +964,16 @@ export class BookingService implements OnModuleInit {
     return from(
       this.bookingRepository.find({
         where: {
-          bookingState: BookingStatesEnum.RESERVED,
+          bookingState: In([
+            BookingStatesEnum.RESERVED,
+            BookingStatesEnum.IN_ADVANCE_RESERVED,
+          ]),
           user: {
             id: userId,
           },
+        },
+        order: {
+          bookingType: "ASC",
         },
       })
     );
@@ -959,6 +1030,7 @@ export class BookingService implements OnModuleInit {
     subId: string,
     paygate: string,
     couponId: string,
+    anticipatedBooking: boolean,
     bookingNextState?: BookingStatesEnum
   ) {
     return this.generatePaymentFromPayku(subId, paygate, priceToPay).pipe(
@@ -970,6 +1042,7 @@ export class BookingService implements OnModuleInit {
             bookingState: bookingNextState
               ? bookingNextState
               : BookingStatesEnum.RESERVED,
+            anticipatedBooking: anticipatedBooking ?? undefined,
           };
           return this.updateBooking(updateBookingInput).pipe(
             switchMap((b) => {
@@ -1038,7 +1111,6 @@ export class BookingService implements OnModuleInit {
     bookingId: string,
     relations?: any
   ): Observable<BookingEntity | null> {
-    console.log(relations);
     return from(
       this.bookingRepository.findOne({
         ...relations,
@@ -1170,7 +1242,6 @@ export class BookingService implements OnModuleInit {
         updateBookingInput.dateExtended = book.dateEnd;
       }
     }
-    console.log(book);
     if (book && book.bookingState <= cron.stateWhenEnd)
       await this.updateBooking(updateBookingInput).toPromise().then();
     cron.executed = true;

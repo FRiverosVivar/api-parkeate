@@ -37,11 +37,15 @@ export class AppController {
   @Get("")
   updateBookingToReservedStatus(
     @Query("bookingId") bookingId: string,
-    @Query("userCouponId") couponId: string
+    @Query("userCouponId") couponId: string,
+    @Query("anticipatedBooking") anticipatedBooking: string
   ): Observable<any> {
+    const isAnticipatedBooking = anticipatedBooking ? true : false;
     const updateBookingInput: UpdateBookingInput = {
       id: bookingId,
-      bookingState: BookingStatesEnum.RESERVED,
+      bookingState: isAnticipatedBooking
+        ? BookingStatesEnum.IN_ADVANCE_RESERVED
+        : BookingStatesEnum.RESERVED,
     };
     return this.bookingService.updateBooking(updateBookingInput).pipe(
       switchMap((b) => {
@@ -67,11 +71,15 @@ export class AppController {
   @Post("")
   updateBookingReservedStatus(
     @Query("bookingId") bookingId: string,
-    @Query("userCouponId") couponId: string
+    @Query("userCouponId") couponId: string,
+    @Query("anticipatedBooking") anticipatedBooking: string
   ): Observable<any> {
+    const isAnticipatedBooking = anticipatedBooking ? true : false;
     const updateBookingInput: UpdateBookingInput = {
       id: bookingId,
-      bookingState: BookingStatesEnum.RESERVED,
+      bookingState: isAnticipatedBooking
+        ? BookingStatesEnum.IN_ADVANCE_RESERVED
+        : BookingStatesEnum.RESERVED,
     };
     return this.bookingService.updateBooking(updateBookingInput).pipe(
       switchMap((b) => {

@@ -36,13 +36,15 @@ export class BookingResolver {
     @Args("createBookingInput") createBookingInput: CreateBookingInput,
     @Args("parkingId") parkingId: string,
     @CurrentUser() user: UserEntity,
-    @Args("vehicleId", { nullable: true }) vehicleId: string
+    @Args("vehicleId", { nullable: true }) vehicleId: string,
+    @Args("selectedDate", { nullable: true }) selectedDate: string
   ) {
     return this.bookingService.createBooking(
       createBookingInput,
       parkingId,
       user.id,
-      vehicleId
+      vehicleId,
+      selectedDate
     );
   }
   @Mutation(() => BookingEntity)
@@ -157,6 +159,7 @@ export class BookingResolver {
     @Args("subId") subId: string,
     @Args("priceToPay") priceToPay: number,
     @Args("couponId", { nullable: true }) couponId: string,
+    @Args("anticipatedBooking", { nullable: true }) anticipatedBooking: boolean,
     @Args("bookingNextState", { nullable: true })
     bookingNextState?: BookingStatesEnum
   ) {
@@ -166,6 +169,7 @@ export class BookingResolver {
       subId,
       paygate,
       couponId,
+      anticipatedBooking,
       bookingNextState
     );
   }
