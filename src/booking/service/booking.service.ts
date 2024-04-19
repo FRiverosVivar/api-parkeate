@@ -867,7 +867,7 @@ export class BookingService implements OnModuleInit {
     booking: BookingEntity
   ): void {
     const firstHourEnd = DateTime.fromJSDate(booking.dateStart).plus({
-      // hour: 1,
+      hour: 1,
       minute: 5,
     });
     this.createNewCron(
