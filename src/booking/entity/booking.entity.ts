@@ -59,7 +59,10 @@ export class BookingEntity extends BaseEntityWithIdAbstract {
   @ManyToOne(() => LiquidationEntity, (l) => l.bookings, { nullable: true })
   @Field(() => LiquidationEntity)
   liquidation: LiquidationEntity;
-  @ManyToOne(() => VehicleEntity, (v) => v.bookings, { nullable: true })
+  @ManyToOne(() => VehicleEntity, (v) => v.bookings, {
+    nullable: true,
+    onDelete: "SET NULL",
+  })
   @Field(() => VehicleEntity, { nullable: true })
   vehicle: VehicleEntity;
   @Column({ nullable: true })
