@@ -5,6 +5,7 @@ import {
   ManyToMany,
   ManyToOne,
   OneToMany,
+  Unique,
 } from "typeorm";
 import { Field, Float, Int, ObjectType } from "@nestjs/graphql";
 import { BaseCustomer } from "../../utils/interfaces/base-customer.abstract";
@@ -16,8 +17,9 @@ import { LiquidationEntity } from "../../liquidation/entity/liquidation.entity";
 import { LiquidationEnum } from "../../liquidation/model/liquidation.enum";
 import { BankAccountTypeEnum, BanksEnum } from "../model/bank.enum";
 
-@Entity("client")
 @ObjectType()
+@Entity("client")
+@Unique("ClientRutEmailPhone", ["rut", "email", "phoneNumber"])
 export class ClientEntity extends BaseCustomer {
   @Column({ type: "enum", enum: UserTypesEnum })
   @Field(() => Int, { description: "type of the user" })

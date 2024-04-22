@@ -2,10 +2,11 @@ import { Field, Int, ObjectType } from "@nestjs/graphql";
 import { BuildingEntity } from "src/building/entity/building.entity";
 import { UserTypesEnum } from "src/user/constants/constants";
 import { BaseCustomer } from "src/utils/interfaces/base-customer.abstract";
-import { Column, Entity, JoinTable, ManyToMany } from "typeorm";
+import { Column, Entity, JoinTable, ManyToMany, Unique } from "typeorm";
 
-@Entity("parkingGuard")
 @ObjectType()
+@Entity("parkingGuard")
+@Unique("ParkingGuardRutEmailPhone", ["rut", "email", "phoneNumber"])
 export class ParkingGuardEntity extends BaseCustomer {
   @Column({ type: "enum", enum: UserTypesEnum })
   @Field(() => Int, { description: "type of the user" })
