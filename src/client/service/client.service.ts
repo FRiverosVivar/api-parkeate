@@ -128,6 +128,19 @@ export class ClientService {
       })
     );
   }
+  searchClientByRutEmailOrPhone(
+    rut: string,
+    email: string,
+    phone: string
+  ): Promise<ClientEntity | null> {
+    return this.clientRepository.findOne({
+      where: [
+        { rut: Equal(rut) },
+        { email: Equal(email) },
+        { phoneNumber: Equal(phone) },
+      ],
+    });
+  }
   findClientById(clientId: string): Observable<ClientEntity> {
     if (!uuid.validate(clientId)) {
       throw new UUIDBadFormatException();
