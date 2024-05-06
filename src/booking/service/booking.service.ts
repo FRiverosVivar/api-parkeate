@@ -274,18 +274,14 @@ export class BookingService implements OnModuleInit {
   updateBooking(
     updateBookingInput: UpdateBookingInput
   ): Observable<BookingEntity> {
-    let relations = undefined;
-    if (updateBookingInput.bookingState === BookingStatesEnum.RESERVED)
-      relations = {
-        relations: {
-          parking: {
-            building: true,
-          },
-          vehicle: true,
+    const booking$ = this.findBookingById(updateBookingInput.id, {
+      relations: {
+        parking: {
+          building: true,
         },
-      };
-
-    const booking$ = this.findBookingById(updateBookingInput.id, relations);
+        vehicle: true,
+      },
+    });
     return booking$.pipe(
       switchMap((previousBooking) => {
         return from(
