@@ -811,9 +811,26 @@ export class BookingService implements OnModuleInit {
       switchMap((p) => {
         return this.findBookingById(bookingId).pipe(
           switchMap((b) => {
+            const oldParking = b.parking;
             b.parking = p;
-            return from(this.bookingRepository.save(b));
-          })
+            const updateParking = {
+              id: oldParking.id,
+              reserved: false,
+            }
+            const updateNewParking = {
+              id: p.id,
+              reserved: true,
+            }
+
+            return combineLatest([
+                this.parkingService.updateParking(updateParking),
+                this.parkingService.updateParking(updateNewParking),
+            ]).pipe(
+                switchMap(() => {
+                  return from(this.bookingRepository.save(b))
+                })
+              )
+            })
         );
       })
     );
