@@ -11,14 +11,15 @@ import {
   Repository,
 } from "typeorm";
 import {
+  combineLatest,
   forkJoin,
   from,
   map,
   Observable,
-  of,
+  of, pipe,
   switchMap,
   take,
-  tap,
+  tap
 } from "rxjs";
 import * as uuid from "uuid";
 import { UUIDBadFormatException } from "../../utils/exceptions/UUIDBadFormat.exception";
@@ -65,6 +66,7 @@ import { VehicleEntity } from "src/vehicle/entity/vehicle.entity";
 import { CronExpressionExtendedEnum } from "src/utils/cron/cron-expression-extended.enum";
 import { InAdvanceBooking } from "../enum/in-advance-booking.enum";
 import { NotificationService } from "src/utils/notification/notification.service";
+import { TransbankService } from "src/utils/transbank/transbank.service";
 
 @Injectable()
 export class BookingService implements OnModuleInit {
@@ -81,7 +83,8 @@ export class BookingService implements OnModuleInit {
     private readonly crypto: CryptService,
     private readonly couponService: CouponService,
     private readonly vehicleService: VehicleService,
-    private readonly notificationService: NotificationService
+    private readonly notificationService: NotificationService,
+    private readonly transbankService: TransbankService
   ) {}
   @Cron(CronExpression.EVERY_DAY_AT_5AM, {
     name: "checkMonthlyAndYearlyReservations",
@@ -215,10 +218,12 @@ export class BookingService implements OnModuleInit {
     createBookingInput: CreateBookingInput,
     parkingId: string,
     userId: string,
+    couponId: string,
     vehicleId?: string,
     selectedDate?: string
   ): Observable<BookingEntity> {
     let vehicle: Observable<VehicleEntity | null> = of(null);
+    let coupon: Observable<UserCouponEntity | null> = of(null);
     if (vehicleId) vehicle = this.vehicleService.getVehicleById(vehicleId);
     const booking = this.bookingRepository.create(createBookingInput);
     if (selectedDate) {
@@ -229,6 +234,9 @@ export class BookingService implements OnModuleInit {
         date
       );
     }
+    if(couponId)
+      coupon = from(this.couponService.getUserCouponFromRepository(couponId));
+
     const parking = this.parkingService.findParkingById(parkingId);
     const user = this.userService.findUserById(userId);
     return this.getBookingsForParkingIdByDateRange(
@@ -249,8 +257,8 @@ export class BookingService implements OnModuleInit {
             `{"name":"123"}`
           )
           .then();
-        return forkJoin([parking, user, vehicle]).pipe(
-          switchMap(([parking, user, v]) => {
+        return forkJoin([parking, user, vehicle, coupon]).pipe(
+          switchMap(([parking, user, v, c]) => {
             if (v) booking.vehicle = v;
             booking.parking = parking;
             booking.user = user;
@@ -260,6 +268,8 @@ export class BookingService implements OnModuleInit {
             booking.dateEnd = selectedDate
               ? DateTime.fromISO(selectedDate).plus({ minutes: 5 }).toJSDate()
               : DateTime.now().plus({ minutes: 5 }).toJSDate();
+            if(c)
+              booking.coupon = c;
             return from(this.bookingRepository.save(booking)).pipe(
               tap((b) => {
                 if (booking.bookingState === BookingStatesEnum.PAYMENT_REQUIRED)
@@ -1265,5 +1275,25 @@ export class BookingService implements OnModuleInit {
         dateStart: "DESC",
       },
     });
+  }
+  createTbkMobileTransaction(amount: number) {
+    return this.transbankService.generateMobileTransaction(amount);
+  }
+  confirmPaymentBooking(
+    bookingId: string,
+    nextState: BookingStatesEnum,
+    token: string
+  ) {
+    return from(this.transbankService.confirmTransaction(token)).pipe(
+      switchMap((res: any) => {
+        if (res.vci === "TSY" && res.status === "AUTHORIZED") {
+          return this.updateBooking({
+            id: bookingId,
+            bookingState: nextState,
+          });
+        }
+        return of(res);
+      })
+    );
   }
 }

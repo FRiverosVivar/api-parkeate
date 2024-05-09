@@ -1,22 +1,8 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
-import { DataSource, Equal, Like, Repository } from "typeorm";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { Equal, Repository } from "typeorm";
 import { UserEntity } from "../entity/user.entity";
 import { InjectRepository } from "@nestjs/typeorm";
-import {
-  concatMap,
-  filter,
-  forkJoin,
-  from,
-  map,
-  Observable,
-  of,
-  switchMap,
-  tap,
-} from "rxjs";
+import { forkJoin, from, map, Observable, of, switchMap } from "rxjs";
 import { UpdateUserInput } from "../model/dto/update-user.input";
 import * as uuid from "uuid";
 import { UUIDBadFormatException } from "../../utils/exceptions/UUIDBadFormat.exception";
@@ -31,11 +17,7 @@ import { PhotoService } from "../../photo/service/photo.service";
 import { CreatePhotoInput } from "../../photo/model/create-photo.input";
 import { EmailVerificationCode } from "../../client/model/email-verification-code.response";
 import { SmsVerificationCode } from "../../client/model/sms-code.response";
-import {
-  PageDto,
-  PageOptionsDto,
-  PaginationMeta,
-} from "../../utils/interfaces/pagination.type";
+import { PageDto, PageOptionsDto, PaginationMeta } from "../../utils/interfaces/pagination.type";
 import { ClientEntity } from "../../client/entity/client.entity";
 import { UserTypesEnum, UserTypesEnumNames } from "../constants/constants";
 import { HttpService } from "@nestjs/axios";
@@ -428,11 +410,10 @@ export class UserService {
     ];
     const clients = await this.userRepository.find();
     const data = this.mapClientsToExcelData(clients);
-    const worksheet = await this.excelService.createExcelFromDataArray(
+    return await this.excelService.createExcelFromDataArray(
       data,
       columns
     );
-    return worksheet;
   }
   mapClientsToExcelData(clients: UserEntity[]) {
     const dataClients: Array<{

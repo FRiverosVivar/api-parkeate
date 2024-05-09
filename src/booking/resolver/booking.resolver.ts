@@ -1,5 +1,10 @@
 import { BookingEntity } from "../entity/booking.entity";
-import { Args, Int, Mutation, Query, Resolver } from "@nestjs/graphql";
+import {
+  Args,
+  Mutation,
+  Query,
+  Resolver,
+} from "@nestjs/graphql";
 import { BookingService } from "../service/booking.service";
 import { UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
@@ -8,7 +13,6 @@ import { UpdateBookingInput } from "../model/update-booking.input";
 import { UserTypeGuard } from "../../auth/guards/user-type.guard";
 import { UserTypesEnum } from "../../user/constants/constants";
 import { UserType } from "../../auth/decorator/user-type.decorator";
-import { from, Observable } from "rxjs";
 import { CurrentUser } from "../../auth/decorator/current-user.decorator";
 import { UserEntity } from "../../user/entity/user.entity";
 import {
@@ -20,11 +24,11 @@ import {
   BookingDailyFinance,
   BookingDailyIncomeFinance,
 } from "../model/finance-booking.output";
-import { WeeklyBuildingProfit } from "../../building/model/finance-building.output";
 import { PaykuModel, PaykuResponse } from "../model/payku-model.input";
 import { BookingPriceCalculated } from "../model/booking-calculate-price.output";
 import { BookingStatesEnum } from "../enum/booking-states.enum";
-import { type } from "os";
+
+import { CreateTbkTransactionResponse } from "src/utils/transbank/tbk.response";
 
 @Resolver(BookingEntity)
 export class BookingResolver {
@@ -35,6 +39,7 @@ export class BookingResolver {
   createBooking(
     @Args("createBookingInput") createBookingInput: CreateBookingInput,
     @Args("parkingId") parkingId: string,
+    @Args("couponId") couponId: string,
     @CurrentUser() user: UserEntity,
     @Args("vehicleId", { nullable: true }) vehicleId: string,
     @Args("selectedDate", { nullable: true }) selectedDate: string
@@ -43,6 +48,7 @@ export class BookingResolver {
       createBookingInput,
       parkingId,
       user.id,
+      couponId,
       vehicleId,
       selectedDate
     );
@@ -53,6 +59,7 @@ export class BookingResolver {
   ) {
     return this.bookingService.updateBooking(updateBookingInput);
   }
+
   @Mutation(() => BookingEntity)
   @UserType(UserTypesEnum.ADMIN)
   @UseGuards(UserTypeGuard)
@@ -106,14 +113,14 @@ export class BookingResolver {
       relations ? JSON.parse(relations) : undefined
     );
   }
-  @Query(() => BookingEntity)
+  @Mutation(() => BookingEntity)
   updateBookingParking(
     @Args("bookingId") bookingId: string,
     @Args("parkingId") parkingId: string
   ) {
     return this.bookingService.changeBookingParking(bookingId, parkingId);
   }
-  @Query(() => BookingEntity)
+  @Mutation(() => BookingEntity)
   updateBookingUser(
     @Args("bookingId") bookingId: string,
     @Args("userId") userId: string
@@ -151,26 +158,28 @@ export class BookingResolver {
   findRecentBookingsFromBuildings(@CurrentUser() client: ClientEntity) {
     return this.bookingService.findRecentBookingsFromBuildings(client);
   }
-  @Mutation(() => BookingEntity)
+  @Mutation(() => CreateTbkTransactionResponse)
   @UseGuards(JwtAuthGuard)
-  generatePaymentFromPayku(
-    @Args("bookingId") bookingId: string,
-    @Args("paygate") paygate: string,
-    @Args("subId") subId: string,
-    @Args("priceToPay") priceToPay: number,
-    @Args("couponId", { nullable: true }) couponId: string,
-    @Args("anticipatedBooking", { nullable: true }) anticipatedBooking: boolean,
-    @Args("bookingNextState", { nullable: true })
-    bookingNextState?: BookingStatesEnum
+  generatePaymentFromTbk(
+    @Args("amount", { nullable: true })
+    amount: number
   ) {
-    return this.bookingService.generateAutomaticPayment(
+    return this.bookingService.createTbkMobileTransaction(amount);
+  }
+  @Mutation(() => CreateTbkTransactionResponse)
+  @UseGuards(JwtAuthGuard)
+  confirmPaymentFromTbk(
+    @Args("token")
+    token: string,
+    @Args("bookingId")
+    bookingId: string,
+    @Args("nextState")
+    nextState: BookingStatesEnum
+  ) {
+    return this.bookingService.confirmPaymentBooking(
       bookingId,
-      priceToPay,
-      subId,
-      paygate,
-      couponId,
-      anticipatedBooking,
-      bookingNextState
+      nextState,
+      token
     );
   }
   @Query(() => [BookingEntity], {

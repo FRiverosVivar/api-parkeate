@@ -5,6 +5,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   getManager,
 } from "typeorm";
 import { BaseEntityWithIdAbstract } from "../../utils/interfaces/base-entity-with-id.abstract";
@@ -16,6 +17,7 @@ import { LiquidationEntity } from "../../liquidation/entity/liquidation.entity";
 import { DateTime } from "luxon";
 import { VehicleEntity } from "src/vehicle/entity/vehicle.entity";
 import { InAdvanceBooking } from "../enum/in-advance-booking.enum";
+import { UserCouponEntity } from "src/coupons/user-coupons/entity/user-coupons.entity";
 
 @Entity("booking")
 @ObjectType()
@@ -71,4 +73,10 @@ export class BookingEntity extends BaseEntityWithIdAbstract {
   @Column({ nullable: true })
   @Field(() => Boolean, { nullable: true })
   lastestNotifiedState: InAdvanceBooking;
+  @OneToMany(() => UserCouponEntity, (l) => l.booking, { nullable: true })
+  @Field(() => UserCouponEntity)
+  coupon: UserCouponEntity;
+  @Column()
+  @Field(() => String)
+  tbkToken: string;
 }
