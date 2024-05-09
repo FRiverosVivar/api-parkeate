@@ -11,6 +11,7 @@ import {
   Repository,
 } from "typeorm";
 import {
+  combineLatest,
   forkJoin,
   from,
   map,
@@ -18,7 +19,7 @@ import {
   of,
   switchMap,
   take,
-  tap,
+  tap
 } from "rxjs";
 import * as uuid from "uuid";
 import { UUIDBadFormatException } from "../../utils/exceptions/UUIDBadFormat.exception";
