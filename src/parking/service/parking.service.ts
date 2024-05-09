@@ -613,7 +613,11 @@ export class ParkingService {
     const parkings = await this.parkingRepository.find(
       {
         relations: {
-          bookings: true
+          bookings: {
+            user: true,
+            vehicle: true,
+          },
+          building: true
         },
         where: {
           id: In(parkingsId)
@@ -622,10 +626,17 @@ export class ParkingService {
     )
     const columns = [
       { header: "Direccion", key: "address" },
+      { header: "Nombre Estacionamiento", key: "buildingName" },
       { header: "Nombre Estacionamiento", key: "name" },
-      { header: "N° Estacionamiento", key: "numberId" },
-      { header: "Minutos", key: "totalMinutes" },
-      { header: "Monto neto", key: "totalAmountToPay" },
+      { header: "Reservado por", key: "reservedBy" },
+      { header: "Vehiculo", key: "vehicle" },
+      { header: "Fecha Inicio", key: "start" },
+      { header: "Fecha Termino", key: "end" },
+      { header: "Precio Hora Prepago", key: "initialPrice" },
+      { header: "Precio Final a Pagar", key: "finalPrice" },
+      { header: "Tiempo de Reserva (Minutos)", key: "totalMinutes" },
+      { header: "Monto", key: "totalAmountToPay" },
+      { header: "Pagado", key: "paid" },
       { header: "Total", key: "total" },
     ];
     const data = this.mapParkingDataAndGetBookingsFromParking(parkings);
@@ -635,45 +646,73 @@ export class ParkingService {
     );
   }
   private mapParkingDataAndGetBookingsFromParking(parkings: ParkingEntity[]){
-    const data: { address: string; name: string; numberId: string; totalMinutes: string; totalAmountToPay: string; total?: string | number; }[] = []
+    const data: { address: string;buildingName: string; name: string;reservedBy: string; vehicle: string; start: string;end: string;initialPrice: string;finalPrice: string; totalMinutes: string; totalAmountToPay: string;paid: string; total?: string | number; }[] = []
     parkings.forEach((p) => {
       data.push({
         address: p.building.address,
+        buildingName: p.building.name,
         name: p.name,
-        numberId: "",
+        reservedBy: "",
+        vehicle: "",
+        initialPrice: "",
+        finalPrice: "",
+        start: "",
+        end: "",
         totalMinutes: "",
         totalAmountToPay: "",
+        paid: "",
         total: ""
       })
       const totalPrice = p.bookings.reduce((acc, b) => acc + b.finalPrice, 0)
       p.bookings.forEach((b) => {
         data.push({
           address: "",
+          buildingName: "",
           name: "",
-          numberId: b.numberId,
-          totalMinutes: DateTime.fromJSDate(
+          reservedBy: b.user.fullname,
+          vehicle: b.vehicle ? b.vehicle.carPlate:"Vehiculo Eliminado",
+          start: DateTime.fromJSDate(b.dateStart).toFormat("hh:mm:ss dd/MM/yyyy"),
+          end: DateTime.fromJSDate(b.dateEnd).toFormat("hh:mm:ss dd/MM/yyyy"),
+          initialPrice: formatearMonedaChilena(b.initialPrice),
+          finalPrice: formatearMonedaChilena(b.finalPrice),
+          totalMinutes: Math.round(DateTime.fromJSDate(
             b.dateExtended ? b.dateExtended : b.dateEnd
           )
             .diff(DateTime.fromJSDate(b.dateStart), "minutes")
-            .as("minutes")
+            .as("minutes"))
             .toString(),
-          totalAmountToPay: formatearMonedaChilena(b.finalPrice)
+          totalAmountToPay: formatearMonedaChilena(b.finalPrice),
+          paid: b.paid ? "Pagado" : "Por Pagar",
         })
       })
       data.push({
         address: "",
+        buildingName: "",
         name: "",
-        numberId: "",
+        reservedBy: "",
+        vehicle: "",
+        initialPrice: "",
+        finalPrice: "",
+        start: "",
+        end: "",
         totalMinutes: "",
         totalAmountToPay: "",
-        total: totalPrice
+        paid: "",
+        total: formatearMonedaChilena(totalPrice)
       })
       data.push({
         address: "--------",
+        buildingName: "--------",
         name: "--------",
-        numberId: "--------",
+        reservedBy: "",
+        vehicle: "",
+        initialPrice: "--------",
+        finalPrice: "--------",
+        start: "--------",
+        end: "--------",
         totalMinutes: "--------",
         totalAmountToPay: "--------",
+        paid: "--------",
         total: "--------"
       })
     })
