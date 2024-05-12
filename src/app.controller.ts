@@ -24,14 +24,16 @@ import { UserType } from "./auth/decorator/user-type.decorator";
 import { UserTypesEnum } from "./user/constants/constants";
 import { ClientService } from "./client/service/client.service";
 import type { Response } from "express";
+import { DateTime } from "luxon";
+import { ParkingService } from "./parking/service/parking.service";
 @Controller("/booking/confirmPayment")
 export class AppController {
   constructor(
     private readonly bookingService: BookingService,
-    private buildingService: BuildingService,
-    private clientService: ClientService,
-    private couponService: CouponService,
-    private readonly userService: UserService
+    private readonly clientService: ClientService,
+    private readonly couponService: CouponService,
+    private readonly userService: UserService,
+    private readonly parkingService: ParkingService
   ) {}
 
   @Get("")
@@ -162,6 +164,15 @@ export class AppController {
     const buffer = await this.userService.exportUsers();
     return res
       .set("Content-Disposition", `attachment; filename=example.xlsx`)
+      .send(buffer);
+  }
+  @Post("/exportParkings")
+  @UserType(UserTypesEnum.ADMIN)
+  @UseGuards(JwtAuthGuard, UserTypeGuard)
+  async exportParkings(@Res() res: Response, @Body() parkings: string[]) {
+    const buffer = await this.parkingService.exportParkings(parkings);
+    return res
+      .set("Content-Disposition", `attachment; filename=exportedParkings-{${DateTime.now().toISO()}}.xlsx`)
       .send(buffer);
   }
 }

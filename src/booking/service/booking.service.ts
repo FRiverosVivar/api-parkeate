@@ -11,6 +11,7 @@ import {
   Repository,
 } from "typeorm";
 import {
+  combineLatest,
   forkJoin,
   from,
   map,
@@ -18,7 +19,7 @@ import {
   of,
   switchMap,
   take,
-  tap,
+  tap
 } from "rxjs";
 import * as uuid from "uuid";
 import { UUIDBadFormatException } from "../../utils/exceptions/UUIDBadFormat.exception";
@@ -274,18 +275,14 @@ export class BookingService implements OnModuleInit {
   updateBooking(
     updateBookingInput: UpdateBookingInput
   ): Observable<BookingEntity> {
-    let relations = undefined;
-    if (updateBookingInput.bookingState === BookingStatesEnum.RESERVED)
-      relations = {
-        relations: {
-          parking: {
-            building: true,
-          },
-          vehicle: true,
+    const booking$ = this.findBookingById(updateBookingInput.id, {
+      relations: {
+        parking: {
+          building: true,
         },
-      };
-
-    const booking$ = this.findBookingById(updateBookingInput.id, relations);
+        vehicle: true,
+      },
+    });
     return booking$.pipe(
       switchMap((previousBooking) => {
         return from(
@@ -815,9 +812,26 @@ export class BookingService implements OnModuleInit {
       switchMap((p) => {
         return this.findBookingById(bookingId).pipe(
           switchMap((b) => {
+            const oldParking = b.parking;
             b.parking = p;
-            return from(this.bookingRepository.save(b));
-          })
+            const updateParking = {
+              id: oldParking.id,
+              reserved: false,
+            }
+            const updateNewParking = {
+              id: p.id,
+              reserved: true,
+            }
+
+            return combineLatest([
+                this.parkingService.updateParking(updateParking),
+                this.parkingService.updateParking(updateNewParking),
+            ]).pipe(
+                switchMap(() => {
+                  return from(this.bookingRepository.save(b))
+                })
+              )
+            })
         );
       })
     );
