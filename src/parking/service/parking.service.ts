@@ -31,6 +31,7 @@ import { CouponService } from "src/coupons/service/coupon.service";
 import { CouponsTypeEnum } from "src/coupons/constants/coupons-type.enum";
 import { formatearMonedaChilena } from "../../utils/utils";
 import { ExcelService } from "../../utils/excel/excel.service";
+import { BookingStatesEnum } from "../../booking/enum/booking-states.enum";
 
 @Injectable()
 export class ParkingService {
@@ -626,7 +627,7 @@ export class ParkingService {
     )
     const columns = [
       { header: "Direccion", key: "address" },
-      { header: "Nombre Estacionamiento", key: "buildingName" },
+      { header: "Nombre Edificio", key: "buildingName" },
       { header: "Nombre Estacionamiento", key: "name" },
       { header: "Reservado por", key: "reservedBy" },
       { header: "Vehiculo", key: "vehicle" },
@@ -664,7 +665,7 @@ export class ParkingService {
         total: ""
       })
       const totalPrice = p.bookings.reduce((acc, b) => acc + b.finalPrice, 0)
-      p.bookings.forEach((b) => {
+      p.bookings.filter((b) => b.bookingState === BookingStatesEnum.FINALIZED).forEach((b) => {
         data.push({
           address: "",
           buildingName: "",
