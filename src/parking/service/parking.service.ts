@@ -675,14 +675,14 @@ export class ParkingService {
           start: DateTime.fromJSDate(b.dateStart).toFormat("hh:mm:ss dd/MM/yyyy"),
           end: DateTime.fromJSDate(b.dateEnd).toFormat("hh:mm:ss dd/MM/yyyy"),
           initialPrice: formatearMonedaChilena(b.initialPrice),
-          finalPrice: formatearMonedaChilena(b.finalPrice),
+          finalPrice: formatearMonedaChilena(b.finalPrice ?? 0),
           totalMinutes: Math.round(DateTime.fromJSDate(
             b.dateExtended ? b.dateExtended : b.dateEnd
           )
             .diff(DateTime.fromJSDate(b.dateStart), "minutes")
             .as("minutes"))
             .toString(),
-          totalAmountToPay: formatearMonedaChilena(b.finalPrice),
+          totalAmountToPay: formatearMonedaChilena(b.finalPrice ?? 0),
           paid: b.paid ? "Pagado" : "Por Pagar",
         })
       })
