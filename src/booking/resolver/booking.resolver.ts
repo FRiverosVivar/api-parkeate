@@ -152,9 +152,9 @@ export class BookingResolver {
   findRecentBookingsFromBuildings(@CurrentUser() client: ClientEntity) {
     return this.bookingService.findRecentBookingsFromBuildings(client);
   }
-  @Query(() => CurrentPriceBookingOutput, { name: "calculateBookingExtendedHourPrice" })
+  @Query(() => CurrentPriceBookingOutput, { name: "getBookingCurrentPriceToPay" })
   @UseGuards(JwtAuthGuard)
-  calculateBookingExtendedHourPrice(
+  getBookingCurrentPriceToPay(
     @Args("bookingId") bookingId: string,
     @Args("couponId", { nullable: true }) couponId: string
   ) {
