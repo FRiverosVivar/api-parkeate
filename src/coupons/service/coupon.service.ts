@@ -74,7 +74,10 @@ export class CouponService implements OnModuleInit {
     if (!uuid.validate(id)) {
       throw new UUIDBadFormatException();
     }
-    return this.getUserCouponFromRepository(id);
+    const uc = this.getUserCouponFromRepository(id)
+    if (!uc) throw new NotFoundException();
+
+    return uc;
   }
   private async getCouponFromRepository(id: string) {
     const coupon = await this.couponRepository.findOne({
@@ -95,7 +98,6 @@ export class CouponService implements OnModuleInit {
         id: id,
       },
     });
-    if (!coupon) throw new NotFoundException();
 
     return coupon;
   }
