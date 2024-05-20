@@ -1210,7 +1210,7 @@ export class BookingService implements OnModuleInit {
     const duration = Duration.fromMillis(65*60000);
     return this.calculateCurrentPriceWithParkingPrice(p, userCoupon, duration, b.user.wallet);
   }
-  calculateCurrentPriceWithParkingPrice(p: ParkingEntity, userCoupon: UserCouponEntity | undefined, diff: Duration, userWallet: number) {
+  calculateCurrentPriceWithParkingPrice(p: ParkingEntity, userCoupon: UserCouponEntity | undefined | null, diff: Duration, userWallet: number) {
     switch (p.type) {
       case ParkingType.PER_MINUTE: {
         if (userCoupon) {
