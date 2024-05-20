@@ -1190,7 +1190,7 @@ export class BookingService implements OnModuleInit {
 
   async getBookingCurrentPriceToPay(bookingId: string, userCouponid?: string) {
     const userCoupon = userCouponid
-      ? await this.couponService.findUserCoupon(userCouponid)
+      ? await this.couponService.getUserCouponFromRepository(userCouponid)
       : undefined;
     const b = (await this.findBookingById(bookingId, { relations: { parking: true } }).toPromise())!;
     const p = b.parking

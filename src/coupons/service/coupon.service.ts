@@ -86,7 +86,7 @@ export class CouponService implements OnModuleInit {
 
     return coupon;
   }
-  private async getUserCouponFromRepository(id: string) {
+  async getUserCouponFromRepository(id: string) {
     const coupon = await this.userCouponRepository.findOne({
       relations: {
         coupon: true,
