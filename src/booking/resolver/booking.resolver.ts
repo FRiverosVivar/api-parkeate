@@ -156,9 +156,9 @@ export class BookingResolver {
   @UseGuards(JwtAuthGuard)
   getBookingCurrentPriceToPay(
     @Args("bookingId") bookingId: string,
-    @Args("couponId", { nullable: true }) couponId: string
+    @Args("userCouponId", { nullable: true }) userCouponId: string
   ) {
-    return this.bookingService.getBookingCurrentPriceToPay(bookingId, couponId);
+    return this.bookingService.getBookingCurrentPriceToPay(bookingId, userCouponId);
   }
   @Mutation(() => BookingEntity)
   @UseGuards(JwtAuthGuard)

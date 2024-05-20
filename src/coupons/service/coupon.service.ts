@@ -7,20 +7,15 @@ import { UpdateCouponInput } from "../model/update-coupon.input";
 import { GenerateCouponOptions } from "../model/generate-coupons-options.input";
 import { UUIDBadFormatException } from "src/utils/exceptions/UUIDBadFormat.exception";
 import * as uuid from "uuid";
-import { NotFound } from "@aws-sdk/client-s3";
 import { UserService } from "src/user/service/user.service";
 import * as _ from "lodash";
-import {
-  PageDto,
-  PageOptionsDto,
-  PaginationMeta,
-} from "src/utils/interfaces/pagination.type";
+import { PageDto, PageOptionsDto, PaginationMeta } from "src/utils/interfaces/pagination.type";
 import { UserCouponEntity } from "../user-coupons/entity/user-coupons.entity";
 import { DateTime, Settings } from "luxon";
 import { UpdateUserCouponInput } from "../model/update-user-coupon.input";
 import { UserEntity } from "src/user/entity/user.entity";
-import { CurrentUser } from "src/auth/decorator/current-user.decorator";
 import { Cron, CronExpression } from "@nestjs/schedule";
+
 @Injectable()
 export class CouponService implements OnModuleInit {
   constructor(
@@ -91,7 +86,7 @@ export class CouponService implements OnModuleInit {
     return coupon;
   }
   async getUserCouponFromRepository(id: string) {
-    const coupon = await this.userCouponRepository.findOne({
+    return await this.userCouponRepository.findOne({
       relations: {
         coupon: true,
       },
@@ -99,8 +94,6 @@ export class CouponService implements OnModuleInit {
         id: id,
       },
     });
-
-    return coupon;
   }
   async findPaginatedCoupons(options: PageOptionsDto) {
     const coupons = await this.couponRepository.find({

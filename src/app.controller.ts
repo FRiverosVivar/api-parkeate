@@ -109,7 +109,7 @@ export class AppController {
   successPaymentExtraTime(
     @Query("bookingId") bookingId: string,
     @Query("finalPrice") finalPrice: number,
-    @Query("couponId") couponId: string,
+    @Query("userCouponId") couponId: string,
     @Query("amountUserWallet") amountUserWallet: string,
   ): Observable<BookingEntity> {
     const updateBookingInput: UpdateBookingInput = {
@@ -153,7 +153,7 @@ export class AppController {
   paymentExtraTime(
     @Query("bookingId") bookingId: string,
     @Query("finalPrice") finalPrice: number,
-    @Query("couponId") couponId: string,
+    @Query("userCouponId") couponId: string,
     @Query("amountUserWallet") amountUserWallet: string,
   ): Observable<BookingEntity> {
     const updateBookingInput: UpdateBookingInput = {
