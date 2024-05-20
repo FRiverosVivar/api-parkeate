@@ -3,3 +3,7 @@ node_modules
 test
 .idea
 schema.gql
+lambda/**/node_modules
+lambda/**/package-lock.json
+.vscode
+aws
