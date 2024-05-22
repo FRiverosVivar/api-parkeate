@@ -5,6 +5,9 @@ Resources:
     Properties:
       Name: ParkeateMultiFunctionLambdaPipeline
       RoleArn: arn:aws:iam::175445123792:role/AWSCodePipelineServiceRole
+      ArtifactStore:
+        Type: S3
+        Location: lambda-cf-artifacts
       Stages:
         - Name: Source
           Actions:
@@ -21,135 +24,116 @@ Resources:
                 - Name: SourceArtifact
         - Name: Build
           Actions:
-            - Name: BuildFunction1
+            - Name: BuildGetZipFromS3FolderYFX
               ActionTypeId:
                 Category: Build
                 Owner: AWS
                 Provider: CodeBuild
                 Version: 1
               Configuration:
-                ProjectName: BuildFunction1
+                ProjectName: BuildGetZipFromS3FolderYFX
                 PrimarySource: SourceArtifact
               InputArtifacts:
                 - Name: SourceArtifact
               OutputArtifacts:
-                - Name: BuildArtifactFunction1
-            - Name: BuildFunction2
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Provider: CodeBuild
-                Version: 1
-              Configuration:
-                ProjectName: BuildFunction2
-                PrimarySource: SourceArtifact
-              InputArtifacts:
-                - Name: SourceArtifact
-              OutputArtifacts:
-                - Name: BuildArtifactFunction2
+                - Name: BuildGetZipFromS3Folder-YFX-ARTIFACT
+#            - Name: BuildFunction2
+#              ActionTypeId:
+#                Category: Build
+#                Owner: AWS
+#                Provider: CodeBuild
+#                Version: 1
+#              Configuration:
+#                ProjectName: BuildFunction2
+#                PrimarySource: SourceArtifact
+#              InputArtifacts:
+#                - Name: SourceArtifact
+#              OutputArtifacts:
+#                - Name: BuildArtifactFunction2
         - Name: Deploy
           Actions:
-            - Name: DeployFunction1
+            - Name: DeployGetZipFromS3FolderYFX
               ActionTypeId:
                 Category: Deploy
                 Owner: AWS
                 Provider: CloudFormation
                 Version: 1
               Configuration:
-                StackName: LambdaDockerStackFunction1
+                ActionMode: REPLACE_ON_FAILURE
+                RoleArn: arn:aws:iam::175445123792:role/AWSCloudFormationExecutionRole
+                StackName: LambdaDockerStackGetZipFromS3Folder-YFX
                 Capabilities: CAPABILITY_IAM
-                TemplatePath: BuildArtifactFunction1::template.yaml
+                TemplatePath: BuildGetZipFromS3Folder-YFX-ARTIFACT::getZipFromS3Folder/template.yml
               InputArtifacts:
-                - Name: BuildArtifactFunction1
-            - Name: DeployFunction2
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Provider: CloudFormation
-                Version: 1
-              Configuration:
-                StackName: LambdaDockerStackFunction2
-                Capabilities: CAPABILITY_IAM
-                TemplatePath: BuildArtifactFunction2::template.yaml
-              InputArtifacts:
-                - Name: BuildArtifactFunction2
+                - Name: BuildGetZipFromS3Folder-YFX-ARTIFACT
+#            - Name: DeployFunction2
+#              ActionTypeId:
+#                Category: Deploy
+#                Owner: AWS
+#                Provider: CloudFormation
+#                Version: 1
+#              Configuration:
+#                StackName: LambdaDockerStackFunction2
+#                Capabilities: CAPABILITY_IAM
+#                TemplatePath: BuildArtifactFunction2::template.yaml
+#              InputArtifacts:
+#                - Name: BuildArtifactFunction2
 
-  BuildProjectFunction1:
+  BuildProjectGetZipFromS3FolderYFX:
     Type: AWS::CodeBuild::Project
     Properties:
-      Name: BuildFunction1
+      Name: BuildGetZipFromS3FolderYFX
       Source:
         Type: CODEPIPELINE
+        BuildSpec: getZipFromS3Folder/buildspec.yml
       Artifacts:
         Type: CODEPIPELINE
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/standard:5.0
         Type: LINUX_CONTAINER
-      ServiceRole: arn:aws:iam::<your-account-id>:role/CodeBuildServiceRole
-      BuildSpec: |
-        version: 0.2
-        phases:
-          install:
-            runtime-versions:
-              docker: 19
-          pre_build:
-            commands:
-              - echo Pre-build phase: Detect changes
-              - if [ -z "$(git diff --name-only HEAD~1 HEAD | grep '^lambda-functions/function-1/')" ]; then echo 'No changes in function-1, skipping build'; exit 0; fi
-          build:
-            commands:
-              - echo Build started on `date`
-              - cd lambda-functions/function-1
-              - docker build -t function-1 .
-              - docker tag function-1:latest <your-account-id>.dkr.ecr.<your-region>.amazonaws.com/function-1:latest
-              - $(aws ecr get-login-password --region <your-region> | docker login --username AWS --password-stdin <your-account-id>.dkr.ecr.<your-region>.amazonaws.com)
-              - docker push <your-account-id>.dkr.ecr.<your-region>.amazonaws.com/function-1:latest
-        artifacts:
-          files:
-            - '**/*'
+      ServiceRole: arn:aws:iam::175445123792:role/AWSCodeBuildParkeateMultiFunctionPipeline
+#  BuildProjectFunction2:
+#    Type: AWS::CodeBuild::Project
+#    Properties:
+#      Name: BuildFunction2
+#      Source:
+#        Type: CODEPIPELINE
+#      Artifacts:
+#        Type: CODEPIPELINE
+#      Environment:
+#        ComputeType: BUILD_GENERAL1_SMALL
+#        Image: aws/codebuild/standard:5.0
+#        Type: LINUX_CONTAINER
+#      ServiceRole: arn:aws:iam::<your-account-id>:role/CodeBuildServiceRole
+#      BuildSpec: |
+#        version: 0.2
+#        phases:
+#          install:
+#            runtime-versions:
+#              docker: 19
+#          pre_build:
+#            commands:
+#              - echo Pre-build phase: Detect changes
+#              - if [ -z "$(git diff --name-only HEAD~1 HEAD | grep '^lambda-functions/function-2/')" ]; then echo 'No changes in function-2, skipping build'; exit 0; fi
+#          build:
+#            commands:
+#              - echo Build started on `date`
+#              - cd lambda-functions/function-2
+#              - docker build -t function-2 .
+#              - docker tag function-2:latest <your-account-id>.dkr.ecr.<your-region>.amazonaws.com/function-2:latest
+#              - $(aws ecr get-login-password --region <your-region> | docker login --username AWS --password-stdin <your-account-id>.dkr.ecr.<your-region>.amazonaws.com)
+#              - docker push <your-account-id>.dkr.ecr.<your-region>.amazonaws.com/function-2:latest
+#        artifacts:
+#          files:
+#            - '**/*'
 
-  BuildProjectFunction2:
-    Type: AWS::CodeBuild::Project
-    Properties:
-      Name: BuildFunction2
-      Source:
-        Type: CODEPIPELINE
-      Artifacts:
-        Type: CODEPIPELINE
-      Environment:
-        ComputeType: BUILD_GENERAL1_SMALL
-        Image: aws/codebuild/standard:5.0
-        Type: LINUX_CONTAINER
-      ServiceRole: arn:aws:iam::<your-account-id>:role/CodeBuildServiceRole
-      BuildSpec: |
-        version: 0.2
-        phases:
-          install:
-            runtime-versions:
-              docker: 19
-          pre_build:
-            commands:
-              - echo Pre-build phase: Detect changes
-              - if [ -z "$(git diff --name-only HEAD~1 HEAD | grep '^lambda-functions/function-2/')" ]; then echo 'No changes in function-2, skipping build'; exit 0; fi
-          build:
-            commands:
-              - echo Build started on `date`
-              - cd lambda-functions/function-2
-              - docker build -t function-2 .
-              - docker tag function-2:latest <your-account-id>.dkr.ecr.<your-region>.amazonaws.com/function-2:latest
-              - $(aws ecr get-login-password --region <your-region> | docker login --username AWS --password-stdin <your-account-id>.dkr.ecr.<your-region>.amazonaws.com)
-              - docker push <your-account-id>.dkr.ecr.<your-region>.amazonaws.com/function-2:latest
-        artifacts:
-          files:
-            - '**/*'
-
-  ECRRepositoryFunction1:
+  ECRRepositoryGetZipFromS3FolderYFX:
     Type: AWS::ECR::Repository
     Properties:
-      RepositoryName: function-1
+      RepositoryName: get-zip-from-s3-folder-yfx
 
-  ECRRepositoryFunction2:
-    Type: AWS::ECR::Repository
-    Properties:
-      RepositoryName: function-2
+#  ECRRepositoryFunction2:
+#    Type: AWS::ECR::Repository
+#    Properties:
+#      RepositoryName: function-2

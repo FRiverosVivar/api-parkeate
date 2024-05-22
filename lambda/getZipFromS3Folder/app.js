@@ -6,6 +6,7 @@ import { PassThrough } from 'stream';
 const s3 = new S3Client({ region: 'your-region' });
 
 export const lambdaHandler = async (event) => {
+
   const bucketName = 'your-bucket-name';
   let folderKey = 'your-folder/'; // Asegúrate de que el key termine con una barra
 
@@ -31,7 +32,7 @@ export const lambdaHandler = async (event) => {
       };
     }
 
-    const zipBuffer = await new Promise((resolve, reject) => {
+    const zipBuffer = await new Promise(async (resolve, reject) => {
       const archive = archiver('zip', { zlib: { level: 9 } });
       const buffers = [];
 
@@ -56,6 +57,7 @@ export const lambdaHandler = async (event) => {
         'Content-Disposition': `attachment; filename="folder-${formattedDate}.zip"`
       },
       body: zipBuffer.toString('base64'),
+
       isBase64Encoded: true
     };
   } catch (error) {
