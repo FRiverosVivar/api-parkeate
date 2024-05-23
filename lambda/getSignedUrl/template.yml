@@ -1,0 +1,15 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: GetSignedUrl
+      Role: arn:aws:iam::175445123792:role/AWSParkeateLambdaExecutionRole
+      Code:
+        ImageUri: 175445123792.dkr.ecr.sa-east-1.amazonaws.com/get-signed-url-yfx:latest
+      PackageType: Image
+      MemorySize: 128
+      Timeout: 300
+      Environment:
+        Variables:
+          LOG_LEVEL: INFO

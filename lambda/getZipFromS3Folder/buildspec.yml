@@ -14,7 +14,17 @@ phases:
       - docker tag get-zip-from-s3-folder-yfx:latest 175445123792.dkr.ecr.sa-east-1.amazonaws.com/get-zip-from-s3-folder-yfx:latest
       - aws ecr get-login-password --region sa-east-1 | docker login --username AWS --password-stdin 175445123792.dkr.ecr.sa-east-1.amazonaws.com
       - docker push 175445123792.dkr.ecr.sa-east-1.amazonaws.com/get-zip-from-s3-folder-yfx:latest
-      - aws lambda update-function-code --function-name GetZipFromS3FolderFunction --image-uri 175445123792.dkr.ecr.sa-east-1.amazonaws.com/get-zip-from-s3-folder-yfx:latest
+      - echo Build completed on `date`
+  post_build:
+    commands:
+      - echo Checking if Lambda function exists...
+      - |
+        if aws lambda get-function --function-name GetZipFromS3Folder > /dev/null 2>&1; then
+          echo "Function GetZipFromS3Folder exists. Updating the function code..."
+          aws lambda update-function-code --function-name GetZipFromS3FolderFunction --image-uri 175445123792.dkr.ecr.sa-east-1.amazonaws.com/get-zip-from-s3-folder-yfx:latest
+        else
+          echo "Function GetZipFromS3Folder does not exist."
+        fi
 artifacts:
   files:
     - '**/*'

@@ -51,6 +51,21 @@ Resources:
                 - Name: SourceArtifact
               OutputArtifacts:
                 - Name: BuildGetViewSignedUrlYFX-YFX-ARTIFACT
+
+            - Name: BuildGetSignedUrlYFX
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: BuildGetSignedUrlYFX
+                PrimarySource: SourceArtifact
+              InputArtifacts:
+                - Name: SourceArtifact
+              OutputArtifacts:
+                - Name: BuildGetSignedUrlYFX-YFX-ARTIFACT
+
         - Name: Deploy
           Actions:
             - Name: DeployGetZipFromS3FolderYFX
@@ -85,6 +100,22 @@ Resources:
               InputArtifacts:
                 - Name: BuildGetViewSignedUrlYFX-YFX-ARTIFACT
 
+            - Name: DeployGetSignedUrlYFX
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CloudFormation
+                Version: 1
+              Configuration:
+                ActionMode: CREATE_UPDATE
+                RoleArn: arn:aws:iam::175445123792:role/AWSCloudFormationExecutionRole
+                StackName: LambdaDockerStackGetSignedUrl-YFX
+                ChangeSetName: LambdaDockerStackGetSignedUrl-YFX
+                Capabilities: CAPABILITY_IAM
+                TemplatePath: BuildGetSignedUrlYFX-YFX-ARTIFACT::getSignedUrl/template.yml
+              InputArtifacts:
+                - Name: BuildGetSignedUrlYFX-YFX-ARTIFACT
+
   BuildProjectGetZipFromS3FolderYFX:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -115,6 +146,21 @@ Resources:
         Type: LINUX_CONTAINER
       ServiceRole: arn:aws:iam::175445123792:role/AWSCodeBuildParkeateMultiFunctionPipeline
 
+  BuildProjectGetSignedUrlYFX:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: BuildGetSignedUrlYFX
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: getSignedUrl/buildspec.yml
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:5.0
+        Type: LINUX_CONTAINER
+      ServiceRole: arn:aws:iam::175445123792:role/AWSCodeBuildParkeateMultiFunctionPipeline
+
   ECRRepositoryGetZipFromS3FolderYFX:
     Type: AWS::ECR::Repository
     Properties:
@@ -123,7 +169,7 @@ Resources:
     Type: AWS::ECR::Repository
     Properties:
       RepositoryName: get-view-signed-url-yfx
-#  ECRRepositoryFunction2:
-#    Type: AWS::ECR::Repository
-#    Properties:
-#      RepositoryName: function-2
+  ECRRepositoryGetSignedUrlYFX:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: get-signed-url-yfx
