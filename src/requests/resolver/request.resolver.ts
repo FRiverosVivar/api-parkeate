@@ -30,7 +30,7 @@ export class RequestResolver {
   ) {
     return this.requestService.findPaginatedRequests(paginationOptions);
   }
-  @Query(() => RequestsPaginated)
+  @Mutation(() => RequestsPaginated)
   updateRequest(
     @Args("updateRequestInput") updateRequestInput: UpdateRequestInput
   ) {

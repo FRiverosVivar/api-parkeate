@@ -6,7 +6,7 @@ export enum RequestStatusEnum {
 }
 export const RequestStatusNames = [
   "Pendiente de envío de formulario",
-  "Pendiente de envío de calendario",
+  "Pendiente de reunión con equipo",
   "Listo para terminar",
   "Finalizado"
 ]
