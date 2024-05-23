@@ -11,6 +11,7 @@ import { EmailTypesEnum } from "../../utils/email/enum/email-types.enum";
 import { UpdateRequestInput } from "../model/update-request.input";
 import { update } from "lodash";
 import { RequestStatusEnum } from "../enum/request-status.enum";
+import { PageDto, PageOptionsDto, PaginationMeta } from "../../utils/interfaces/pagination.type";
 
 @Injectable()
 export class RequestService {
@@ -76,5 +77,20 @@ export class RequestService {
         },
       })
     );
+  }
+  async findPaginatedRequests(pagination: PageOptionsDto) {
+    const query = this.requestRepository
+      .createQueryBuilder("r")
+      .orderBy("r.createdAt", "DESC")
+      .skip(pagination.skip)
+      .take(pagination.take);
+    const itemCount = await query.getCount();
+    const { entities } = await query.getRawAndEntities();
+    const pageMetaDto = new PaginationMeta({
+      pageOptionsDto: pagination,
+      itemCount,
+    });
+    pageMetaDto.skip = (pageMetaDto.page - 1) * pageMetaDto.take;
+    return new PageDto(entities, pageMetaDto);
   }
 }
