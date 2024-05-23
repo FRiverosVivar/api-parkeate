@@ -7,6 +7,10 @@ import { from, map, Observable, switchMap, tap } from "rxjs";
 import * as uuid from "uuid";
 import { UUIDBadFormatException } from "../../utils/exceptions/UUIDBadFormat.exception";
 import { EmailService } from "src/utils/email/email.service";
+import { EmailTypesEnum } from "../../utils/email/enum/email-types.enum";
+import { UpdateRequestInput } from "../model/update-request.input";
+import { update } from "lodash";
+import { RequestStatusEnum } from "../enum/request-status.enum";
 
 @Injectable()
 export class RequestService {
@@ -22,14 +26,34 @@ export class RequestService {
 
     return from(this.requestRepository.save(request)).pipe(
       tap(() => {
-        this.emailService.sendRawEmail(
-          request.email,
-          "CORREO GENERADO POR FORMULARIO CONTACTO/SOPORTE | " +
-            request.content,
-          request.subject
-        );
+        this.emailService.sendEmail(EmailTypesEnum.REQUEST_CREATED, request.email, JSON.stringify(request))
       })
     );
+  }
+  updateRequest(updateRequestInput: UpdateRequestInput): Observable<RequestEntity> {
+    return from(this.requestRepository.preload(updateRequestInput)).pipe(switchMap((request) => {
+      if (!request) {
+        throw new NotFoundException();
+      }
+      return from(this.requestRepository.save(request)).pipe(
+        tap(() => {
+          switch(updateRequestInput.status) {
+            case RequestStatusEnum.PENDING_SEND_CALENDAR:{
+              this.emailService.sendEmail(EmailTypesEnum.REQUEST_CALENDAR_FORM, request.email, JSON.stringify(request))
+              break;
+            }
+            case RequestStatusEnum.PENDING_SEND_FORM:{
+              this.emailService.sendEmail(EmailTypesEnum.REQUEST_PARKING_DETAILS_FORM, request.email, JSON.stringify(request))
+              break;
+            }
+            case RequestStatusEnum.FINISHED:{
+              this.emailService.sendEmail(EmailTypesEnum.REQUEST_CLOSED, request.email, JSON.stringify(request))
+              break;
+            }
+          }
+        })
+      )
+    }))
   }
   findRequestById(requestId: string): Observable<RequestEntity> {
     if (!uuid.validate(requestId)) {
