@@ -3,13 +3,17 @@ import archiver from 'archiver';
 import { DateTime } from 'luxon';
 import { PassThrough } from 'stream';
 
-const s3 = new S3Client({ region: 'your-region' });
+const s3 = new S3Client({ region: 'sa-east-1' });
 
 export const lambdaHandler = async (event) => {
-
-  const bucketName = 'your-bucket-name';
-  let folderKey = 'your-folder/'; // Asegúrate de que el key termine con una barra
-
+  const bucketName = event.queryStringParameters.bucketName
+  let folderKey = event.queryStringParameters.folderKey
+  if(!bucketName || bucketName === '' || !folderKey || folderKey === '') {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: 'Missing required parameters' })
+    }
+  }
   if (folderKey.endsWith('/')) {
     folderKey = folderKey.slice(0, -1);
   }
