@@ -304,4 +304,7 @@ export class ClientService {
     });
     return dataClients;
   }
+  save(client: ClientEntity) {
+    return this.clientRepository.save(client);
+  }
 }

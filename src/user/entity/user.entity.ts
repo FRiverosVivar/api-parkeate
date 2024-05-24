@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToMany, OneToMany, Unique } from "typeorm";
+import { Column, Entity, ManyToMany, OneToMany, OneToOne, Unique } from "typeorm";
 import { Field, Int, ObjectType } from "@nestjs/graphql";
 import { UserTypesEnum } from "../constants/constants";
 import { BaseCustomer } from "../../utils/interfaces/base-customer.abstract";
@@ -8,6 +8,8 @@ import { BookingEntity } from "../../booking/entity/booking.entity";
 import { CouponEntity } from "src/coupons/entity/coupon.entity";
 import { UserCouponEntity } from "src/coupons/user-coupons/entity/user-coupons.entity";
 import { CardEntity } from "./card.entity";
+import { BasicProfileAbstract } from "../../utils/interfaces/basic-profile.abstract";
+import { AuthUserEntity } from "../../auth/entity/auth-user.entity";
 
 @ObjectType()
 @Entity("user")
@@ -24,6 +26,7 @@ export class UserEntity extends BaseCustomer {
   restrictedParkings: ParkingEntity[];
   @OneToMany(() => VehicleEntity, (v) => v.owner, {
     onUpdate: "CASCADE",
+    onDelete: "SET NULL",
     nullable: true,
     eager: true,
   })
@@ -31,6 +34,7 @@ export class UserEntity extends BaseCustomer {
   vehicleList: VehicleEntity[];
   @OneToMany(() => BookingEntity, (b) => b.user, {
     onUpdate: "CASCADE",
+    onDelete: "SET NULL",
     nullable: true,
   })
   @Field(() => [BookingEntity], { nullable: true })
@@ -62,4 +66,7 @@ export class UserEntity extends BaseCustomer {
   @Column({ nullable: true })
   @Field(() => String)
   supplier: boolean;
+  @Column({ nullable: true })
+  @Field(() => String)
+  authUser: string
 }

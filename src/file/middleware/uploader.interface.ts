@@ -14,6 +14,7 @@ export interface UploaderOptions {
 }
 export interface FileConfig {
   uploader: UploaderOptions;
+  aws?: {userPoolId: string | undefined, region: string}
 }
 export interface FileOptions {
   clientConfig: S3ClientConfig;

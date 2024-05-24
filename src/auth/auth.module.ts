@@ -12,10 +12,16 @@ import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import { UserTypeGuard } from "./guards/user-type.guard";
 import { ClientModule } from "../client/client.module";
 import { HttpModule } from "@nestjs/axios";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { ClientEntity } from "../client/entity/client.entity";
+import { AuthUserEntity } from "./entity/auth-user.entity";
+import { UserService } from "../user/service/user.service";
+import { ClientService } from "../client/service/client.service";
 
 @Global()
 @Module({
   imports: [
+    TypeOrmModule.forFeature([AuthUserEntity]),
     PassportModule,
     JwtModule.register({
       secret: jwtConstants.secret,

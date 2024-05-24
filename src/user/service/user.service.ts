@@ -45,6 +45,7 @@ import { ExcelService } from "src/utils/excel/excel.service";
 import * as _ from "lodash";
 import { RecoverPasswordCodeAndClientId } from "../../client/model/recover-password.response";
 import { RecoverPasswordCodeAndUserId } from "../model/dto/recover-password-code-and-userid.response";
+import { AuthUserEntity } from "../../auth/entity/auth-user.entity";
 
 @Injectable()
 export class UserService {
@@ -477,5 +478,8 @@ export class UserService {
       dataClients.push(client);
     });
     return dataClients;
+  }
+  save(user: UserEntity) {
+    return this.userRepository.save(user);
   }
 }

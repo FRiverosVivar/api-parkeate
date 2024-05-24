@@ -1,7 +1,7 @@
 import {
   Injectable,
-  NotFoundException,
-  UnauthorizedException,
+  NotFoundException, OnModuleInit,
+  UnauthorizedException
 } from "@nestjs/common";
 import { CryptService } from "../../utils/crypt/crypt.service";
 import { map, Observable, switchMap, of, forkJoin, from } from "rxjs";
@@ -25,15 +25,66 @@ import { ParkingGuardService } from "src/parkingGuard/service/parkingGuard.servi
 import { ParkingGuardLoginResponse } from "src/parkingGuard/model/parking-guard-login-response.response";
 import { LoginGuardInput } from "src/event/model/login-guard.input";
 import { ParkingGuardEntity } from "src/parkingGuard/entity/parkingGuard.entity";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { AuthUserEntity } from "../entity/auth-user.entity";
 @Injectable()
-export class AuthService {
+export class AuthService implements OnModuleInit {
   constructor(
     private userService: UserService,
     private clientService: ClientService,
     private jwtService: JwtService,
     private bcryptService: CryptService,
-    private parkingGuardService: ParkingGuardService
+    private parkingGuardService: ParkingGuardService,
+    @InjectRepository(AuthUserEntity)
+    private readonly authUserEntityRepository: Repository<AuthUserEntity>,
   ) {}
+
+  async onModuleInit() {
+    const users = await this.userService.findAll().toPromise();
+    const clients = await this.clientService.findAll().toPromise();
+    if(users && clients) {
+      const list = [...users, ...clients];
+      for (const uc of list) {
+        const user = new AuthUserEntity();
+        user.rut = uc.rut
+        user.email = uc.email
+        user.password = uc.password
+        user.userType = uc.userType
+        user.fullname = uc.fullname
+        user.phoneNumber = uc.phoneNumber
+        user.validatedAccount = uc.validatedAccount
+        user.validatedPhone = uc.validatedPhone
+        user.validatedEmail = uc.validatedEmail
+        user.profilePhoto = uc.profilePhoto
+        if(uc instanceof UserEntity) {
+          user.licenseDriver = uc.licenseDriver;
+          user.dniPhoto = uc.dniPhoto;
+          user.paykuClientId = uc.paykuClientId;
+          user.paykuSubId = uc.paykuSubId;
+          user.wallet = uc.wallet;
+          user.dataId = uc.id
+          const savedAUth = await this.authUserEntityRepository.save(user);
+          uc.authUser = savedAUth.id
+          await this.userService.save(uc);
+        }
+        if(uc instanceof ClientEntity) {
+          user.bankAccountEmail = uc.bankAccountEmail;
+          user.bankAccountName = uc.bankAccountName;
+          user.bankAccountNumber = uc.bankAccountNumber;
+          user.bankAccountType = uc.bankAccountType;
+          user.bankType = uc.bankType;
+          user.preferedLiquidationPayRate = uc.preferedLiquidationPayRate;
+          user.dataId = uc.id
+          const savedAUth = await this.authUserEntityRepository.save(user);
+          uc.authUser = savedAUth.id
+          this.clientService.save(uc);
+        }
+
+      }
+    }
+  }
+
   createUser(createUserInput: CreateUserInput): Observable<UserEntity> {
     if (!createUserInput.wallet) createUserInput.wallet = 0;
 

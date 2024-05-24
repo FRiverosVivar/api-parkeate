@@ -4,8 +4,8 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
-  OneToMany,
-  Unique,
+  OneToMany, OneToOne,
+  Unique
 } from "typeorm";
 import { Field, Float, Int, ObjectType } from "@nestjs/graphql";
 import { BaseCustomer } from "../../utils/interfaces/base-customer.abstract";
@@ -16,6 +16,7 @@ import { UserTypesEnum } from "../../user/constants/constants";
 import { LiquidationEntity } from "../../liquidation/entity/liquidation.entity";
 import { LiquidationEnum } from "../../liquidation/model/liquidation.enum";
 import { BankAccountTypeEnum, BanksEnum } from "../model/bank.enum";
+import { AuthUserEntity } from "../../auth/entity/auth-user.entity";
 
 @ObjectType()
 @Entity("client")
@@ -57,4 +58,7 @@ export class ClientEntity extends BaseCustomer {
   @Column({ nullable: true })
   @Field(() => String)
   supplier: boolean;
+  @Column({ nullable: true })
+  @Field(() => String)
+  authUser: string
 }

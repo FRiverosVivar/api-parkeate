@@ -41,6 +41,10 @@ export function config(): FileConfig {
         maxFiles: parseInt(FileConstants.MAX_FILES, 10),
       },
     },
+    aws: {
+      userPoolId: process.env.USER_POOL_ID,
+      region: FileConstants.BUCKET_REGION
+    }
   };
 }
 export default () => config();
