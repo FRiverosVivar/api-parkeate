@@ -10,9 +10,9 @@ import { RequestTypeEnum } from "../enum/request-type.enum";
 export class CreateRequestInput   {
   @Field(() => String)
   fullName: string;
-  @Field(() => String)
+  @Field(() => Number)
   type: RequestTypeEnum;
-  @Field(() => String)
+  @Field(() => Number)
   status: RequestStatusEnum;
   @Field(() => String)
   phoneNumber: string;
@@ -22,7 +22,7 @@ export class CreateRequestInput   {
   state: string;
   @Field(() => String)
   city: string;
-  @Field(() => String, {nullable: true})
+  @Field(() => Number, {nullable: true})
   parkingType: RequestParkingTypeEnum;
   @Field(() => String, {nullable: true})
   address: string;
