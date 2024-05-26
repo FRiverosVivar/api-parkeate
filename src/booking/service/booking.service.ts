@@ -1217,6 +1217,13 @@ export class BookingService implements OnModuleInit {
           switch (userCoupon.coupon.type) {
             case CouponsTypeEnum.DISCOUNT_TO_TOTAL_PRICE: {
               const basePrice = +p.pricePerMinute * diff.minutes;
+              if(userCoupon.coupon.value >= basePrice) return {
+                amountToBePaid: 0,
+                tax: 0,
+                userWalletDiscount: 0,
+                initialPrice: Math.round(basePrice),
+                discount: Math.round(basePrice),
+              }
               const basePriceWith80Percent = Math.round((basePrice * 80) / 100);
               const userWalletDiscount = userWallet >= basePriceWith80Percent ? basePriceWith80Percent: userWallet;
               const discount = userCoupon.coupon.value;
@@ -1233,6 +1240,14 @@ export class BookingService implements OnModuleInit {
               return price;
             }
             case CouponsTypeEnum.DISCOUNT_TO_PRICE_PER_MINUTE: {
+              if(userCoupon.coupon.value >= +p.pricePerMinute) return {
+                amountToBePaid: 0,
+                tax: 0,
+                userWalletDiscount: 0,
+                initialPrice: Math.round(+p.pricePerMinute * diff.minutes),
+                discount: Math.round(+p.pricePerMinute * diff.minutes),
+              }
+
               const basePricePerMinute = Math.round(
                 +p.pricePerMinute - userCoupon.coupon.value
               );
@@ -1254,31 +1269,33 @@ export class BookingService implements OnModuleInit {
               return price;
             }
             case CouponsTypeEnum.DISCOUNT_PERCENTAGE_TO_TOTAL_PRICE: {
+              const couponValue = userCoupon.coupon.value > 100 ? 100 : userCoupon.coupon.value;
               const basePricePerMinute = Math.round(
                 Math.round(+p.pricePerMinute * diff.minutes)
               );
-              const baseCouponDiscount = Math.round((basePricePerMinute * userCoupon.coupon.value) / 100)
+              const baseCouponDiscount = Math.round((basePricePerMinute * couponValue) / 100)
               const basePrice = Math.round(
                 basePricePerMinute - baseCouponDiscount
               )
               const basePriceWith80Percent = Math.round((basePrice * 80) / 100);
               const userWalletDiscount = userWallet >= basePriceWith80Percent ? basePriceWith80Percent: userWallet;
-              const finalPriceWithDiscounts = Math.round(basePrice - userWalletDiscount)
-              const tax = Math.round(finalPriceWithDiscounts * 0.19);
               const discount = baseCouponDiscount
+              const amountToBePaid = Math.round((basePrice * 1.19) - userWalletDiscount)
+              const tax = Math.round(amountToBePaid * 0.19);
 
               const price: CurrentPriceBookingOutput = {
-                amountToBePaid: Math.round((basePrice * 1.19 - discount) - userWalletDiscount),
+                amountToBePaid: amountToBePaid,
                 tax: tax,
                 userWalletDiscount: userWalletDiscount,
-                initialPrice: Math.round(basePrice),
+                initialPrice: Math.round(basePricePerMinute),
                 discount: discount,
               };
               return price;
             }
             case CouponsTypeEnum.DISCOUNT_PERCENTAGE_TO_PRICE_PER_MINUTE: {
+              const couponValue = userCoupon.coupon.value > 100 ? 100 : userCoupon.coupon.value;
               const basePercentageDiscountPerMinute = Math.round(
-                (+p.pricePerMinute * userCoupon.coupon.value) / 100
+                (+p.pricePerMinute * couponValue) / 100
               );
               const basePricePerMinute = Math.round(
                 +p.pricePerMinute - basePercentageDiscountPerMinute
@@ -1292,16 +1309,14 @@ export class BookingService implements OnModuleInit {
                 amountToBePaid: Math.round(finalPriceWithDiscounts + tax),
                 tax: tax,
                 userWalletDiscount: userWalletDiscount,
-                initialPrice: basePrice,
-                discount: basePercentageDiscountPerMinute
+                initialPrice: basePrice === 0 ? Math.round(+p.pricePerMinute * diff.minutes):basePrice,
+                discount: Math.round(basePercentageDiscountPerMinute * diff.minutes)
               };
               return price;
             }
             case CouponsTypeEnum.FREE_PRE_PAID_HOUR: {
               const price: CurrentPriceBookingOutput = {
-                amountToBePaid: Math.round(
-                  Math.round(+p.pricePerMinute * diff.minutes * 1.19)
-                ),
+                amountToBePaid: 0,
                 userWalletDiscount: 0,
                 tax: Math.round(+p.pricePerMinute * diff.minutes * 0.19),
                 initialPrice: Math.round(+p.pricePerMinute * diff.minutes),
