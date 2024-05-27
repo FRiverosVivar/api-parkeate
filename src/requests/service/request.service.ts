@@ -126,7 +126,6 @@ export class RequestService {
       { header: "Cantidad", key: "quantity" },
       { header: "Es Propietario", key: "isOwner" },
       { header: "Es Empresa", key: "isCompany" },
-      { header: "Estado Actual", key: "status" },
     ];
     const data = this.mapRequestsData(requests);
     return await this.excelService.createExcelFromDataArray(
@@ -139,6 +138,7 @@ export class RequestService {
   }
   private mapRequest(request: RequestEntity) {
     return {
+      status: RequestStatusNames[request.status],
       fullName: request.fullName,
       phoneNumber: request.phoneNumber,
       email: request.email,
@@ -149,7 +149,6 @@ export class RequestService {
       quantity: request.quantity,
       isOwner: request.isOwner,
       isCompany: request.isCompany,
-      status: RequestStatusNames[request.status]
     }
   }
 }
