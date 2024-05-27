@@ -249,4 +249,14 @@ export class AppController {
       .set("Content-Disposition", `attachment; filename=exportedRequests-{${DateTime.now().toISO()}}.xlsx`)
       .send(buffer);
   }
+  @Post("/updateRequest")
+  async updateRequest(
+  @Query("id") id: string,
+  @Query("status") status: number) {
+    const updateRequest = {
+      id,
+      status: +status,
+    }
+    return this.requestService.updateRequest(updateRequest)
+  }
 }

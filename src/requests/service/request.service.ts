@@ -37,6 +37,11 @@ export class RequestService {
     );
   }
   updateRequest(updateRequestInput: UpdateRequestInput): Observable<RequestEntity> {
+
+    if (!uuid.validate(updateRequestInput.id)) {
+      throw new UUIDBadFormatException();
+    }
+
     return from(this.requestRepository.preload(updateRequestInput)).pipe(switchMap((request) => {
       if (!request) {
         throw new NotFoundException();
@@ -44,6 +49,17 @@ export class RequestService {
       return from(this.requestRepository.save(request)).pipe(
         tap((r) => {
           switch(updateRequestInput.status) {
+            case RequestStatusEnum.PENDING_SEND_FORM:{
+              const data = {
+                name: request.fullName,
+                requestStatus: RequestStatusNames[request.status],
+                days: DateTime.now().toFormat('dd/MM/yyyy'),
+                hours: DateTime.now().toFormat('HH:mm'),
+                formUrl: process.env.WEB_BASE_URL + '/request-parking-details-form?id=' + request.id
+              }
+              this.emailService.sendEmail(EmailTypesEnum.REQUEST_PARKING_DETAILS_FORM, request.email, JSON.stringify(data))
+              break;
+            }
             case RequestStatusEnum.PENDING_SEND_CALENDAR:{
               const data = {
                 name: request.fullName,
@@ -55,12 +71,24 @@ export class RequestService {
               this.emailService.sendEmail(EmailTypesEnum.REQUEST_CALENDAR_FORM, request.email, JSON.stringify(data))
               break;
             }
-            case RequestStatusEnum.PENDING_SEND_FORM:{
-              this.emailService.sendEmail(EmailTypesEnum.REQUEST_PARKING_DETAILS_FORM, request.email, JSON.stringify(request))
+            case RequestStatusEnum.FINISHED:{
+              const data = {
+                name: request.fullName,
+                requestStatus: RequestStatusNames[request.status],
+                days: DateTime.now().toFormat('dd/MM/yyyy'),
+                hours: DateTime.now().toFormat('HH:mm'),
+              }
+              this.emailService.sendEmail(EmailTypesEnum.REQUEST_FINALIZED, request.email, JSON.stringify(data))
               break;
             }
-            case RequestStatusEnum.FINISHED:{
-              this.emailService.sendEmail(EmailTypesEnum.REQUEST_CLOSED, request.email, JSON.stringify(request))
+            case RequestStatusEnum.CANCELED:{
+              const data = {
+                name: request.fullName,
+                requestStatus: RequestStatusNames[request.status],
+                days: DateTime.now().toFormat('dd/MM/yyyy'),
+                hours: DateTime.now().toFormat('HH:mm'),
+              }
+              this.emailService.sendEmail(EmailTypesEnum.REQUEST_CANCELED, request.email, JSON.stringify(data))
               break;
             }
           }

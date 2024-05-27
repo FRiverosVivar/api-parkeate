@@ -10,5 +10,6 @@ export const EmailTypesCode = [
   'request-created',
   'request-parking-details-form',
   'request-calendar-form',
+  'request-finalized',
   'request-closed',
 ];
