@@ -22,6 +22,7 @@ type VehicleEntity {
   """car type"""
   carType: Int
   owner: UserEntity!
+  bookings: [BookingEntity!]!
 }
 
 """
@@ -171,6 +172,46 @@ type TagsEntity {
   buildings: [BuildingEntity!]!
 }
 
+type ParkingGuardEntity {
+  """id of the entity"""
+  id: String!
+
+  """creation date of the entity"""
+  createdAt: DateTime!
+
+  """update date of the entity"""
+  updatedAt: DateTime!
+
+  """photo of the user"""
+  profilePhoto: String
+
+  """rut of the user"""
+  rut: String!
+
+  """name of the holding"""
+  fullname: String!
+
+  """email of the user"""
+  email: String!
+
+  """phone number of the user"""
+  phoneNumber: String!
+
+  """hashed password of the user"""
+  password: String!
+
+  """validated email"""
+  validatedEmail: Boolean!
+
+  """validated phone"""
+  validatedPhone: Boolean!
+  validatedAccount: Boolean!
+
+  """type of the user"""
+  userType: Int!
+  guardBuildings: [BuildingEntity!]!
+}
+
 type BuildingEntity {
   """id of the entity"""
   id: String!
@@ -201,6 +242,7 @@ type BuildingEntity {
   location: Geometry!
   floors: String!
   description: String
+  guardsAssigned: [ClientEntity!]
 }
 
 """Geometry scalar type"""
@@ -295,6 +337,28 @@ type ScheduleEntity {
   parking: ParkingEntity!
 }
 
+type EventEntity {
+  """id of the entity"""
+  id: String!
+
+  """creation date of the entity"""
+  createdAt: DateTime!
+
+  """update date of the entity"""
+  updatedAt: DateTime!
+  active: Boolean!
+  code: String!
+  bannerImage: String
+  descriptionOfBanner: String!
+  name: String!
+  organizerName: String!
+  startAt: DateTime!
+  endAt: DateTime!
+  percentageParkingDiscount: Float!
+  percentageOrganizedProfit: Float!
+  parkings: [ParkingEntity!]
+}
+
 type ParkingEntity {
   """id of the entity"""
   id: String!
@@ -325,6 +389,9 @@ type ParkingEntity {
   bookings: [BookingEntity!]!
   phone: String
   contactEmail: String
+  canBookAnticipated: Boolean
+  percentageSurchargeForReservation: Float
+  event: EventEntity
 }
 
 type BookingEntity {
@@ -349,7 +416,9 @@ type BookingEntity {
   finalPrice: Float
   paid: Boolean!
   liquidation: LiquidationEntity!
-  vehicle: VehicleEntity!
+  vehicle: VehicleEntity
+  anticipatedBooking: Boolean
+  lastestNotifiedState: Boolean
 }
 
 type PaginationMeta {
@@ -364,6 +433,11 @@ type PaginationMeta {
 
 type BuildingsPaginated {
   data: [BuildingEntity!]!
+  meta: PaginationMeta!
+}
+
+type GuardsPaginated {
+  data: [ParkingGuardEntity!]!
   meta: PaginationMeta!
 }
 
@@ -397,6 +471,11 @@ type CouponsPaginated {
   meta: PaginationMeta!
 }
 
+type EventsPaginated {
+  data: [EventEntity!]!
+  meta: PaginationMeta!
+}
+
 type UserLoginResponse {
   user: UserEntity!
   access_token: String!
@@ -404,6 +483,11 @@ type UserLoginResponse {
 
 type ClientLoginResponse {
   client: ClientEntity!
+  access_token: String!
+}
+
+type ParkingGuardLoginResponse {
+  guard: ParkingGuardEntity!
   access_token: String!
 }
 
@@ -484,6 +568,7 @@ type BuildingOutput {
   location: Geometry!
   floors: String!
   description: String
+  guardsAssigned: [ClientEntity!]
   min: String!
   coords: String!
 }
@@ -518,6 +603,7 @@ type BuildingWithCoordsOutput {
   location: Geometry!
   floors: String!
   description: String
+  guardsAssigned: [ClientEntity!]
   coords: String!
 }
 
@@ -558,6 +644,14 @@ type BookingPriceCalculated {
   originalPrice: Float!
 }
 
+type CurrentPriceBookingOutput {
+  amountToBePaid: Float!
+  tax: Float!
+  initialPrice: Float!
+  userWalletDiscount: Float!
+  discount: Float
+}
+
 type RequestEntity {
   """id of the entity"""
   id: String!
@@ -567,13 +661,26 @@ type RequestEntity {
 
   """update date of the entity"""
   updatedAt: DateTime!
-  subject: String!
+  fullName: String!
+  type: Float!
+  status: Float!
+  phoneNumber: String!
   email: String!
-  phoneNumber: String
-  content: String!
+  state: String!
+  city: String!
+  parkingType: Float!
+  address: String!
+  location: Geometry!
+  quantity: Float!
+  isOwner: Boolean!
+  isCompany: Boolean!
+  sentCalendar: Boolean!
 }
 
 type Query {
+  findEventById(eventId: String!): EventEntity!
+  findEventByCode(code: String!): EventEntity!
+  getPaginatedEvents(paginationOptions: PageOptionsDto!): EventsPaginated!
   findAllParkings: [ParkingEntity!]!
   findAllReservableParkingsByBuildingId(buildingId: String!): [ParkingEntity!]!
   findOneParkingById(parkingId: String!): ParkingEntity!
@@ -592,6 +699,8 @@ type Query {
   getPaginatedBuildings(paginationOptions: PageOptionsDto!): BuildingsPaginated!
   findMostProfitableBuilding: MostProfitableBuilding
   findDailyIncomeOfAllBuildingsInAMonth(days: Float): MonthlyBuildingProfit!
+  verifyCustomerPositionIsCloseTo100MtsOrLessFromBuilding(buildingId: String!, point: PointInput!): Boolean!
+  getBuildingsAssigedToAGuard(guardId: String!): [BuildingEntity!]!
   findTagById(tagId: String!): [TagsEntity!]!
   findTagsByBuildingId(buildingId: String!): [TagsEntity!]!
   users: [UserEntity!]!
@@ -604,21 +713,24 @@ type Query {
   getUserSMSCode(phoneNumber: String!): SmsVerificationCode!
   getPaykuClientCardData: [Card!]!
   addCardToClient: String!
+  checkUserAndGetCodeToValidate(rut: String!): RecoverPasswordCodeAndClientId!
   clientById(clientId: String!): ClientEntity!
   clients: [ClientEntity!]!
   clientByRut(rut: String!): ClientEntity
+  searchClientByRutEmailOrPhone(rut: String!, email: String!, phone: String!): ClientEntity
   getClientEmailCode(fullname: String!, email: String!): EmailVerificationCode!
   getClientSMSCode(phoneNumber: String!): SmsVerificationCode!
   checkClientAndGetCodeToValidate(rut: String!): RecoverPasswordCodeAndClientId!
   findVehicleById(vehicleId: String!): VehicleEntity!
   findVehiclesByUserId: [VehicleEntity!]!
+  findVehiclesWithModelPlateOrOwner(text: String!): [VehicleEntity!]!
   getAllHoldings: [HoldingEntity!]!
   getHoldingById(holdingId: String!): HoldingEntity!
   getBookingCountForOrderNumberAndCreatePaykuOrder(paykuModel: PaykuModel!): PaykuResponse!
   getPaginatedBookings(paginationOptions: PageOptionsDto!, parkingId: String, displayAll: Boolean): BookingsPaginated!
   findBookingsMadeTodayAndYesterday: BookingDailyFinance!
   findBookingsAndGetDailyIncomeAndPercentage: BookingDailyIncomeFinance!
-  findBookingById(bookingId: String!): BookingEntity!
+  findBookingById(bookingId: String!, relations: String): BookingEntity!
   updateBookingParking(bookingId: String!, parkingId: String!): BookingEntity!
   updateBookingUser(bookingId: String!, userId: String!): BookingEntity!
   getActiveBookingByUserId: [BookingEntity!]!
@@ -627,11 +739,15 @@ type Query {
   getBookingPriceCalculated(bookingId: String!): BookingPriceCalculated!
   resetCronJobsForBookingId(bookingId: String!): BookingEntity!
   findRecentBookingsFromBuildings: [BookingEntity!]!
+  getBookingCurrentPriceToPay(bookingId: String!, userCouponId: String): CurrentPriceBookingOutput!
+  GetBookingsFromTheCurrentDayOfBuilding(buildingId: String!): [BookingEntity!]!
   forceToLiquidateToAllBookings: [LiquidationEntity!]!
   getAllLiquidations(paginationOptions: PageOptionsDto!): LiquidationsPaginated!
   updateLiquidation(updateLiquidationInput: UpdateLiquidationInput!): LiquidationEntity!
   getPaginatedCoupons(paginationOptions: PageOptionsDto!): CouponsPaginated!
   getUserCoupons: [UserCouponEntity!]!
+  getPaginatedBuildingGuards(paginationOptions: PageOptionsDto!, buildingId: String!): GuardsPaginated!
+  searchGuardsByGivenRutPhoneNumberOrFullname(text: String!, restrictedIds: [String!]!): [ParkingGuardEntity!]!
 }
 
 input PageOptionsDto {
@@ -672,6 +788,10 @@ input UpdateLiquidationInput {
 type Mutation {
   uploadFile(createFileInput: CreateFileInput!, file: Upload!): String!
   deleteFile(url: String!): Boolean!
+  createEvent(createEventInput: CreateEventInput!): EventEntity!
+  updateEvent(updateEventInput: UpdateEventInput!): EventEntity!
+  removeEvent(eventId: String!): EventEntity!
+  setEventPhoto(eventId: String!, createPhotoInput: CreatePhotoInput!, file: Upload!): EventEntity!
   updateParking(updateParkingInput: UpdateParkingInput!, buildingId: String): ParkingEntity!
   removeBlockedUserFromParking(userId: String!, parkingId: String!): ParkingEntity!
   addUserToParkingBlockList(userId: String!, parkingId: String!): ParkingEntity!
@@ -689,10 +809,13 @@ type Mutation {
   updateTag(updateTagInput: UpdateTagInput!): TagsEntity!
   createUser(createUserInput: CreateUserInput!): UserEntity!
   createClient(createClientInput: CreateClientInput!): ClientEntity!
+  createGuard(createParkingGuardInput: CreateParkingGuardInput!): ParkingGuardEntity!
+  guardLogin(loginGuardInput: LoginGuardInput!): ParkingGuardLoginResponse!
   clientLogin(loginClientInput: LoginClientInput!): ClientLoginResponse!
   login(loginUserInput: LoginUserInput!): UserLoginResponse!
   refreshToken(accessToken: String!): UserLoginResponse!
   refreshClientToken(accessToken: String!): ClientLoginResponse!
+  refreshGuardToken(accessToken: String!): ParkingGuardLoginResponse!
   updateUserPassword(updateUserInput: UpdateUserInput!): UserEntity!
   updateUser(updateUserInput: UpdateUserInput!): UserEntity!
   setProfilePhoto(userId: String!, photoInput: CreatePhotoInput!, photo: Upload!): UserEntity!
@@ -707,10 +830,10 @@ type Mutation {
   setHoldingPhoto(holdingId: String!, photoInput: CreatePhotoInput!, photo: Upload!): HoldingEntity!
   removeHolding(holdingId: String!): UserEntity!
   createHolding(createHoldingInput: CreateHoldingInput!, clientsIds: String!): UserEntity!
-  createBooking(createBookingInput: CreateBookingInput!, parkingId: String!, vehicleId: String): BookingEntity!
+  createBooking(createBookingInput: CreateBookingInput!, parkingId: String!, vehicleId: String, selectedDate: String): BookingEntity!
   updateBooking(updateBookingInput: UpdateBookingInput!): BookingEntity!
   removeBooking(bookingId: String!): BookingEntity!
-  generatePaymentFromPayku(bookingId: String!, paygate: String!, subId: String!, priceToPay: Float!, couponId: String, bookingNextState: Float): BookingEntity!
+  generatePaymentFromPayku(bookingId: String!, paygate: String!, subId: String!, priceToPay: Float!, couponId: String, anticipatedBooking: Boolean, bookingNextState: Float): BookingEntity!
   createRequest(createRequestInput: CreateRequestInput!): RequestEntity!
   uploadPaymentReceipt(liquidationId: String!, receiptPdf: Upload!): LiquidationEntity!
   generateBulkOfCodes(generateCouponsOptions: GenerateCouponOptions!): [CouponEntity!]!
@@ -720,6 +843,8 @@ type Mutation {
   removeAssignedUserFromCoupon(userCouponId: String!): UserCouponEntity!
   updateUserCoupon(updateUserCouponInput: UpdateUserCouponInput!): UserCouponEntity!
   verifyIfCouponExistsAndThenAssignToUser(couponText: String!): UserCouponEntity
+  assignGuardToBuilding(buildingId: String!, guardId: String!): ParkingGuardEntity!
+  unassignGuardToBuilding(buildingId: String!, guardId: String!): ParkingGuardEntity!
 }
 
 input CreateFileInput {
@@ -741,6 +866,37 @@ enum RatioEnum {
 """The `Upload` scalar type represents a file upload."""
 scalar Upload
 
+input CreateEventInput {
+  bannerImage: String
+  descriptionOfBanner: String!
+  name: String!
+  organizerName: String!
+  startAt: DateTime!
+  endAt: DateTime!
+  percentageParkingDiscount: Float!
+  percentageOrganizedProfit: Float!
+}
+
+input UpdateEventInput {
+  bannerImage: String
+  descriptionOfBanner: String
+  name: String
+  organizerName: String
+  startAt: DateTime
+  endAt: DateTime
+  percentageParkingDiscount: Float
+  percentageOrganizedProfit: Float
+  id: String!
+  active: Boolean
+  code: String
+}
+
+input CreatePhotoInput {
+  url: String
+  name: String!
+  creatorId: String!
+}
+
 input UpdateParkingInput {
   name: String
   address: String
@@ -759,6 +915,8 @@ input UpdateParkingInput {
   description: String
   phone: String
   contactEmail: String
+  canBookAnticipated: Boolean
+  percentageSurchargeForReservation: Float
   id: String!
 }
 
@@ -780,12 +938,8 @@ input CreateParkingInput {
   description: String
   phone: String!
   contactEmail: String!
-}
-
-input CreatePhotoInput {
-  url: String
-  name: String!
-  creatorId: String!
+  canBookAnticipated: Boolean!
+  percentageSurchargeForReservation: Float!
 }
 
 input CreateScheduleInput {
@@ -885,7 +1039,7 @@ input CreateUserInput {
   wallet: Int
   licenseDriver: String
   dniPhoto: String
-  supplier: String
+  supplier: Boolean
 }
 
 input CreateClientInput {
@@ -923,6 +1077,44 @@ input CreateClientInput {
   bankAccountType: Int
   bankAccountNumber: String
   supplier: String
+}
+
+input CreateParkingGuardInput {
+  """rut of the user"""
+  rut: String!
+
+  """name of the holding"""
+  fullname: String!
+
+  """email of the user"""
+  email: String!
+
+  """phone number of the user"""
+  phoneNumber: String!
+
+  """photo of the user"""
+  profilePhoto: String
+
+  """hashed password of the user"""
+  password: String!
+  validatedAccount: Boolean!
+
+  """validated email"""
+  validatedEmail: Boolean!
+
+  """validated phone"""
+  validatedPhone: Boolean!
+
+  """type of the user"""
+  userType: Int!
+}
+
+input LoginGuardInput {
+  """rut of the user"""
+  username: String!
+
+  """pw of the user"""
+  password: String!
 }
 
 input LoginClientInput {
@@ -972,7 +1164,7 @@ input UpdateUserInput {
   wallet: Int
   licenseDriver: String
   dniPhoto: String
-  supplier: String
+  supplier: Boolean
   id: String!
 }
 
@@ -1083,6 +1275,7 @@ input CreateBookingInput {
   dateStart: String!
   dateEnd: String
   paid: Boolean!
+  anticipatedBooking: Boolean
 }
 
 input UpdateBookingInput {
@@ -1092,6 +1285,7 @@ input UpdateBookingInput {
   dateStart: String
   dateEnd: String
   paid: Boolean
+  anticipatedBooking: Boolean
   id: String!
   dateExtended: DateTime
   timeFinalized: DateTime
@@ -1100,10 +1294,21 @@ input UpdateBookingInput {
 }
 
 input CreateRequestInput {
-  subject: String!
+  fullName: String!
+  type: String!
+  status: String!
+  phoneNumber: String!
   email: String!
-  phoneNumber: String
-  content: String!
+  state: String!
+  city: String!
+  parkingType: String
+  address: String
+  location: Geometry
+  quantity: Float
+  isOwner: Boolean
+  isCompany: Boolean
+  sentCalendar: Boolean
+  requestState: Boolean
 }
 
 input GenerateCouponOptions {

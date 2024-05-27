@@ -27,6 +27,7 @@ import type { Response } from "express";
 import { DateTime } from "luxon";
 import { ParkingService } from "./parking/service/parking.service";
 import { UpdateUserInput } from "./user/model/dto/update-user.input";
+import { RequestService } from "./requests/service/request.service";
 @Controller("/booking/confirmPayment")
 export class AppController {
   constructor(
@@ -34,7 +35,8 @@ export class AppController {
     private readonly clientService: ClientService,
     private readonly couponService: CouponService,
     private readonly userService: UserService,
-    private readonly parkingService: ParkingService
+    private readonly parkingService: ParkingService,
+    private readonly requestService: RequestService
   ) {}
 
   @Get("")
@@ -109,7 +111,7 @@ export class AppController {
   successPaymentExtraTime(
     @Query("bookingId") bookingId: string,
     @Query("finalPrice") finalPrice: number,
-    @Query("couponId") couponId: string,
+    @Query("userCouponId") couponId: string,
     @Query("amountUserWallet") amountUserWallet: string,
   ): Observable<BookingEntity> {
     const updateBookingInput: UpdateBookingInput = {
@@ -153,7 +155,7 @@ export class AppController {
   paymentExtraTime(
     @Query("bookingId") bookingId: string,
     @Query("finalPrice") finalPrice: number,
-    @Query("couponId") couponId: string,
+    @Query("userCouponId") couponId: string,
     @Query("amountUserWallet") amountUserWallet: string,
   ): Observable<BookingEntity> {
     const updateBookingInput: UpdateBookingInput = {
@@ -237,5 +239,24 @@ export class AppController {
     return res
       .set("Content-Disposition", `attachment; filename=exportedParkings-{${DateTime.now().toISO()}}.xlsx`)
       .send(buffer);
+  }
+  @Post("/exportRequests")
+  @UserType(UserTypesEnum.ADMIN)
+  @UseGuards(JwtAuthGuard, UserTypeGuard)
+  async exportRequests(@Res() res: Response, @Body() requests: string[]) {
+    const buffer = await this.requestService.exportRequests(requests);
+    return res
+      .set("Content-Disposition", `attachment; filename=exportedRequests-{${DateTime.now().toISO()}}.xlsx`)
+      .send(buffer);
+  }
+  @Post("/updateRequest")
+  async updateRequest(
+  @Query("id") id: string,
+  @Query("status") status: number) {
+    const updateRequest = {
+      id,
+      status: +status,
+    }
+    return this.requestService.updateRequest(updateRequest)
   }
 }
