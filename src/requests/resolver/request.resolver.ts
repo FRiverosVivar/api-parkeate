@@ -30,7 +30,7 @@ export class RequestResolver {
   ) {
     return this.requestService.findPaginatedRequests(paginationOptions);
   }
-  @Mutation(() => RequestsPaginated)
+  @Mutation(() => RequestEntity, { name: 'updateRequest' })
   updateRequest(
     @Args("updateRequestInput") updateRequestInput: UpdateRequestInput
   ) {
