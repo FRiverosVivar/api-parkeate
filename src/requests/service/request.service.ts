@@ -31,8 +31,16 @@ export class RequestService {
     const request = this.requestRepository.create(createRequestInput);
 
     return from(this.requestRepository.save(request)).pipe(
-      tap(() => {
-        this.emailService.sendEmail(EmailTypesEnum.REQUEST_CREATED, request.email, JSON.stringify(request))
+      switchMap((r) => {
+        const data = {
+          name: request.fullName,
+          requestStatus: RequestStatusNames[request.status],
+          days: DateTime.now().toFormat('dd/MM/yyyy'),
+          hours: DateTime.now().toFormat('HH:mm'),
+        }
+        return from(this.emailService.sendEmail(EmailTypesEnum.REQUEST_CREATED, request.email, JSON.stringify(data))).pipe(
+          map(() => r)
+        )
       })
     );
   }

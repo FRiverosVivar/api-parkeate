@@ -421,6 +421,35 @@ type BookingEntity {
   lastestNotifiedState: Boolean
 }
 
+type RequestEntity {
+  """id of the entity"""
+  id: String!
+
+  """creation date of the entity"""
+  createdAt: DateTime!
+
+  """update date of the entity"""
+  updatedAt: DateTime!
+  fullName: String!
+  type: Float!
+  status: Float!
+  phoneNumber: String!
+  email: String!
+  state: String!
+  city: String!
+  parkingType: Float!
+  address: String!
+  location: Geometry!
+  quantity: Float!
+  scheduleStart: DateTime!
+  scheduleEnd: DateTime!
+  floor: String!
+  parkingNumber: String!
+  isOwner: Boolean!
+  isCompany: Boolean!
+  sentCalendar: Boolean!
+}
+
 type PaginationMeta {
   page: Float!
   skip: Float!
@@ -473,6 +502,11 @@ type CouponsPaginated {
 
 type EventsPaginated {
   data: [EventEntity!]!
+  meta: PaginationMeta!
+}
+
+type RequestsPaginated {
+  data: [RequestEntity!]!
   meta: PaginationMeta!
 }
 
@@ -652,31 +686,6 @@ type CurrentPriceBookingOutput {
   discount: Float
 }
 
-type RequestEntity {
-  """id of the entity"""
-  id: String!
-
-  """creation date of the entity"""
-  createdAt: DateTime!
-
-  """update date of the entity"""
-  updatedAt: DateTime!
-  fullName: String!
-  type: Float!
-  status: Float!
-  phoneNumber: String!
-  email: String!
-  state: String!
-  city: String!
-  parkingType: Float!
-  address: String!
-  location: Geometry!
-  quantity: Float!
-  isOwner: Boolean!
-  isCompany: Boolean!
-  sentCalendar: Boolean!
-}
-
 type Query {
   findEventById(eventId: String!): EventEntity!
   findEventByCode(code: String!): EventEntity!
@@ -741,6 +750,7 @@ type Query {
   findRecentBookingsFromBuildings: [BookingEntity!]!
   getBookingCurrentPriceToPay(bookingId: String!, userCouponId: String): CurrentPriceBookingOutput!
   GetBookingsFromTheCurrentDayOfBuilding(buildingId: String!): [BookingEntity!]!
+  getPaginatedRequests(paginationOptions: PageOptionsDto!): RequestsPaginated!
   forceToLiquidateToAllBookings: [LiquidationEntity!]!
   getAllLiquidations(paginationOptions: PageOptionsDto!): LiquidationsPaginated!
   updateLiquidation(updateLiquidationInput: UpdateLiquidationInput!): LiquidationEntity!
@@ -835,6 +845,7 @@ type Mutation {
   removeBooking(bookingId: String!): BookingEntity!
   generatePaymentFromPayku(bookingId: String!, paygate: String!, subId: String!, priceToPay: Float!, couponId: String, anticipatedBooking: Boolean, bookingNextState: Float): BookingEntity!
   createRequest(createRequestInput: CreateRequestInput!): RequestEntity!
+  updateRequest(updateRequestInput: UpdateRequestInput!): RequestEntity!
   uploadPaymentReceipt(liquidationId: String!, receiptPdf: Upload!): LiquidationEntity!
   generateBulkOfCodes(generateCouponsOptions: GenerateCouponOptions!): [CouponEntity!]!
   assignCouponToUser(userId: String!, couponId: String!): CouponEntity!
@@ -1295,20 +1306,47 @@ input UpdateBookingInput {
 
 input CreateRequestInput {
   fullName: String!
-  type: String!
-  status: String!
+  type: Float!
+  status: Float!
   phoneNumber: String!
   email: String!
   state: String!
   city: String!
-  parkingType: String
+  parkingType: Float
   address: String
   location: Geometry
   quantity: Float
+  scheduleStart: DateTime
+  scheduleEnd: DateTime
+  floor: String
+  parkingNumber: String
   isOwner: Boolean
   isCompany: Boolean
   sentCalendar: Boolean
   requestState: Boolean
+}
+
+input UpdateRequestInput {
+  fullName: String
+  type: Float
+  status: Float
+  phoneNumber: String
+  email: String
+  state: String
+  city: String
+  parkingType: Float
+  address: String
+  location: Geometry
+  quantity: Float
+  scheduleStart: DateTime
+  scheduleEnd: DateTime
+  floor: String
+  parkingNumber: String
+  isOwner: Boolean
+  isCompany: Boolean
+  sentCalendar: Boolean
+  requestState: Boolean
+  id: String!
 }
 
 input GenerateCouponOptions {

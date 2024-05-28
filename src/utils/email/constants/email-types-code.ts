@@ -1,12 +1,12 @@
 export const EmailTypesCode = [
-  'code',
-  'register',
-  'forgotten-password',
-  'change-password',
-  'reservation-created',
-  '',
-  '',
-  'liquidation-generated',
+  'code',// 0
+  'register', // 1
+  'forgotten-password', // 2
+  'change-password', // 3
+  'reservation-created', // 4
+  '', // 5
+  '',// 6
+  'liquidation-generated', // 7
   'request-created',
   'request-parking-details-form',
   'request-calendar-form',

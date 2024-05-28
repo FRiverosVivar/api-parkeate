@@ -10,5 +10,6 @@ export const EmailTypesSubjectCode = [
   'Parkeate | Nueva solicitud creada!',
   'Parkeate | Actualización Solicitud: Por favor complete el siguiente formulario',
   'Parkeate | Actualización Solicitud: Por favor agende una reunion con el equipo',
-  'Parkeate | Solicitud Finalizada! Gracias por usar Parkeate',
+  'Parkeate | Solicitud Finalizada! Gracias por confiar en Parkeate',
+  'Parkeate | Solicitud Cancelada! Gracias por considerar Parkeate',
 ];
