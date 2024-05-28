@@ -5,30 +5,40 @@ export const lambdaHandler = async (event) => {
 
   const bookingId = event.pathParameters.bookingId
   const startDateIso = event.pathParameters.startDate
+  const nextState = event.pathParameters.nextState
+  const env = event.pathParameters.env
 
-  if(!bookingId || bookingId === '' || !startDateIso || startDateIso === '') {
+  if(!bookingId || bookingId === '' || !startDateIso || startDateIso === '' || !nextState || nextState === '') {
     return {
       statusCode: 400,
       body: JSON.stringify({ error: 'Missing required parameters' })
     }
   }
   const timeZone = event.queryStringParameters.tz;
-
+  const targetInput = {
+    pathParameters: {
+      env: env ?? 'dev'
+    },
+    queryStringParameters: {
+      bookingId: bookingId,
+      nextState: nextState
+    }
+  }
   const input = {
-    Name: `booking-${bookingId}}`, // required
+    Name: `booking-${bookingId}}-${startDateIso}`,
     GroupName: "parkeate-bookings",
     ScheduleExpression: `at(${startDateIso})`,
     Description: "Booking Scheduled Job for Updating Booking Status",
     ScheduleExpressionTimezone: timeZone ? timeZone : "America/Santiago",
     State: "ENABLED",
     Target: {
-      Arn: "STRING_VALUE",
-      RoleArn: "STRING_VALUE",
+      Arn: "arn:aws:lambda:sa-east-1:175445123792:function:UpdateBookingStatus",
+      RoleArn: "arn:aws:iam::175445123792:role/AWSParkeateLambdaExecutionRole",
       RetryPolicy: {
         MaximumEventAgeInSeconds: Number("30"),
         MaximumRetryAttempts: Number("3"),
       },
-      Input: "STRING_VALUE",
+      Input: JSON.stringify(targetInput),
     },
     FlexibleTimeWindow: {
       Mode: "OFF",

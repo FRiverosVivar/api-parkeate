@@ -80,6 +80,20 @@ Resources:
               OutputArtifacts:
                 - Name: BuildUpdateBookingStatus-YFX-ARTIFACT
 
+            - Name: BuildCreateBookingScheduleYFX
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: BuildCreateBookingScheduleYFX
+                PrimarySource: SourceArtifact
+              InputArtifacts:
+                - Name: SourceArtifact
+              OutputArtifacts:
+                - Name: BuildCreateBookingSchedule-YFX-ARTIFACT
+
         - Name: Deploy
           Actions:
             - Name: DeployGetZipFromS3FolderYFX
@@ -146,6 +160,22 @@ Resources:
               InputArtifacts:
                 - Name: BuildUpdateBookingStatus-YFX-ARTIFACT
 
+            - Name: DeployCreateBookingScheduleYFX
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CloudFormation
+                Version: 1
+              Configuration:
+                ActionMode: CREATE_UPDATE
+                RoleArn: arn:aws:iam::175445123792:role/AWSCloudFormationExecutionRole
+                StackName: LambdaDockerStackCreateBookingSchedule-YFX
+                ChangeSetName: LambdaDockerStackCreateBookingSchedule-YFX
+                Capabilities: CAPABILITY_IAM
+                TemplatePath: BuildCreateBookingSchedule-YFX-ARTIFACT::createBookingSchedule/template.yml
+              InputArtifacts:
+                - Name: BuildCreateBookingSchedule-YFX-ARTIFACT
+
   BuildProjectGetZipFromS3FolderYFX:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -194,10 +224,25 @@ Resources:
   BuildProjectUpdateBookingStatusYFX:
     Type: AWS::CodeBuild::Project
     Properties:
-      Name: BuildUpdateBookingStatus
+      Name: BuildUpdateBookingStatusYFX
       Source:
         Type: CODEPIPELINE
         BuildSpec: updateBookingStatus/buildspec.yml
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:5.0
+        Type: LINUX_CONTAINER
+      ServiceRole: arn:aws:iam::175445123792:role/AWSCodeBuildParkeateMultiFunctionPipeline
+
+  BuildProjectCreateBookingScheduleYFX:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: BuildCreateBookingScheduleYFX
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: createBookingSchedule/buildspec.yml
       Artifacts:
         Type: CODEPIPELINE
       Environment:
@@ -210,15 +255,23 @@ Resources:
     Type: AWS::ECR::Repository
     Properties:
       RepositoryName: get-zip-from-s3-folder-yfx
+
   ECRRepositoryGetViewSignedUrlYFX:
     Type: AWS::ECR::Repository
     Properties:
       RepositoryName: get-view-signed-url-yfx
+
   ECRRepositoryGetSignedUrlYFX:
     Type: AWS::ECR::Repository
     Properties:
       RepositoryName: get-signed-url-yfx
+
   ECRRepositoryUpdateBookingStatusYFX:
     Type: AWS::ECR::Repository
     Properties:
       RepositoryName: update-booking-status-yfx
+
+  ECRRepositoryCreateBookingScheduleYFX:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: create-booking-schedule-yfx
