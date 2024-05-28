@@ -37,6 +37,14 @@ export class CreateRequestInput   {
   location: Point;
   @Field(() => Number, {nullable: true})
   quantity: number;
+  @Field(() => Date,{nullable: true})
+  scheduleStart: Date;
+  @Field(() => Date,{nullable: true})
+  scheduleEnd: Date;
+  @Field(() => String,{nullable: true})
+  floor: string;
+  @Field(() => String,{nullable: true})
+  parkingNumber: string;
   @Field(() => Boolean, {nullable: true})
   isOwner: boolean;
   @Field(() => Boolean, {nullable: true})

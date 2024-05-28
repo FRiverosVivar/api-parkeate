@@ -49,6 +49,18 @@ export class RequestEntity extends BaseEntityWithIdAbstract {
   @Field(() => Number)
   quantity: number;
   @Column({nullable: true})
+  @Field(() => Date)
+  scheduleStart: Date;
+  @Column({nullable: true})
+  @Field(() => Date)
+  scheduleEnd: Date;
+  @Column({nullable: true})
+  @Field(() => String)
+  floor: string;
+  @Column({nullable: true})
+  @Field(() => String)
+  parkingNumber: string;
+  @Column({nullable: true})
   @Field(() => Boolean)
   isOwner: boolean;
   @Column({nullable: true})
