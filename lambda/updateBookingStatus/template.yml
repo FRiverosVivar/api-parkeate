@@ -1,0 +1,15 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: UpdateBookingStatus
+      Role: arn:aws:iam::175445123792:role/AWSParkeateLambdaExecutionRole
+      Code:
+        ImageUri: 175445123792.dkr.ecr.sa-east-1.amazonaws.com/update-booking-status-yfx:latest
+      PackageType: Image
+      MemorySize: 128
+      Timeout: 60
+      Environment:
+        Variables:
+          LOG_LEVEL: INFO

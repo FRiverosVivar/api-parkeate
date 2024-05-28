@@ -1,0 +1,13 @@
+{
+  "name": "create_booking_schedule",
+  "version": "1.0.0",
+  "description": "Lambda Function CreateBookingSchedule",
+  "main": "app.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@aws-sdk/client-scheduler": "^3.583.0"
+  }
+}
