@@ -49,10 +49,10 @@ export class RequestEntity extends BaseEntityWithIdAbstract {
   @Field(() => Number)
   quantity: number;
   @Column({nullable: true})
-  @Field(() => String)
+  @Field(() => String, {nullable: true})
   scheduleStart: string;
   @Column({nullable: true})
-  @Field(() => Date)
+  @Field(() => Date, {nullable: true})
   scheduleEnd: Date;
   @Column({nullable: true})
   @Field(() => String)
