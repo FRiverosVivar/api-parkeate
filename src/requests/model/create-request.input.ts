@@ -53,4 +53,6 @@ export class CreateRequestInput   {
   sentCalendar: boolean;
   @Field(() => Boolean, {nullable: true})
   requestState: boolean;
+  @Field(() => String, {nullable: true})
+  rut: string;
 }

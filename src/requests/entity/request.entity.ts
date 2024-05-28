@@ -69,4 +69,7 @@ export class RequestEntity extends BaseEntityWithIdAbstract {
   @Column({nullable: true})
   @Field(() => Boolean)
   sentCalendar: boolean;
+  @Column({nullable: true})
+  @Field(() => String)
+  rut: string;
 }
