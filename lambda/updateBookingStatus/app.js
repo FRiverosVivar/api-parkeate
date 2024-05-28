@@ -1,45 +1,27 @@
 import { SchedulerClient, CreateScheduleCommand  } from '@aws-sdk/client-scheduler';
-
+import { axios } from 'axios'
 const schedulerClient = new SchedulerClient({ region: 'sa-east-1' });
 export const lambdaHandler = async (event) => {
 
-  const bookingId = event.pathParameters.bookingId
-  const startDateIso = event.pathParameters.startDate
+  const env = event.pathParameters.env
+  const bookingId = event.queryStringParameters.bookingId
+  const nextState = event.queryStringParameters.nextState
 
-  if(!bookingId || bookingId === '' || !startDateIso || startDateIso === '') {
+  if(!bookingId || bookingId === '' || !nextState || nextState === '') {
     return {
       statusCode: 400,
       body: JSON.stringify({ error: 'Missing required parameters' })
     }
   }
-  const timeZone = event.queryStringParameters.tz;
-
+  const parsedNextState = Number(nextState);
   const input = {
-    Name: `booking-${bookingId}}`, // required
-    GroupName: "parkeate-bookings",
-    ScheduleExpression: `at(${startDateIso})`,
-    Description: "Booking Scheduled Job for Updating Booking Status",
-    ScheduleExpressionTimezone: timeZone ? timeZone : "America/Santiago",
-    State: "ENABLED",
-    Target: {
-      Arn: "STRING_VALUE",
-      RoleArn: "STRING_VALUE",
-      RetryPolicy: {
-        MaximumEventAgeInSeconds: Number("30"),
-        MaximumRetryAttempts: Number("3"),
-      },
-      Input: "STRING_VALUE",
-    },
-    FlexibleTimeWindow: {
-      Mode: "OFF",
-    },
-    ActionAfterCompletion: "DELETE",
+    id: bookingId,
+    bookingState: parsedNextState,
   };
 
-  const command = new CreateScheduleCommand(input);
-  const response = await schedulerClient.send(command);
+  const response = await axios.put(`http://${env === 'dev' ? 'api.dev.' : 'api.prod.'}parkeateapp.com/v1/api/bookings/${bookingId}`, input);
   return {
-    statusCode: 200,
-    body: response['ScheduleArn']
+    statusCode: response.status,
+    body: response.data
   }
 };

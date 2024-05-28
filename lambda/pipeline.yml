@@ -50,7 +50,7 @@ Resources:
               InputArtifacts:
                 - Name: SourceArtifact
               OutputArtifacts:
-                - Name: BuildGetViewSignedUrlYFX-YFX-ARTIFACT
+                - Name: BuildGetViewSignedUrl-YFX-ARTIFACT
 
             - Name: BuildGetSignedUrlYFX
               ActionTypeId:
@@ -64,7 +64,21 @@ Resources:
               InputArtifacts:
                 - Name: SourceArtifact
               OutputArtifacts:
-                - Name: BuildGetSignedUrlYFX-YFX-ARTIFACT
+                - Name: BuildGetSignedUrl-YFX-ARTIFACT
+
+            - Name: BuildUpdateBookingStatusYFX
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: BuildUpdateBookingStatusYFX
+                PrimarySource: SourceArtifact
+              InputArtifacts:
+                - Name: SourceArtifact
+              OutputArtifacts:
+                - Name: BuildUpdateBookingStatus-YFX-ARTIFACT
 
         - Name: Deploy
           Actions:
@@ -96,9 +110,9 @@ Resources:
                 StackName: LambdaDockerStackGetViewSignedUrl-YFX
                 ChangeSetName: LambdaDockerStackGetViewSignedUrl-YFX
                 Capabilities: CAPABILITY_IAM
-                TemplatePath: BuildGetViewSignedUrlYFX-YFX-ARTIFACT::getViewSignedUrl/template.yml
+                TemplatePath: BuildGetViewSignedUrl-YFX-ARTIFACT::getViewSignedUrl/template.yml
               InputArtifacts:
-                - Name: BuildGetViewSignedUrlYFX-YFX-ARTIFACT
+                - Name: BuildGetViewSignedUrl-YFX-ARTIFACT
 
             - Name: DeployGetSignedUrlYFX
               ActionTypeId:
@@ -112,9 +126,25 @@ Resources:
                 StackName: LambdaDockerStackGetSignedUrl-YFX
                 ChangeSetName: LambdaDockerStackGetSignedUrl-YFX
                 Capabilities: CAPABILITY_IAM
-                TemplatePath: BuildGetSignedUrlYFX-YFX-ARTIFACT::getSignedUrl/template.yml
+                TemplatePath: BuildGetSignedUrl-YFX-ARTIFACT::getSignedUrl/template.yml
               InputArtifacts:
-                - Name: BuildGetSignedUrlYFX-YFX-ARTIFACT
+                - Name: BuildGetSignedUrl-YFX-ARTIFACT
+
+            - Name: DeployUpdateBookingStatusYFX
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CloudFormation
+                Version: 1
+              Configuration:
+                ActionMode: CREATE_UPDATE
+                RoleArn: arn:aws:iam::175445123792:role/AWSCloudFormationExecutionRole
+                StackName: LambdaDockerStackUpdateBookingStatus-YFX
+                ChangeSetName: LambdaDockerStackUpdateBookingStatus-YFX
+                Capabilities: CAPABILITY_IAM
+                TemplatePath: BuildUpdateBookingStatus-YFX-ARTIFACT::updateBookingStatus/template.yml
+              InputArtifacts:
+                - Name: BuildUpdateBookingStatus-YFX-ARTIFACT
 
   BuildProjectGetZipFromS3FolderYFX:
     Type: AWS::CodeBuild::Project
@@ -161,6 +191,21 @@ Resources:
         Type: LINUX_CONTAINER
       ServiceRole: arn:aws:iam::175445123792:role/AWSCodeBuildParkeateMultiFunctionPipeline
 
+  BuildProjectUpdateBookingStatusYFX:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: BuildUpdateBookingStatus
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: updateBookingStatus/buildspec.yml
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:5.0
+        Type: LINUX_CONTAINER
+      ServiceRole: arn:aws:iam::175445123792:role/AWSCodeBuildParkeateMultiFunctionPipeline
+
   ECRRepositoryGetZipFromS3FolderYFX:
     Type: AWS::ECR::Repository
     Properties:
@@ -173,3 +218,7 @@ Resources:
     Type: AWS::ECR::Repository
     Properties:
       RepositoryName: get-signed-url-yfx
+  ECRRepositoryUpdateBookingStatusYFX:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: update-booking-status-yfx
