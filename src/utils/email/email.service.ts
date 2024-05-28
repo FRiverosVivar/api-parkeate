@@ -28,7 +28,6 @@ export class EmailService implements OnModuleInit {
     this.SESClient = new SESClient(SESClientConfig);
   }
   async onModuleInit() {
-    await this.deleteTemplate(EmailTypesEnum.REQUEST_CREATED)
     await this.verifyListOfEmailTemplates();
   }
   private getEmailTemplate(emailType: EmailTypesEnum): string | undefined {
