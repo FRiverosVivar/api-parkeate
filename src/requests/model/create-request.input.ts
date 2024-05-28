@@ -37,8 +37,8 @@ export class CreateRequestInput   {
   location: Point;
   @Field(() => Number, {nullable: true})
   quantity: number;
-  @Field(() => Date,{nullable: true})
-  scheduleStart: Date;
+  @Field(() => String,{nullable: true})
+  scheduleStart: string;
   @Field(() => Date,{nullable: true})
   scheduleEnd: Date;
   @Field(() => String,{nullable: true})
