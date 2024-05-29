@@ -126,9 +126,6 @@ export class EmailService implements OnModuleInit {
     if (!result[EmailTypesEnum.LIQUIDATION_GENERATED].found)
       await this.createEmailTemplate(EmailTypesEnum.LIQUIDATION_GENERATED);
 
-    if (!result[EmailTypesEnum.REQUEST_CREATED].found)
-      await this.createEmailTemplate(EmailTypesEnum.REQUEST_CREATED);
-
     if (!result[EmailTypesEnum.REQUEST_PARKING_DETAILS_FORM].found)
       await this.createEmailTemplate(EmailTypesEnum.REQUEST_PARKING_DETAILS_FORM);
 
