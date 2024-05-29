@@ -64,7 +64,7 @@ export class RequestService {
                 requestStatus: RequestStatusNames[request.status],
                 days: DateTime.now().toFormat('dd/MM/yyyy'),
                 hours: DateTime.now().toFormat('HH:mm'),
-                formUrl: process.env.WEB_BASE_URL + '/request-parking-details-form?id=' + request.id
+                formUrl: process.env.WEB_BASE_URL + '/request-parking-details?id=' + request.id
               }
               this.emailService.sendEmail(EmailTypesEnum.REQUEST_PARKING_DETAILS_FORM, request.email, JSON.stringify(data))
               break;
