@@ -55,4 +55,6 @@ export class CreateRequestInput   {
   requestState: boolean;
   @Field(() => String, {nullable: true})
   rut: string;
+  @Field(() => String, {nullable: true})
+  apartmentNumber: string;
 }

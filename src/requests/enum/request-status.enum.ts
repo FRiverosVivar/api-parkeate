@@ -1,19 +1,16 @@
 export enum RequestStatusEnum {
-  PENDING_SEND_FORM,
-  PENDING_SEND_CALENDAR,
+  PENDING,
   FINISHED,
   CANCELED
 }
 export const RequestStatusNames = [
-  "Formulario por Completar",
-  "Pendiente de reunión con equipo",
+  "Pendiente",
   "Finalizado",
   "Cancelada",
 ]
 
 export const RequestStatus = [
-  RequestStatusEnum.PENDING_SEND_FORM,
-  RequestStatusEnum.PENDING_SEND_CALENDAR,
+  RequestStatusEnum.PENDING,
   RequestStatusEnum.FINISHED,
   RequestStatusEnum.CANCELED
 ]

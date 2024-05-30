@@ -37,7 +37,7 @@ export class RequestService {
           requestStatus: RequestStatusNames[request.status],
           days: DateTime.now().toFormat('dd/MM/yyyy'),
           hours: DateTime.now().toFormat('HH:mm'),
-          formUrl: process.env.WEB_BASE_URL + '/request-parking-details-form?id=' + request.id
+          formUrl: process.env.WEB_BASE_URL + '/request-parking-details?id=' + request.id
         }
         return from(this.emailService.sendEmail(EmailTypesEnum.REQUEST_PARKING_DETAILS_FORM, request.email, JSON.stringify(data))).pipe(
           map(() => r)
@@ -58,7 +58,7 @@ export class RequestService {
       return from(this.requestRepository.save(request)).pipe(
         tap((r) => {
           switch(updateRequestInput.status) {
-            case RequestStatusEnum.PENDING_SEND_FORM:{
+            case RequestStatusEnum.PENDING:{
               const data = {
                 name: request.fullName,
                 requestStatus: RequestStatusNames[request.status],
@@ -67,17 +67,6 @@ export class RequestService {
                 formUrl: process.env.WEB_BASE_URL + '/request-parking-details?id=' + request.id
               }
               this.emailService.sendEmail(EmailTypesEnum.REQUEST_PARKING_DETAILS_FORM, request.email, JSON.stringify(data))
-              break;
-            }
-            case RequestStatusEnum.PENDING_SEND_CALENDAR:{
-              const data = {
-                name: request.fullName,
-                requestStatus: RequestStatusNames[request.status],
-                days: DateTime.now().toFormat('dd/MM/yyyy'),
-                hours: DateTime.now().toFormat('HH:mm'),
-                calendarUrl: 'https://calendly.com/parkeate'
-              }
-              this.emailService.sendEmail(EmailTypesEnum.REQUEST_CALENDAR_FORM, request.email, JSON.stringify(data))
               break;
             }
             case RequestStatusEnum.FINISHED:{

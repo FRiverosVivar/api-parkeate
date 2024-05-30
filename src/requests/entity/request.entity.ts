@@ -72,4 +72,7 @@ export class RequestEntity extends BaseEntityWithIdAbstract {
   @Column({nullable: true})
   @Field(() => String)
   rut: string;
+  @Column({nullable: true})
+  @Field(() => String)
+  apartmentNumber: string;
 }
