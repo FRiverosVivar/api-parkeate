@@ -29,9 +29,9 @@ export class RequestResolver {
   @UseGuards(JwtAuthGuard, UserTypeGuard)
   getPaginatedRequests(
     @Args("paginationOptions") paginationOptions: PageOptionsDto,
-    @Args("statusFilters", { type: () => [Number] , nullable: true}) statusFilters: RequestStatusEnum[],
+    @Args("statusFilters", {  type: () => [Number], nullable: true }) statusFilters: number[],
   ) {
-    return this.requestService.findPaginatedRequests(paginationOptions, statusFilters);
+    return this.requestService.findPaginatedRequests(paginationOptions, []);
   }
   @Mutation(() => RequestEntity, { name: 'updateRequest' })
   updateRequest(
