@@ -10,6 +10,8 @@ import { UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { UserTypeGuard } from "../../auth/guards/user-type.guard";
 import { UpdateRequestInput } from "../model/update-request.input";
+import { RequestStatusEnum } from "../enum/request-status.enum";
+import { type } from "os";
 
 @Resolver(() => RequestEntity)
 export class RequestResolver {
@@ -26,9 +28,10 @@ export class RequestResolver {
   @UserType(UserTypesEnum.ADMIN)
   @UseGuards(JwtAuthGuard, UserTypeGuard)
   getPaginatedRequests(
-    @Args("paginationOptions") paginationOptions: PageOptionsDto
+    @Args("paginationOptions") paginationOptions: PageOptionsDto,
+    @Args("statusFilters", { type: () => [Number] , nullable: true}) statusFilters: RequestStatusEnum[],
   ) {
-    return this.requestService.findPaginatedRequests(paginationOptions);
+    return this.requestService.findPaginatedRequests(paginationOptions, statusFilters);
   }
   @Mutation(() => RequestEntity, { name: 'updateRequest' })
   updateRequest(

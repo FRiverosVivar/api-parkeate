@@ -57,4 +57,6 @@ export class CreateRequestInput   {
   rut: string;
   @Field(() => String, {nullable: true})
   apartmentNumber: string;
+  @Field(() => String, {nullable: true})
+  parkingPhoto: string;
 }

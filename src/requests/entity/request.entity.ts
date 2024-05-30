@@ -75,4 +75,7 @@ export class RequestEntity extends BaseEntityWithIdAbstract {
   @Column({nullable: true})
   @Field(() => String)
   apartmentNumber: string;
+  @Column({nullable: true})
+  @Field(() => String)
+  parkingPhoto: string;
 }

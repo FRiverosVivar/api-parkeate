@@ -9,12 +9,10 @@ import { UUIDBadFormatException } from "../../utils/exceptions/UUIDBadFormat.exc
 import { EmailService } from "src/utils/email/email.service";
 import { EmailTypesEnum } from "../../utils/email/enum/email-types.enum";
 import { UpdateRequestInput } from "../model/update-request.input";
-import { update } from "lodash";
 import { RequestStatusEnum, RequestStatusNames } from "../enum/request-status.enum";
 import { PageDto, PageOptionsDto, PaginationMeta } from "../../utils/interfaces/pagination.type";
 import { ExcelService } from "../../utils/excel/excel.service";
 import { RequestParkingTypeNames } from "../enum/request-parking-type.enum";
-import { RequestTypeNames } from "../enum/request-type.enum";
 import { DateTime } from "luxon";
 
 @Injectable()
@@ -116,20 +114,24 @@ export class RequestService {
       })
     );
   }
-  async findPaginatedRequests(pagination: PageOptionsDto) {
-    const query = this.requestRepository
-      .createQueryBuilder("r")
-      .orderBy("r.createdAt", "DESC")
-      .skip(pagination.skip)
-      .take(pagination.take);
-    const itemCount = await query.getCount();
-    const { entities } = await query.getRawAndEntities();
+  async findPaginatedRequests(pagination: PageOptionsDto, statusFilters: RequestStatusEnum[]) {
+    const request = await this.requestRepository.find({
+      where: {
+        status: statusFilters ? In(statusFilters): In([RequestStatusEnum.PENDING, RequestStatusEnum.FINISHED, RequestStatusEnum.CANCELED]),
+      },
+      order: {
+        createdAt: "DESC"
+      },
+      skip: pagination.skip,
+      take: pagination.take
+    })
+    const itemCount = request.length
     const pageMetaDto = new PaginationMeta({
       pageOptionsDto: pagination,
       itemCount,
     });
     pageMetaDto.skip = (pageMetaDto.page - 1) * pageMetaDto.take;
-    return new PageDto(entities, pageMetaDto);
+    return new PageDto(request, pageMetaDto);
   }
 
   async exportRequests(requestsId: string[]) {
