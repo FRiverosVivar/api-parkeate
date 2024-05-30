@@ -117,7 +117,7 @@ export class RequestService {
   async findPaginatedRequests(pagination: PageOptionsDto, statusFilters: RequestStatusEnum[]) {
     const request = await this.requestRepository.find({
       where: {
-        status: statusFilters ? In(statusFilters): In([RequestStatusEnum.PENDING, RequestStatusEnum.FINISHED, RequestStatusEnum.CANCELED]),
+        status: statusFilters && statusFilters.length > 0 ? In(statusFilters): In([RequestStatusEnum.PENDING, RequestStatusEnum.FINISHED, RequestStatusEnum.CANCELED]),
       },
       order: {
         createdAt: "DESC"

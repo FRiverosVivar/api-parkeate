@@ -31,7 +31,7 @@ export class RequestResolver {
     @Args("paginationOptions") paginationOptions: PageOptionsDto,
     @Args("statusFilters", {  type: () => [Number], nullable: true }) statusFilters: number[],
   ) {
-    return this.requestService.findPaginatedRequests(paginationOptions, []);
+    return this.requestService.findPaginatedRequests(paginationOptions, statusFilters);
   }
   @Mutation(() => RequestEntity, { name: 'updateRequest' })
   updateRequest(
