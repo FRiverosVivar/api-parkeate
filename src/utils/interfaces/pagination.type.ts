@@ -9,6 +9,7 @@ import { CouponEntity } from "src/coupons/entity/coupon.entity";
 import { EventEntity } from "src/event/entity/event.entity";
 import { ClientEntity } from "src/client/entity/client.entity";
 import { ParkingGuardEntity } from "src/parkingGuard/entity/parkingGuard.entity";
+import { RequestEntity } from "../../requests/entity/request.entity";
 @InputType()
 @ArgsType()
 export class PageOptionsDto {
@@ -127,6 +128,13 @@ export class CouponsPaginated {
 export class EventsPaginated {
   @Field(() => [EventEntity])
   data: EventEntity[];
+  @Field(() => PaginationMeta)
+  meta: PaginationMeta;
+}
+@ObjectType()
+export class RequestsPaginated {
+  @Field(() => [RequestEntity])
+  data: RequestEntity[];
   @Field(() => PaginationMeta)
   meta: PaginationMeta;
 }

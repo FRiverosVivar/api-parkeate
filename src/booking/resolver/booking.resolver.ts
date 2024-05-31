@@ -25,6 +25,7 @@ import { PaykuModel, PaykuResponse } from "../model/payku-model.input";
 import { BookingPriceCalculated } from "../model/booking-calculate-price.output";
 import { BookingStatesEnum } from "../enum/booking-states.enum";
 import { type } from "os";
+import { CurrentPriceBookingOutput } from "../model/current-price-booking.output";
 
 @Resolver(BookingEntity)
 export class BookingResolver {
@@ -150,6 +151,14 @@ export class BookingResolver {
   @UseGuards(JwtAuthGuard)
   findRecentBookingsFromBuildings(@CurrentUser() client: ClientEntity) {
     return this.bookingService.findRecentBookingsFromBuildings(client);
+  }
+  @Query(() => CurrentPriceBookingOutput, { name: "getBookingCurrentPriceToPay" })
+  @UseGuards(JwtAuthGuard)
+  getBookingCurrentPriceToPay(
+    @Args("bookingId") bookingId: string,
+    @Args("userCouponId", { nullable: true }) userCouponId: string
+  ) {
+    return this.bookingService.getBookingCurrentPriceToPay(bookingId, userCouponId);
   }
   @Mutation(() => BookingEntity)
   @UseGuards(JwtAuthGuard)
