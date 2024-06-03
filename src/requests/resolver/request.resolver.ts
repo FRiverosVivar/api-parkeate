@@ -12,6 +12,10 @@ import { UserTypeGuard } from "../../auth/guards/user-type.guard";
 import { UpdateRequestInput } from "../model/update-request.input";
 import { RequestStatusEnum } from "../enum/request-status.enum";
 import { type } from "os";
+import { CreatePhotoInput } from "../../photo/model/create-photo.input";
+import { FileUpload, GraphQLUpload } from "graphql-upload-minimal";
+import { Observable } from "rxjs";
+import { ClientEntity } from "../../client/entity/client.entity";
 
 @Resolver(() => RequestEntity)
 export class RequestResolver {
@@ -38,5 +42,15 @@ export class RequestResolver {
     @Args("updateRequestInput") updateRequestInput: UpdateRequestInput
   ) {
     return this.requestService.updateRequest(updateRequestInput);
+  }
+
+  @Mutation(() => RequestEntity, { name: 'setRequestPhoto' })
+  setRequestPhoto(
+    @Args("requestId", { type: () => String }) requestId: string,
+    @Args("photoInput", { type: () => CreatePhotoInput })
+      photoInput: CreatePhotoInput,
+    @Args("photo", { type: () => GraphQLUpload }) photo: FileUpload
+  ): Observable<RequestEntity> {
+    return this.requestService.setRequestPhoto(requestId, photo, photoInput);
   }
 }

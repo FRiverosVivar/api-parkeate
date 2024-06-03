@@ -14,6 +14,10 @@ import { PageDto, PageOptionsDto, PaginationMeta } from "../../utils/interfaces/
 import { ExcelService } from "../../utils/excel/excel.service";
 import { RequestParkingTypeNames } from "../enum/request-parking-type.enum";
 import { DateTime } from "luxon";
+import { FileUpload } from "graphql-upload-minimal";
+import { CreatePhotoInput } from "../../photo/model/create-photo.input";
+import { ClientEntity } from "../../client/entity/client.entity";
+import { PhotoService } from "../../photo/service/photo.service";
 
 @Injectable()
 export class RequestService {
@@ -22,6 +26,7 @@ export class RequestService {
     private readonly requestRepository: Repository<RequestEntity>,
     private readonly emailService: EmailService,
     private readonly excelService: ExcelService,
+    private readonly photoService: PhotoService
   ) {}
   createRequest(
     createRequestInput: CreateRequestInput
@@ -178,5 +183,24 @@ export class RequestService {
       isOwner: request.isOwner,
       isCompany: request.isCompany,
     }
+  }
+  setRequestPhoto(
+    requestId: string,
+    file: FileUpload,
+    photoInput: CreatePhotoInput
+  ): Observable<RequestEntity> {
+    return this.findRequestById(requestId).pipe(
+      switchMap((req: RequestEntity) => {
+        return this.photoService.createPhoto(photoInput, file).pipe(
+          switchMap((photo) => {
+            if (req.parkingPhoto)
+              this.photoService.removePhoto(req.parkingPhoto);
+
+            req.parkingPhoto = photo.url;
+            return from(this.requestRepository.save(req));
+          })
+        );
+      })
+    );
   }
 }
