@@ -28,7 +28,8 @@ import { DateTime } from "luxon";
 import { ParkingService } from "./parking/service/parking.service";
 import { UpdateUserInput } from "./user/model/dto/update-user.input";
 import { RequestService } from "./requests/service/request.service";
-@Controller("/booking/confirmPayment")
+import { TransbankService } from "./utils/transbank/transbank.service";
+@Controller("")
 export class AppController {
   constructor(
     private readonly bookingService: BookingService,
@@ -36,10 +37,11 @@ export class AppController {
     private readonly couponService: CouponService,
     private readonly userService: UserService,
     private readonly parkingService: ParkingService,
-    private readonly requestService: RequestService
+    private readonly requestService: RequestService,
+    private readonly tbkService: TransbankService,
   ) {}
 
-  @Get("")
+  @Get("/booking/confirmPayment")
   updateBookingToReservedStatus(
     @Query("bookingId") bookingId: string,
     @Query("userCouponId") couponId: string,
@@ -73,7 +75,7 @@ export class AppController {
       })
     );
   }
-  @Post("")
+  @Post("/booking/confirmPayment")
   updateBookingReservedStatus(
     @Query("bookingId") bookingId: string,
     @Query("userCouponId") couponId: string,
@@ -107,7 +109,7 @@ export class AppController {
       })
     );
   }
-  @Get("/extended")
+  @Get("/booking/confirmPayment/extended")
   successPaymentExtraTime(
     @Query("bookingId") bookingId: string,
     @Query("finalPrice") finalPrice: number,
@@ -151,7 +153,7 @@ export class AppController {
       })
     )
   }
-  @Post("/extended")
+  @Post("/booking/confirmPayment/extended")
   paymentExtraTime(
     @Query("bookingId") bookingId: string,
     @Query("finalPrice") finalPrice: number,
@@ -195,7 +197,7 @@ export class AppController {
       })
     )
   }
-  @Post("/new-client")
+  @Post("/booking/confirmPayment/new-client")
   createPaykuClient(@Body() body: any): Observable<any> {
     return this.userService
       .findUserById(body.userId)
@@ -205,15 +207,15 @@ export class AppController {
         )
       );
   }
-  @Post("/new-transaction")
+  @Post("/booking/confirmPayment/new-transaction")
   createPaykuTransactionAutomatic(@Body() body: any): Observable<any> {
     return this.userService.createAutomaticTransaction(body);
   }
-  @Post("/get-sign")
+  @Post("/booking/confirmPayment/get-sign")
   getSign(@Body() body: any) {
     return this.userService.encryptForPayku("/api/suplan", body);
   }
-  @Get("/exportClients")
+  @Get("/booking/confirmPayment/exportClients")
   @UserType(UserTypesEnum.ADMIN)
   @UseGuards(JwtAuthGuard, UserTypeGuard)
   async getExportedClients(@Res() res: Response) {
@@ -222,7 +224,7 @@ export class AppController {
       .set("Content-Disposition", `attachment; filename=example.xlsx`)
       .send(buffer);
   }
-  @Get("/exportUsers")
+  @Get("/booking/confirmPayment/exportUsers")
   @UserType(UserTypesEnum.ADMIN)
   @UseGuards(JwtAuthGuard, UserTypeGuard)
   async getExportedUsers(@Res() res: Response) {
@@ -231,7 +233,7 @@ export class AppController {
       .set("Content-Disposition", `attachment; filename=example.xlsx`)
       .send(buffer);
   }
-  @Post("/exportParkings")
+  @Post("/booking/confirmPayment/exportParkings")
   @UserType(UserTypesEnum.ADMIN)
   @UseGuards(JwtAuthGuard, UserTypeGuard)
   async exportParkings(@Res() res: Response, @Body() parkings: string[]) {
@@ -240,7 +242,7 @@ export class AppController {
       .set("Content-Disposition", `attachment; filename=exportedParkings-{${DateTime.now().toISO()}}.xlsx`)
       .send(buffer);
   }
-  @Post("/exportRequests")
+  @Post("/booking/confirmPayment/exportRequests")
   @UserType(UserTypesEnum.ADMIN)
   @UseGuards(JwtAuthGuard, UserTypeGuard)
   async exportRequests(@Res() res: Response, @Body() requests: string[]) {
@@ -249,7 +251,7 @@ export class AppController {
       .set("Content-Disposition", `attachment; filename=exportedRequests-{${DateTime.now().toISO()}}.xlsx`)
       .send(buffer);
   }
-  @Post("/updateRequest")
+  @Post("/booking/confirmPayment/updateRequest")
   async updateRequest(
   @Query("id") id: string,
   @Query("status") status: number) {
@@ -258,5 +260,16 @@ export class AppController {
       status: +status,
     }
     return this.requestService.updateRequest(updateRequest)
+  }
+  @Post("/tbk")
+  async generateTransaction(
+    @Query("amount") amount: string,
+    @Query("callbackUrl") callbackUrl: string) {
+    return this.tbkService.generateTransaction(Number(amount), callbackUrl)
+  }
+  @Get("/tbk")
+  async confirmTransaction(
+    @Query("token") token: string) {
+    return this.tbkService.confirmTransaction(token)
   }
 }
