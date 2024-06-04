@@ -76,7 +76,7 @@ export class BookingEntity extends BaseEntityWithIdAbstract {
   @OneToMany(() => UserCouponEntity, (l) => l.booking, { nullable: true })
   @Field(() => UserCouponEntity)
   coupon: UserCouponEntity;
-  @Column()
-  @Field(() => String)
+  @Column({ nullable: true })
+  @Field(() => String, { nullable: true })
   tbkToken: string;
 }
