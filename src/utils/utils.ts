@@ -111,13 +111,8 @@ export function generateLiquidationTemplateDataToFulfillPdfTemplate(
   return data;
 }
 export function formatearMonedaChilena(amount: number) {
-  // Convierte el número a un string y divide la parte entera de la decimal
   const partes = amount.toFixed(0).toString().split(".");
-
-  // Formatea la parte entera con puntos como separadores de miles
   const parteEnteraFormateada = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-  // Retorna el resultado con el símbolo de la moneda chilena
   return `$${parteEnteraFormateada}`;
 }
 export function getParkeateTaxFromAmount(amount: number) {

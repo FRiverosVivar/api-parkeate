@@ -16,7 +16,7 @@ import {
   from,
   map,
   Observable,
-  of, pipe,
+  of,
   switchMap,
   take,
   tap
@@ -34,7 +34,7 @@ import { SmsService } from "../../utils/sms/sms.service";
 import { BookingNotificationsEnum } from "../enum/booking-notifications.enum";
 import { EmailTypesEnum } from "../../utils/email/enum/email-types.enum";
 import { BookingStatesEnum } from "../enum/booking-states.enum";
-import { DateTime, Settings } from "luxon";
+import { DateTime, Duration, Settings } from "luxon";
 import { CronJob } from "cron";
 import { BookingTypesEnum } from "../enum/booking-types.enum";
 import { UpdateUserInput } from "../../user/model/dto/update-user.input";
@@ -66,7 +66,10 @@ import { VehicleEntity } from "src/vehicle/entity/vehicle.entity";
 import { CronExpressionExtendedEnum } from "src/utils/cron/cron-expression-extended.enum";
 import { InAdvanceBooking } from "../enum/in-advance-booking.enum";
 import { NotificationService } from "src/utils/notification/notification.service";
-import { TransbankService } from "src/utils/transbank/transbank.service";
+import { ParkingType } from "../../parking/model/parking-type.enum";
+import { CouponsTypeEnum } from "../../coupons/constants/coupons-type.enum";
+import { ParkingEntity } from "../../parking/entity/parking.entity";
+import { CurrentPriceBookingOutput } from "../model/current-price-booking.output";
 
 @Injectable()
 export class BookingService implements OnModuleInit {
@@ -83,8 +86,7 @@ export class BookingService implements OnModuleInit {
     private readonly crypto: CryptService,
     private readonly couponService: CouponService,
     private readonly vehicleService: VehicleService,
-    private readonly notificationService: NotificationService,
-    private readonly transbankService: TransbankService
+    private readonly notificationService: NotificationService
   ) {}
   @Cron(CronExpression.EVERY_DAY_AT_5AM, {
     name: "checkMonthlyAndYearlyReservations",
@@ -218,12 +220,10 @@ export class BookingService implements OnModuleInit {
     createBookingInput: CreateBookingInput,
     parkingId: string,
     userId: string,
-    couponId: string,
     vehicleId?: string,
     selectedDate?: string
   ): Observable<BookingEntity> {
     let vehicle: Observable<VehicleEntity | null> = of(null);
-    let coupon: Observable<UserCouponEntity | null> = of(null);
     if (vehicleId) vehicle = this.vehicleService.getVehicleById(vehicleId);
     const booking = this.bookingRepository.create(createBookingInput);
     if (selectedDate) {
@@ -234,9 +234,6 @@ export class BookingService implements OnModuleInit {
         date
       );
     }
-    if(couponId)
-      coupon = from(this.couponService.getUserCouponFromRepository(couponId));
-
     const parking = this.parkingService.findParkingById(parkingId);
     const user = this.userService.findUserById(userId);
     return this.getBookingsForParkingIdByDateRange(
@@ -257,8 +254,8 @@ export class BookingService implements OnModuleInit {
             `{"name":"123"}`
           )
           .then();
-        return forkJoin([parking, user, vehicle, coupon]).pipe(
-          switchMap(([parking, user, v, c]) => {
+        return forkJoin([parking, user, vehicle]).pipe(
+          switchMap(([parking, user, v]) => {
             if (v) booking.vehicle = v;
             booking.parking = parking;
             booking.user = user;
@@ -268,8 +265,6 @@ export class BookingService implements OnModuleInit {
             booking.dateEnd = selectedDate
               ? DateTime.fromISO(selectedDate).plus({ minutes: 5 }).toJSDate()
               : DateTime.now().plus({ minutes: 5 }).toJSDate();
-            if(c)
-              booking.coupon = c;
             return from(this.bookingRepository.save(booking)).pipe(
               tap((b) => {
                 if (booking.bookingState === BookingStatesEnum.PAYMENT_REQUIRED)
@@ -284,18 +279,14 @@ export class BookingService implements OnModuleInit {
   updateBooking(
     updateBookingInput: UpdateBookingInput
   ): Observable<BookingEntity> {
-    let relations = undefined;
-    if (updateBookingInput.bookingState === BookingStatesEnum.RESERVED)
-      relations = {
-        relations: {
-          parking: {
-            building: true,
-          },
-          vehicle: true,
+    const booking$ = this.findBookingById(updateBookingInput.id, {
+      relations: {
+        parking: {
+          building: true,
         },
-      };
-
-    const booking$ = this.findBookingById(updateBookingInput.id, relations);
+        vehicle: true,
+      },
+    });
     return booking$.pipe(
       switchMap((previousBooking) => {
         return from(
@@ -312,20 +303,6 @@ export class BookingService implements OnModuleInit {
             if (booking.bookingState === BookingStatesEnum.FINALIZED) {
               console.log("b");
 
-              if (booking.bookingType === BookingTypesEnum.NORMAL_BOOKING) {
-                const now = DateTime.now();
-                const isoExtendedDate = DateTime.fromJSDate(
-                  booking.dateExtended
-                    ? booking.dateExtended
-                    : booking.dateStart
-                );
-                const diff = now.diff(isoExtendedDate, ["minutes"], {
-                  conversionAccuracy: "casual",
-                });
-                booking.finalPrice = Math.round(
-                  diff.minutes * +parking.pricePerMinute
-                );
-              }
               booking.dateEnd = DateTime.now().toJSDate();
               parking.reserved = false;
               console.log("c");
@@ -462,71 +439,7 @@ export class BookingService implements OnModuleInit {
                 }
               }
             }
-            if (
-              previousBooking.bookingState === BookingStatesEnum.RESERVED &&
-              booking.bookingState === BookingStatesEnum.FINALIZED &&
-              booking.bookingType === BookingTypesEnum.NORMAL_BOOKING
-            ) {
-              console.log("inside pre reserved post finalized");
-              if (booking.dateExtended) {
-                const extendedMinutes = DateTime.fromJSDate(
-                  booking.dateEnd
-                ).diff(DateTime.fromJSDate(booking.dateExtended), [
-                  "minutes",
-                ]).minutes;
-                booking.finalPrice = Math.round(
-                  booking.initialPrice +
-                    extendedMinutes * +parking.pricePerMinute
-                );
-              } else {
-                const minutesStayed = DateTime.fromJSDate(booking.dateEnd).diff(
-                  DateTime.fromJSDate(booking.dateStart),
-                  ["minutes"]
-                ).minutes;
-                booking.finalPrice = Math.round(
-                  minutesStayed * +parking.pricePerMinute
-                );
-                const updateUser: UpdateUserInput = {
-                  id: previousBooking.user.id,
-                  wallet: Math.round(
-                    previousBooking.user.wallet +
-                      (booking.initialPrice - booking.finalPrice)
-                  ),
-                };
-                this.userService.updateUser(updateUser).toPromise().then();
-              }
-              const updateParking: UpdateParkingInput = {
-                id: parking.id,
-                reserved: false,
-              };
-              console.log("d");
 
-              return from(
-                this.parkingService.updateParking(updateParking)
-              ).pipe(
-                switchMap(() => from(this.bookingRepository.save(booking)))
-              );
-            }
-            console.log("amountpaid");
-            console.log(updateBookingInput);
-
-            if (updateBookingInput.mountPaid) {
-              const updateUser: UpdateUserInput = {
-                id: previousBooking.user.id,
-              };
-              const user = previousBooking.user;
-              const priceWith80Percent = Math.round(
-                (booking.finalPrice * 80) / 100
-              );
-              const preFinalPrice = booking.finalPrice - priceWith80Percent;
-              if (priceWith80Percent <= user.wallet)
-                updateUser.wallet = Math.round(user.wallet - preFinalPrice);
-              else updateUser.wallet = 0;
-
-              console.log(updateUser);
-              this.userService.updateUser(updateUser).toPromise().then();
-            }
-            console.log(booking);
             return from(this.bookingRepository.save(booking));
           })
         );
@@ -825,9 +738,26 @@ export class BookingService implements OnModuleInit {
       switchMap((p) => {
         return this.findBookingById(bookingId).pipe(
           switchMap((b) => {
+            const oldParking = b.parking;
             b.parking = p;
-            return from(this.bookingRepository.save(b));
-          })
+            const updateParking = {
+              id: oldParking.id,
+              reserved: false,
+            }
+            const updateNewParking = {
+              id: p.id,
+              reserved: true,
+            }
+
+            return combineLatest([
+                this.parkingService.updateParking(updateParking),
+                this.parkingService.updateParking(updateNewParking),
+            ]).pipe(
+                switchMap(() => {
+                  return from(this.bookingRepository.save(b))
+                })
+              )
+            })
         );
       })
     );
@@ -1257,6 +1187,162 @@ export class BookingService implements OnModuleInit {
     cron.executed = true;
     await this.cronService.saveCron(cron).then();
   }
+
+  async getBookingCurrentPriceToPay(bookingId: string, userCouponid?: string) {
+    const userCoupon = userCouponid
+      ? await this.couponService.getUserCouponFromRepository(userCouponid)
+      : undefined;
+    const b = (await this.findBookingById(bookingId, { relations: { parking: true } }).toPromise())!;
+    const p = b.parking
+    if(b.dateExtended) {
+      const now = DateTime.now();
+      const isoExtendedDate = DateTime.fromJSDate(
+        b.dateExtended
+          ? b.dateExtended
+          : b.dateStart
+      );
+      const diff = now.diff(isoExtendedDate, ["minutes"], {
+        conversionAccuracy: "casual",
+      });
+      return this.calculateCurrentPriceWithParkingPrice(p, userCoupon, diff, b.user.wallet);
+    }
+
+    const duration = Duration.fromMillis(65*60000);
+    return this.calculateCurrentPriceWithParkingPrice(p, userCoupon, duration, b.user.wallet);
+  }
+  calculateCurrentPriceWithParkingPrice(p: ParkingEntity, userCoupon: UserCouponEntity | undefined | null, diff: Duration, userWallet: number) {
+    switch (p.type) {
+      case ParkingType.PER_MINUTE: {
+        if (userCoupon) {
+          switch (userCoupon.coupon.type) {
+            case CouponsTypeEnum.DISCOUNT_TO_TOTAL_PRICE: {
+              const basePrice = +p.pricePerMinute * diff.minutes;
+              if(userCoupon.coupon.value >= basePrice) return {
+                amountToBePaid: 0,
+                tax: 0,
+                userWalletDiscount: 0,
+                initialPrice: Math.round(basePrice),
+                discount: Math.round(basePrice),
+              }
+              const basePriceWith80Percent = Math.round((basePrice * 80) / 100);
+              const userWalletDiscount = userWallet >= basePriceWith80Percent ? basePriceWith80Percent: userWallet;
+              const discount = userCoupon.coupon.value;
+              const finalPriceWithDiscounts = Math.round((basePrice - discount ) - userWalletDiscount)
+              const tax = Math.round(finalPriceWithDiscounts * 0.19);
+
+              const price: CurrentPriceBookingOutput = {
+                amountToBePaid: Math.round(finalPriceWithDiscounts + tax),
+                tax: tax,
+                userWalletDiscount: userWalletDiscount,
+                initialPrice: Math.round(basePrice),
+                discount: discount,
+              };
+              return price;
+            }
+            case CouponsTypeEnum.DISCOUNT_TO_PRICE_PER_MINUTE: {
+              if(userCoupon.coupon.value >= +p.pricePerMinute) return {
+                amountToBePaid: 0,
+                tax: 0,
+                userWalletDiscount: 0,
+                initialPrice: Math.round(+p.pricePerMinute * diff.minutes),
+                discount: Math.round(+p.pricePerMinute * diff.minutes),
+              }
+
+              const basePricePerMinute = Math.round(
+                +p.pricePerMinute - userCoupon.coupon.value
+              );
+              const basePrice = Math.round(basePricePerMinute * diff.minutes)
+
+              const basePriceWith80Percent = Math.round((basePrice * 80) / 100);
+              const userWalletDiscount = userWallet >= basePriceWith80Percent ? basePriceWith80Percent: userWallet;
+              const finalPriceWithDiscounts = Math.round(basePrice - userWalletDiscount)
+              const tax = Math.round(finalPriceWithDiscounts * 0.19);
+              const discount = userCoupon.coupon.value;
+
+              const price: CurrentPriceBookingOutput = {
+                amountToBePaid: Math.round(finalPriceWithDiscounts + tax),
+                tax: tax,
+                userWalletDiscount: userWalletDiscount,
+                initialPrice: Math.round(basePrice),
+                discount: discount,
+              };
+              return price;
+            }
+            case CouponsTypeEnum.DISCOUNT_PERCENTAGE_TO_TOTAL_PRICE: {
+              const couponValue = userCoupon.coupon.value > 100 ? 100 : userCoupon.coupon.value;
+              const basePricePerMinute = Math.round(
+                Math.round(+p.pricePerMinute * diff.minutes)
+              );
+              const baseCouponDiscount = Math.round((basePricePerMinute * couponValue) / 100)
+              const basePrice = Math.round(
+                basePricePerMinute - baseCouponDiscount
+              )
+              const basePriceWith80Percent = Math.round((basePrice * 80) / 100);
+              const userWalletDiscount = userWallet >= basePriceWith80Percent ? basePriceWith80Percent: userWallet;
+              const discount = baseCouponDiscount
+              const amountToBePaid = Math.round((basePrice * 1.19) - userWalletDiscount)
+              const tax = Math.round(amountToBePaid * 0.19);
+
+              const price: CurrentPriceBookingOutput = {
+                amountToBePaid: amountToBePaid,
+                tax: tax,
+                userWalletDiscount: userWalletDiscount,
+                initialPrice: Math.round(basePricePerMinute),
+                discount: discount,
+              };
+              return price;
+            }
+            case CouponsTypeEnum.DISCOUNT_PERCENTAGE_TO_PRICE_PER_MINUTE: {
+              const couponValue = userCoupon.coupon.value > 100 ? 100 : userCoupon.coupon.value;
+              const basePercentageDiscountPerMinute = Math.round(
+                (+p.pricePerMinute * couponValue) / 100
+              );
+              const basePricePerMinute = Math.round(
+                +p.pricePerMinute - basePercentageDiscountPerMinute
+              );
+              const basePrice = Math.round(basePricePerMinute * diff.minutes)
+              const basePriceWith80Percent = Math.round((basePrice * 80) / 100);
+              const userWalletDiscount = userWallet >= basePriceWith80Percent ? basePriceWith80Percent: userWallet;
+              const finalPriceWithDiscounts = Math.round(basePrice - userWalletDiscount)
+              const tax = Math.round(finalPriceWithDiscounts * 0.19);
+              const price: CurrentPriceBookingOutput = {
+                amountToBePaid: Math.round(finalPriceWithDiscounts + tax),
+                tax: tax,
+                userWalletDiscount: userWalletDiscount,
+                initialPrice: basePrice === 0 ? Math.round(+p.pricePerMinute * diff.minutes):basePrice,
+                discount: Math.round(basePercentageDiscountPerMinute * diff.minutes)
+              };
+              return price;
+            }
+            case CouponsTypeEnum.FREE_PRE_PAID_HOUR: {
+              const price: CurrentPriceBookingOutput = {
+                amountToBePaid: 0,
+                userWalletDiscount: 0,
+                tax: Math.round(+p.pricePerMinute * diff.minutes * 0.19),
+                initialPrice: Math.round(+p.pricePerMinute * diff.minutes),
+                discount: Math.round(Math.round(+p.pricePerMinute * diff.minutes * 1.19)),
+              };
+              return price;
+            }
+          }
+        }
+        const basePrice = Math.round(+p.pricePerMinute * diff.minutes)
+        const basePriceWith80Percent = Math.round((basePrice * 80) / 100);
+        const userWalletDiscount = userWallet >= basePriceWith80Percent ? basePriceWith80Percent: userWallet;
+        const finalPriceWithDiscounts = Math.round(basePrice - userWalletDiscount)
+        const tax = Math.round(finalPriceWithDiscounts * 0.19);
+        const price: CurrentPriceBookingOutput = {
+          amountToBePaid: Math.round(finalPriceWithDiscounts + tax),
+          tax: Math.round(+p.pricePerMinute * diff.minutes * 0.19),
+          userWalletDiscount: userWalletDiscount,
+          initialPrice: Math.round(+p.pricePerMinute * diff.minutes),
+          discount: 0
+        };
+        return price;
+      }
+    }
+    throw new Error();
+  }
   getBookingsFromTheCurrentDayOfBuilding(buildingId: string) {
     return this.bookingRepository.find({
       relations: {
@@ -1275,25 +1361,5 @@ export class BookingService implements OnModuleInit {
         dateStart: "DESC",
       },
     });
-  }
-  createTbkMobileTransaction(amount: number) {
-    return this.transbankService.generateMobileTransaction(amount);
-  }
-  confirmPaymentBooking(
-    bookingId: string,
-    nextState: BookingStatesEnum,
-    token: string
-  ) {
-    return from(this.transbankService.confirmTransaction(token)).pipe(
-      switchMap((res: any) => {
-        if (res.vci === "TSY" && res.status === "AUTHORIZED") {
-          return this.updateBooking({
-            id: bookingId,
-            bookingState: nextState,
-          });
-        }
-        return of(res);
-      })
-    );
   }
 }

@@ -24,14 +24,19 @@ import { UserType } from "./auth/decorator/user-type.decorator";
 import { UserTypesEnum } from "./user/constants/constants";
 import { ClientService } from "./client/service/client.service";
 import type { Response } from "express";
+import { DateTime } from "luxon";
+import { ParkingService } from "./parking/service/parking.service";
+import { UpdateUserInput } from "./user/model/dto/update-user.input";
+import { RequestService } from "./requests/service/request.service";
 @Controller("/booking/confirmPayment")
 export class AppController {
   constructor(
     private readonly bookingService: BookingService,
-    private buildingService: BuildingService,
-    private clientService: ClientService,
-    private couponService: CouponService,
-    private readonly userService: UserService
+    private readonly clientService: ClientService,
+    private readonly couponService: CouponService,
+    private readonly userService: UserService,
+    private readonly parkingService: ParkingService,
+    private readonly requestService: RequestService
   ) {}
 
   @Get("")
@@ -105,28 +110,90 @@ export class AppController {
   @Get("/extended")
   successPaymentExtraTime(
     @Query("bookingId") bookingId: string,
-    @Query("mountPaid") mountPaid: number
+    @Query("finalPrice") finalPrice: number,
+    @Query("userCouponId") couponId: string,
+    @Query("amountUserWallet") amountUserWallet: string,
   ): Observable<BookingEntity> {
     const updateBookingInput: UpdateBookingInput = {
       id: bookingId,
       paid: true,
-      mountPaid: mountPaid,
+      finalPrice: finalPrice,
       bookingState: BookingStatesEnum.FINALIZED,
     };
-    return this.bookingService.updateBooking(updateBookingInput);
+    return this.bookingService.updateBooking(updateBookingInput).pipe(
+      switchMap((b) => {
+        if(amountUserWallet && amountUserWallet !== "" && +amountUserWallet > 0) {
+          const updateUserInput: UpdateUserInput = {
+            id: b.user.id,
+            wallet: Math.round(b.user.wallet - +amountUserWallet)
+          }
+          return from(this.userService.updateUser(updateUserInput).pipe(
+            switchMap(() => of(b))
+          ));
+        }
+        return of(b);
+      }),
+      switchMap((b) => {
+        if(!couponId || couponId === "") return of(b);
+        return from(this.couponService.findUserCoupon(couponId)).pipe(
+          switchMap((uc: UserCouponEntity) => {
+            const updateUserCouponInput: UpdateUserCouponInput = {
+              id: uc.id,
+              quantityRemaining: uc.quantityRemaining - 1,
+              valid: uc.quantityRemaining - 1 !== 0,
+            };
+
+            return from(
+              this.couponService.updateUserCoupon(updateUserCouponInput)
+            ).pipe((switchMap(() => of(b))))
+          })
+        );
+      })
+    )
   }
   @Post("/extended")
   paymentExtraTime(
     @Query("bookingId") bookingId: string,
-    @Query("mountPaid") mountPaid: number
+    @Query("finalPrice") finalPrice: number,
+    @Query("userCouponId") couponId: string,
+    @Query("amountUserWallet") amountUserWallet: string,
   ): Observable<BookingEntity> {
     const updateBookingInput: UpdateBookingInput = {
       id: bookingId,
       paid: true,
-      mountPaid: mountPaid,
+      finalPrice: finalPrice,
       bookingState: BookingStatesEnum.FINALIZED,
     };
-    return this.bookingService.updateBooking(updateBookingInput);
+    return this.bookingService.updateBooking(updateBookingInput).pipe(
+      switchMap((b) => {
+        if(amountUserWallet && amountUserWallet !== "" && +amountUserWallet > 0) {
+          const updateUserInput: UpdateUserInput = {
+            id: b.user.id,
+            wallet: Math.round(b.user.wallet - +amountUserWallet)
+          }
+          return from(this.userService.updateUser(updateUserInput).pipe(
+            switchMap(() => of(b))
+          ));
+        }
+        return of(b);
+      }),
+      switchMap((b) => {
+        if(!couponId || couponId === "") return of(b);
+        return from(this.couponService.findUserCoupon(couponId)).pipe(
+          switchMap((uc: UserCouponEntity) => {
+            const updateUserCouponInput: UpdateUserCouponInput = {
+              id: uc.id,
+              quantityRemaining: uc.quantityRemaining - 1,
+              valid: uc.quantityRemaining - 1 !== 0,
+            };
+
+            return from(
+              this.couponService.updateUserCoupon(updateUserCouponInput)
+            ).pipe((switchMap(() => of(b))))
+          })
+        );
+      })
+    )
   }
   @Post("/new-client")
   createPaykuClient(@Body() body: any): Observable<any> {
@@ -163,5 +230,33 @@ export class AppController {
     return res
       .set("Content-Disposition", `attachment; filename=example.xlsx`)
       .send(buffer);
+  }
+  @Post("/exportParkings")
+  @UserType(UserTypesEnum.ADMIN)
+  @UseGuards(JwtAuthGuard, UserTypeGuard)
+  async exportParkings(@Res() res: Response, @Body() parkings: string[]) {
+    const buffer = await this.parkingService.exportParkings(parkings);
+    return res
+      .set("Content-Disposition", `attachment; filename=exportedParkings-{${DateTime.now().toISO()}}.xlsx`)
+      .send(buffer);
+  }
+  @Post("/exportRequests")
+  @UserType(UserTypesEnum.ADMIN)
+  @UseGuards(JwtAuthGuard, UserTypeGuard)
+  async exportRequests(@Res() res: Response, @Body() requests: string[]) {
+    const buffer = await this.requestService.exportRequests(requests);
+    return res
+      .set("Content-Disposition", `attachment; filename=exportedRequests-{${DateTime.now().toISO()}}.xlsx`)
+      .send(buffer);
+  }
+  @Post("/updateRequest")
+  async updateRequest(
+  @Query("id") id: string,
+  @Query("status") status: number) {
+    const updateRequest = {
+      id,
+      status: +status,
+    }
+    return this.requestService.updateRequest(updateRequest)
   }
 }

@@ -63,7 +63,6 @@ type UserCouponEntity {
   updatedAt: DateTime!
   user: UserEntity!
   coupon: CouponEntity!
-  booking: BookingEntity!
   quantityRemaining: Int!
   valid: Boolean!
 }
@@ -420,8 +419,35 @@ type BookingEntity {
   vehicle: VehicleEntity
   anticipatedBooking: Boolean
   lastestNotifiedState: Boolean
-  coupon: UserCouponEntity!
-  tbkToken: String!
+}
+
+type RequestEntity {
+  """id of the entity"""
+  id: String!
+
+  """creation date of the entity"""
+  createdAt: DateTime!
+
+  """update date of the entity"""
+  updatedAt: DateTime!
+  fullName: String!
+  type: Float!
+  status: Float!
+  phoneNumber: String!
+  email: String!
+  state: String!
+  city: String!
+  parkingType: Float!
+  address: String!
+  location: Geometry!
+  quantity: Float!
+  scheduleStart: DateTime!
+  scheduleEnd: DateTime!
+  floor: String!
+  parkingNumber: String!
+  isOwner: Boolean!
+  isCompany: Boolean!
+  sentCalendar: Boolean!
 }
 
 type PaginationMeta {
@@ -476,6 +502,11 @@ type CouponsPaginated {
 
 type EventsPaginated {
   data: [EventEntity!]!
+  meta: PaginationMeta!
+}
+
+type RequestsPaginated {
+  data: [RequestEntity!]!
   meta: PaginationMeta!
 }
 
@@ -647,24 +678,12 @@ type BookingPriceCalculated {
   originalPrice: Float!
 }
 
-type CreateTbkTransactionResponse {
-  token: String!
-  url: String!
-}
-
-type RequestEntity {
-  """id of the entity"""
-  id: String!
-
-  """creation date of the entity"""
-  createdAt: DateTime!
-
-  """update date of the entity"""
-  updatedAt: DateTime!
-  subject: String!
-  email: String!
-  phoneNumber: String
-  content: String!
+type CurrentPriceBookingOutput {
+  amountToBePaid: Float!
+  tax: Float!
+  initialPrice: Float!
+  userWalletDiscount: Float!
+  discount: Float
 }
 
 type Query {
@@ -703,6 +722,7 @@ type Query {
   getUserSMSCode(phoneNumber: String!): SmsVerificationCode!
   getPaykuClientCardData: [Card!]!
   addCardToClient: String!
+  checkUserAndGetCodeToValidate(rut: String!): RecoverPasswordCodeAndClientId!
   clientById(clientId: String!): ClientEntity!
   clients: [ClientEntity!]!
   clientByRut(rut: String!): ClientEntity
@@ -720,13 +740,17 @@ type Query {
   findBookingsMadeTodayAndYesterday: BookingDailyFinance!
   findBookingsAndGetDailyIncomeAndPercentage: BookingDailyIncomeFinance!
   findBookingById(bookingId: String!, relations: String): BookingEntity!
+  updateBookingParking(bookingId: String!, parkingId: String!): BookingEntity!
+  updateBookingUser(bookingId: String!, userId: String!): BookingEntity!
   getActiveBookingByUserId: [BookingEntity!]!
   getUnPaidBookings: [BookingEntity!]!
   getBookingWithPaymentRequiredToStart: BookingEntity!
   getBookingPriceCalculated(bookingId: String!): BookingPriceCalculated!
   resetCronJobsForBookingId(bookingId: String!): BookingEntity!
   findRecentBookingsFromBuildings: [BookingEntity!]!
+  getBookingCurrentPriceToPay(bookingId: String!, userCouponId: String): CurrentPriceBookingOutput!
   GetBookingsFromTheCurrentDayOfBuilding(buildingId: String!): [BookingEntity!]!
+  getPaginatedRequests(paginationOptions: PageOptionsDto!): RequestsPaginated!
   forceToLiquidateToAllBookings: [LiquidationEntity!]!
   getAllLiquidations(paginationOptions: PageOptionsDto!): LiquidationsPaginated!
   updateLiquidation(updateLiquidationInput: UpdateLiquidationInput!): LiquidationEntity!
@@ -816,14 +840,12 @@ type Mutation {
   setHoldingPhoto(holdingId: String!, photoInput: CreatePhotoInput!, photo: Upload!): HoldingEntity!
   removeHolding(holdingId: String!): UserEntity!
   createHolding(createHoldingInput: CreateHoldingInput!, clientsIds: String!): UserEntity!
-  createBooking(createBookingInput: CreateBookingInput!, parkingId: String!, couponId: String!, vehicleId: String, selectedDate: String): BookingEntity!
+  createBooking(createBookingInput: CreateBookingInput!, parkingId: String!, vehicleId: String, selectedDate: String): BookingEntity!
   updateBooking(updateBookingInput: UpdateBookingInput!): BookingEntity!
   removeBooking(bookingId: String!): BookingEntity!
-  updateBookingParking(bookingId: String!, parkingId: String!): BookingEntity!
-  updateBookingUser(bookingId: String!, userId: String!): BookingEntity!
-  generatePaymentFromTbk(amount: Float): CreateTbkTransactionResponse!
-  confirmPaymentFromTbk(token: String!, bookingId: String!, nextState: Float!): CreateTbkTransactionResponse!
+  generatePaymentFromPayku(bookingId: String!, paygate: String!, subId: String!, priceToPay: Float!, couponId: String, anticipatedBooking: Boolean, bookingNextState: Float): BookingEntity!
   createRequest(createRequestInput: CreateRequestInput!): RequestEntity!
+  updateRequest(updateRequestInput: UpdateRequestInput!): RequestEntity!
   uploadPaymentReceipt(liquidationId: String!, receiptPdf: Upload!): LiquidationEntity!
   generateBulkOfCodes(generateCouponsOptions: GenerateCouponOptions!): [CouponEntity!]!
   assignCouponToUser(userId: String!, couponId: String!): CouponEntity!
@@ -1265,7 +1287,6 @@ input CreateBookingInput {
   dateEnd: String
   paid: Boolean!
   anticipatedBooking: Boolean
-  tbkToken: String!
 }
 
 input UpdateBookingInput {
@@ -1276,7 +1297,6 @@ input UpdateBookingInput {
   dateEnd: String
   paid: Boolean
   anticipatedBooking: Boolean
-  tbkToken: String
   id: String!
   dateExtended: DateTime
   timeFinalized: DateTime
@@ -1285,10 +1305,48 @@ input UpdateBookingInput {
 }
 
 input CreateRequestInput {
-  subject: String!
+  fullName: String!
+  type: Float!
+  status: Float!
+  phoneNumber: String!
   email: String!
+  state: String!
+  city: String!
+  parkingType: Float
+  address: String
+  location: Geometry
+  quantity: Float
+  scheduleStart: DateTime
+  scheduleEnd: DateTime
+  floor: String
+  parkingNumber: String
+  isOwner: Boolean
+  isCompany: Boolean
+  sentCalendar: Boolean
+  requestState: Boolean
+}
+
+input UpdateRequestInput {
+  fullName: String
+  type: Float
+  status: Float
   phoneNumber: String
-  content: String!
+  email: String
+  state: String
+  city: String
+  parkingType: Float
+  address: String
+  location: Geometry
+  quantity: Float
+  scheduleStart: DateTime
+  scheduleEnd: DateTime
+  floor: String
+  parkingNumber: String
+  isOwner: Boolean
+  isCompany: Boolean
+  sentCalendar: Boolean
+  requestState: Boolean
+  id: String!
 }
 
 input GenerateCouponOptions {

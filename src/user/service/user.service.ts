@@ -25,6 +25,8 @@ import { CryptService } from "src/utils/crypt/crypt.service";
 import { PaykuCreateClientInput } from "src/utils/interfaces/payku-create-client.input";
 import { ExcelService } from "src/utils/excel/excel.service";
 import * as _ from "lodash";
+import { RecoverPasswordCodeAndClientId } from "../../client/model/recover-password.response";
+import { RecoverPasswordCodeAndUserId } from "../model/dto/recover-password-code-and-userid.response";
 
 @Injectable()
 export class UserService {
@@ -250,6 +252,21 @@ export class UserService {
     });
     pageMetaDto.skip = (pageMetaDto.page - 1) * pageMetaDto.take;
     return new PageDto(users, pageMetaDto);
+  }
+  checkUserAndGetCodeToValidate(rut: string) {
+    return this.findUserByRut(rut).pipe(
+      switchMap((c) => {
+        return this.getUserEmailCode(c.email, c.fullname).pipe(
+          map((e) => {
+            const recoverPassword: RecoverPasswordCodeAndUserId = {
+              id: c.id,
+              code: e.code,
+            };
+            return recoverPassword;
+          })
+        );
+      })
+    );
   }
   async removeAssignedUserFromCoupon(userId: string, couponId: string) {
     const user = (await this.findUserById(userId).toPromise())!;

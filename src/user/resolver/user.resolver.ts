@@ -26,6 +26,7 @@ import { UserTypeGuard } from "src/auth/guards/user-type.guard";
 import { type } from "os";
 import { Any } from "typeorm";
 import { Card, PaykuCustomer } from "../model/payku.model";
+import { RecoverPasswordCodeAndClientId } from "../../client/model/recover-password.response";
 
 @Resolver(() => UserEntity)
 export class UserResolver {
@@ -136,5 +137,12 @@ export class UserResolver {
   @UseGuards(JwtAuthGuard)
   addCardToClient(@CurrentUser() user: UserEntity): Observable<any> {
     return this.userService.addCardToClient(user);
+  }
+
+  @Query(() => RecoverPasswordCodeAndClientId)
+  checkUserAndGetCodeToValidate(
+    @Args("rut", { type: () => String }) rut: string
+  ) {
+    return this.userService.checkUserAndGetCodeToValidate(rut);
   }
 }

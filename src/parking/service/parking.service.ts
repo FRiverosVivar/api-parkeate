@@ -1,11 +1,7 @@
 import { InjectRepository } from "@nestjs/typeorm";
 import { ParkingEntity } from "../entity/parking.entity";
-import { IsNull, Not, Repository } from "typeorm";
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
+import { In, IsNull, Not, Repository } from "typeorm";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { forkJoin, from, map, Observable, of, switchMap, tap } from "rxjs";
 import { CreateParkingInput } from "../model/create-parking.input";
 import * as uuid from "uuid";
@@ -18,11 +14,7 @@ import { BuildingService } from "../../building/service/building.service";
 import { PhotoService } from "../../photo/service/photo.service";
 import { CreatePhotoInput } from "../../photo/model/create-photo.input";
 import { FileUpload } from "graphql-upload-minimal";
-import {
-  PageDto,
-  PageOptionsDto,
-  PaginationMeta,
-} from "../../utils/interfaces/pagination.type";
+import { PageDto, PageOptionsDto, PaginationMeta } from "../../utils/interfaces/pagination.type";
 import { ClientEntity } from "../../client/entity/client.entity";
 import { UserTypesEnum } from "../../user/constants/constants";
 import * as _ from "lodash";
@@ -31,12 +23,15 @@ import {
   MostProfitableParking,
   MostRentedParking,
   RawParkingMostRentedOfDay,
-  TopMostRentedParkings,
+  TopMostRentedParkings
 } from "../model/finance-parking.output";
 import { PrepaidHourParking } from "../model/prepaid-hour-parking.output";
 import { ParkingType } from "../model/parking-type.enum";
 import { CouponService } from "src/coupons/service/coupon.service";
 import { CouponsTypeEnum } from "src/coupons/constants/coupons-type.enum";
+import { formatearMonedaChilena } from "../../utils/utils";
+import { ExcelService } from "../../utils/excel/excel.service";
+import { BookingStatesEnum } from "../../booking/enum/booking-states.enum";
 
 @Injectable()
 export class ParkingService {
@@ -47,7 +42,8 @@ export class ParkingService {
     private readonly userService: UserService,
     private readonly buildingService: BuildingService,
     private readonly photoService: PhotoService,
-    private readonly couponService: CouponService
+    private readonly couponService: CouponService,
+    private readonly excelService: ExcelService
   ) {}
   createParking(
     createParkingInput: CreateParkingInput,
@@ -613,5 +609,114 @@ export class ParkingService {
         },
       })
     );
+  }
+  async exportParkings(parkingsId: string[]) {
+    const parkings = await this.parkingRepository.find(
+      {
+        relations: {
+          bookings: {
+            user: true,
+            vehicle: true,
+          },
+          building: true
+        },
+        where: {
+          id: In(parkingsId)
+        }
+      }
+    )
+    const columns = [
+      { header: "Direccion", key: "address" },
+      { header: "Nombre Edificio", key: "buildingName" },
+      { header: "Nombre Estacionamiento", key: "name" },
+      { header: "Reservado por", key: "reservedBy" },
+      { header: "Vehiculo", key: "vehicle" },
+      { header: "Fecha Inicio", key: "start" },
+      { header: "Fecha Termino", key: "end" },
+      { header: "Precio Hora Prepago", key: "initialPrice" },
+      { header: "Precio Final a Pagar", key: "finalPrice" },
+      { header: "Tiempo de Reserva (Minutos)", key: "totalMinutes" },
+      { header: "Monto", key: "totalAmountToPay" },
+      { header: "Pagado", key: "paid" },
+      { header: "Total", key: "total" },
+    ];
+    const data = this.mapParkingDataAndGetBookingsFromParking(parkings);
+    return await this.excelService.createExcelFromDataArray(
+      data,
+      columns
+    );
+  }
+  private mapParkingDataAndGetBookingsFromParking(parkings: ParkingEntity[]){
+    const data: { address: string;buildingName: string; name: string;reservedBy: string; vehicle: string; start: string;end: string;initialPrice: string;finalPrice: string; totalMinutes: string; totalAmountToPay: string;paid: string; total?: string | number; }[] = []
+    parkings.forEach((p) => {
+      data.push({
+        address: p.building.address,
+        buildingName: p.building.name,
+        name: p.name,
+        reservedBy: "",
+        vehicle: "",
+        initialPrice: "",
+        finalPrice: "",
+        start: "",
+        end: "",
+        totalMinutes: "",
+        totalAmountToPay: "",
+        paid: "",
+        total: ""
+      })
+      const totalPrice = p.bookings.reduce((acc, b) => acc + b.finalPrice, 0)
+      p.bookings.filter((b) => b.bookingState === BookingStatesEnum.FINALIZED).forEach((b) => {
+        data.push({
+          address: "",
+          buildingName: "",
+          name: "",
+          reservedBy: b.user.fullname,
+          vehicle: b.vehicle ? b.vehicle.carPlate:"Vehiculo Eliminado",
+          start: DateTime.fromJSDate(b.dateStart).toFormat("hh:mm:ss dd/MM/yyyy"),
+          end: DateTime.fromJSDate(b.dateEnd).toFormat("hh:mm:ss dd/MM/yyyy"),
+          initialPrice: formatearMonedaChilena(b.initialPrice),
+          finalPrice: formatearMonedaChilena(b.finalPrice ?? 0),
+          totalMinutes: Math.round(DateTime.fromJSDate(
+            b.dateExtended ? b.dateExtended : b.dateEnd
+          )
+            .diff(DateTime.fromJSDate(b.dateStart), "minutes")
+            .as("minutes"))
+            .toString(),
+          totalAmountToPay: formatearMonedaChilena(b.finalPrice ?? 0),
+          paid: b.paid ? "Pagado" : "Por Pagar",
+        })
+      })
+      data.push({
+        address: "",
+        buildingName: "",
+        name: "",
+        reservedBy: "",
+        vehicle: "",
+        initialPrice: "",
+        finalPrice: "",
+        start: "",
+        end: "",
+        totalMinutes: "",
+        totalAmountToPay: "",
+        paid: "",
+        total: formatearMonedaChilena(totalPrice)
+      })
+      data.push({
+        address: "--------",
+        buildingName: "--------",
+        name: "--------",
+        reservedBy: "",
+        vehicle: "",
+        initialPrice: "--------",
+        finalPrice: "--------",
+        start: "--------",
+        end: "--------",
+        totalMinutes: "--------",
+        totalAmountToPay: "--------",
+        paid: "--------",
+        total: "--------"
+      })
+    })
+    return data;
   }
 }

@@ -1,5 +1,9 @@
 dist
 node_modules
-test
 .idea
+.vscode
 schema.gql
+lambda/**/node_modules
+lambda/**/package-lock.json
+terraform/.terraform/**
+terraform/.terraform.lock.hcl
