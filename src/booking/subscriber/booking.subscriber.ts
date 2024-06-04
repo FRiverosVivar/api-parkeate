@@ -25,10 +25,8 @@ export class BookingSubscriber
     });
     const lastBooking = lastBookings.pop();
     const lastNum = lastBooking
-      ? parseInt(
-          lastBooking.numberId.slice(0, lastBooking.numberId.length - 6)
-        ) + 1
+      ? parseInt(lastBooking.numberId.split("-")[1]) + 1
       : 1;
-    event.entity.numberId = `${lastNum}${date}`;
+    event.entity.numberId = `${date}-${lastNum}`;
   }
 }
