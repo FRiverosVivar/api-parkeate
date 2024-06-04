@@ -52,4 +52,14 @@ export class TransbankService {
       url ?? "http://parkeateapp.com/"
     );
   }
+  transactionStatus(token: string): Promise<any> {
+    const tx = new WebpayPlus.Transaction(
+      new Options(
+        IntegrationCommerceCodes.WEBPAY_PLUS,
+        IntegrationApiKeys.WEBPAY,
+        Environment.Integration
+      )
+    );
+    return tx.status(token);
+  }
 }

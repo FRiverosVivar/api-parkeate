@@ -272,4 +272,9 @@ export class AppController {
     @Query("token") token: string) {
     return this.tbkService.confirmTransaction(token)
   }
+  @Get("/tbk/status")
+  async transactionStatus(
+    @Query("token") token: string) {
+    return this.tbkService.transactionStatus(token)
+  }
 }
