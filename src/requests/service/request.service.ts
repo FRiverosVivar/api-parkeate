@@ -40,9 +40,8 @@ export class RequestService {
           requestStatus: RequestStatusNames[request.status],
           days: DateTime.now().toFormat('dd/MM/yyyy'),
           hours: DateTime.now().toFormat('HH:mm'),
-          formUrl: process.env.WEB_BASE_URL + '/request-parking-details?id=' + request.id
         }
-        return from(this.emailService.sendEmail(EmailTypesEnum.REQUEST_PARKING_DETAILS_FORM, request.email, JSON.stringify(data))).pipe(
+        return from(this.emailService.sendEmail(EmailTypesEnum.REQUEST_CREATED, request.email, JSON.stringify(data))).pipe(
           map(() => r)
         )
       })
@@ -67,9 +66,8 @@ export class RequestService {
                 requestStatus: RequestStatusNames[request.status],
                 days: DateTime.now().toFormat('dd/MM/yyyy'),
                 hours: DateTime.now().toFormat('HH:mm'),
-                formUrl: process.env.WEB_BASE_URL + '/request-parking-details?id=' + request.id
               }
-              this.emailService.sendEmail(EmailTypesEnum.REQUEST_PARKING_DETAILS_FORM, request.email, JSON.stringify(data))
+              this.emailService.sendEmail(EmailTypesEnum.REQUEST_CREATED, request.email, JSON.stringify(data))
               break;
             }
             case RequestStatusEnum.FINISHED:{
