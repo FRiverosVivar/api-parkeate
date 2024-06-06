@@ -7,7 +7,7 @@ export const EmailTypesCode = [
   '', // 5
   '',// 6
   'liquidation-generated', // 7
-  'request-parking-details-form',
+  'request-created',
   'request-calendar-form',
   'request-finalized',
   'request-closed',

@@ -33,6 +33,7 @@ import { CryptService } from "./utils/crypt/crypt.service";
 import { UserService } from "./user/service/user.service";
 import { EventModule } from "./event/event.module";
 import { ParkingGuardModule } from "./parkingGuard/parkingGuard.module";
+import { TransbankService } from "./utils/transbank/transbank.service";
 
 @Module({
   imports: [
@@ -93,6 +94,6 @@ import { ParkingGuardModule } from "./parkingGuard/parkingGuard.module";
     ParkingGuardModule,
   ],
   controllers: [AppController],
-  providers: [AppService, EmailService],
+  providers: [AppService, EmailService, TransbankService],
 })
 export class AppModule {}
