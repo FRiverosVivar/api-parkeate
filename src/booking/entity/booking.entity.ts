@@ -73,4 +73,10 @@ export class BookingEntity extends BaseEntityWithIdAbstract {
   @Column({ nullable: true })
   @Field(() => Boolean, { nullable: true })
   lastestNotifiedState: InAdvanceBooking;
+  @OneToMany(() => UserCouponEntity, (l) => l.booking, { nullable: true })
+  @Field(() => UserCouponEntity)
+  coupon: UserCouponEntity;
+  @Column({ nullable: true })
+  @Field(() => String, { nullable: true })
+  tbkToken: string;
 }
