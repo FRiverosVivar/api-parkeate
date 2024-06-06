@@ -19,6 +19,4 @@ export class CreateBookingInput {
   paid: boolean;
   @Field(() => Boolean, { nullable: true })
   anticipatedBooking: boolean;
-  @Field(() => String)
-  tbkToken: string;
 }
