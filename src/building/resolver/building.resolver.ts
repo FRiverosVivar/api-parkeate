@@ -134,6 +134,14 @@ export class BuildingResolver {
       file
     );
   }
+  @Mutation(() => BuildingEntity || null)
+  deleteBuilding(
+    @Args("buildingId") buildingId: string,
+  ): Observable<BuildingEntity | null> {
+    return this.buildingService.removeBuilding(
+      buildingId,
+    );
+  }
   @Query(() => MostProfitableBuilding, {
     name: "findMostProfitableBuilding",
     nullable: true,
