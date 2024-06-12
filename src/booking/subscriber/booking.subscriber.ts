@@ -24,7 +24,7 @@ export class BookingSubscriber
       take: 1,
     });
     const lastBooking = lastBookings.pop();
-    const lastNum = lastBooking
+    const lastNum = lastBooking && lastBooking.numberId && lastBooking.numberId.includes("-")
       ? parseInt(lastBooking.numberId.split("-")[1]) + 1
       : 1;
     event.entity.numberId = `${date}-${lastNum}`;
