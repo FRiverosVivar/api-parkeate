@@ -460,21 +460,22 @@ export class UserService {
     return dataClients;
   }
   async fingPaginatedUsers(pagination: PageOptionsDto, text: string) {
+    const where = text ?  [
+      {
+        fullname: ILike(`%${text}%`),
+      },
+      {
+        email: ILike(`%${text}%`),
+      },
+      {
+        phoneNumber: ILike(`%${text}%`),
+      },
+      {
+        rut: ILike(`%${text}%`),
+      },
+    ] : []
     const request = await this.userRepository.find({
-      where: [
-        {
-          fullname: ILike(`%${text}%`),
-        },
-        {
-          email: ILike(`%${text}%`),
-        },
-        {
-          phoneNumber: ILike(`%${text}%`),
-        },
-        {
-          rut: ILike(`%${text}%`),
-        },
-      ],
+      where: where,
       order: {
         createdAt: "DESC"
       },

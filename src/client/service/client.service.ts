@@ -307,21 +307,22 @@ export class ClientService {
   }
 
   async findPaginatedClients(pagination: PageOptionsDto, text: string) {
+const where = text ?  [
+    {
+      fullname: ILike(`%${text}%`),
+    },
+    {
+      email: ILike(`%${text}%`),
+    },
+    {
+      phoneNumber: ILike(`%${text}%`),
+    },
+    {
+      rut: ILike(`%${text}%`),
+    },
+  ] : []
     const request = await this.clientRepository.find({
-      where: [
-        {
-          fullname: ILike(`%${text}%`),
-        },
-        {
-          email: ILike(`%${text}%`),
-        },
-        {
-          phoneNumber: ILike(`%${text}%`),
-        },
-        {
-          rut: ILike(`%${text}%`),
-        },
-      ],
+      where:where,
       order: {
         createdAt: "DESC"
       },
