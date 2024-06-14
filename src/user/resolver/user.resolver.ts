@@ -149,7 +149,7 @@ export class UserResolver {
   @Query(() => UsersPaginated)
   @UserType(UserTypesEnum.ADMIN)
   @UseGuards(JwtAuthGuard, UserTypeGuard)
-  getPaginatedRequests(
+  getPaginatedUsers(
     @Args("paginationOptions") paginationOptions: PageOptionsDto,
     @Args("text", {  type: () => String, nullable: true }) text: string,
   ) {
