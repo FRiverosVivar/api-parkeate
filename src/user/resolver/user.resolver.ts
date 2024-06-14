@@ -12,11 +12,12 @@ import { UserWithSmsCode } from "../model/dto/user-with-sms-code.response";
 import { EmailVerificationCode } from "../../client/model/email-verification-code.response";
 import { SmsVerificationCode } from "../../client/model/sms-code.response";
 import {
+  ClientsPaginated,
   CouponsPaginated,
   PageOptionsDto,
   ParkingBlockedUsersPaginated,
   ParkingCouponAssignedUsersPaginated,
-  ParkingsPaginated,
+  ParkingsPaginated, UsersPaginated
 } from "../../utils/interfaces/pagination.type";
 import { CurrentUser } from "../../auth/decorator/current-user.decorator";
 import { ClientEntity } from "../../client/entity/client.entity";
@@ -144,5 +145,14 @@ export class UserResolver {
     @Args("rut", { type: () => String }) rut: string
   ) {
     return this.userService.checkUserAndGetCodeToValidate(rut);
+  }
+  @Query(() => UsersPaginated)
+  @UserType(UserTypesEnum.ADMIN)
+  @UseGuards(JwtAuthGuard, UserTypeGuard)
+  getPaginatedRequests(
+    @Args("paginationOptions") paginationOptions: PageOptionsDto,
+    @Args("text", {  type: () => String, nullable: true }) text: string,
+  ) {
+    return this.userService.fingPaginatedUsers(paginationOptions, text);
   }
 }

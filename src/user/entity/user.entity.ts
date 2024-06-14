@@ -62,4 +62,7 @@ export class UserEntity extends BaseCustomer {
   @Column({ nullable: true })
   @Field(() => String)
   supplier: boolean;
+  @Column({ nullable: true })
+  @Field(() => Boolean, { nullable: true, defaultValue: false })
+  whitelisted: boolean;
 }

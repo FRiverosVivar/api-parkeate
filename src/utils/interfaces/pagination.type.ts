@@ -138,3 +138,11 @@ export class RequestsPaginated {
   @Field(() => PaginationMeta)
   meta: PaginationMeta;
 }
+
+@ObjectType()
+export class UsersPaginated {
+  @Field(() => [UserEntity])
+  data: UserEntity[];
+  @Field(() => PaginationMeta)
+  meta: PaginationMeta;
+}
