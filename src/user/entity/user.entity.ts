@@ -5,16 +5,14 @@ import { BaseCustomer } from "../../utils/interfaces/base-customer.abstract";
 import { ParkingEntity } from "../../parking/entity/parking.entity";
 import { VehicleEntity } from "../../vehicle/entity/vehicle.entity";
 import { BookingEntity } from "../../booking/entity/booking.entity";
-import { CouponEntity } from "src/coupons/entity/coupon.entity";
 import { UserCouponEntity } from "src/coupons/user-coupons/entity/user-coupons.entity";
-import { CardEntity } from "./card.entity";
 
 @ObjectType()
 @Entity("user")
 @Unique("UserRutEmailPhone", ["rut", "email", "phoneNumber"])
 export class UserEntity extends BaseCustomer {
   @Column({ type: "enum", enum: UserTypesEnum })
-  @Field(() => UserTypesEnum, { description: "type of the user" })
+  @Field(() => Int, { description: "type of the user" })
   userType: UserTypesEnum;
   @ManyToMany(() => ParkingEntity, (p) => p.blockedUsers, { nullable: true })
   @Field(() => [ParkingEntity], {
