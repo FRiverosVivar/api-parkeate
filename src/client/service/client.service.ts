@@ -307,34 +307,25 @@ export class ClientService {
   }
 
   async findPaginatedClients(pagination: PageOptionsDto, text: string) {
-const where = text ?  [
-    {
-      fullname: ILike(`%${text}%`),
-    },
-    {
-      email: ILike(`%${text}%`),
-    },
-    {
-      phoneNumber: ILike(`%${text}%`),
-    },
-    {
-      rut: ILike(`%${text}%`),
-    },
-  ] : []
-    const request = await this.clientRepository.find({
-      where:where,
-      order: {
-        createdAt: "DESC"
-      },
-      skip: pagination.skip,
-      take: pagination.take
-    })
-    const itemCount = request.length
+    const whereQuery = text ? `LOWER(c.fullname) like '%${text.toLowerCase()}%'or c."phoneNumber" like %${text}% or LOWER(c.email) like '%${text
+      .toLowerCase()
+      .replace(
+        "-",
+        ""
+      )}%' or translate(c.rut, '-', '') like '%${text.toLowerCase()}%' or c.rut like '%${text.toLowerCase()}%'`: ``
+    const query = this.clientRepository
+      .createQueryBuilder("c")
+      .where(whereQuery)
+      .skip(pagination.skip)
+      .take(pagination.take);
+
+    const itemCount = await query.getCount();
+    const { entities } = await query.getRawAndEntities();
     const pageMetaDto = new PaginationMeta({
       pageOptionsDto: pagination,
       itemCount,
     });
     pageMetaDto.skip = (pageMetaDto.page - 1) * pageMetaDto.take;
-    return new PageDto(request, pageMetaDto);
+    return new PageDto(entities, pageMetaDto);
   }
 }
