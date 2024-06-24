@@ -118,23 +118,20 @@ export class RequestService {
     );
   }
   async findPaginatedRequests(pagination: PageOptionsDto, statusFilters: RequestStatusEnum[]) {
-    const request = await this.requestRepository.find({
-      where: {
-        status: statusFilters && statusFilters.length > 0 ? In(statusFilters): In([RequestStatusEnum.PENDING, RequestStatusEnum.FINISHED, RequestStatusEnum.CANCELED]),
-      },
-      order: {
-        createdAt: "DESC"
-      },
-      skip: pagination.skip,
-      take: pagination.take
-    })
-    const itemCount = request.length
+    const query = this.requestRepository
+      .createQueryBuilder("r")
+      .orderBy("r.createdAt", "DESC")
+      .where(statusFilters && statusFilters.length > 0 ? `r.status IN (${statusFilters.join(",")})`: `r.status IN (0,1,2)`)
+      .skip(pagination.skip)
+      .take(pagination.take);
+    const itemCount = await query.getCount();
+    const { entities } = await query.getRawAndEntities();
     const pageMetaDto = new PaginationMeta({
       pageOptionsDto: pagination,
       itemCount,
     });
     pageMetaDto.skip = (pageMetaDto.page - 1) * pageMetaDto.take;
-    return new PageDto(request, pageMetaDto);
+    return new PageDto(entities, pageMetaDto);
   }
 
   async exportRequests(requestsId: string[]) {

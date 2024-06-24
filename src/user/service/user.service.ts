@@ -460,34 +460,25 @@ export class UserService {
     return dataClients;
   }
   async fingPaginatedUsers(pagination: PageOptionsDto, text: string) {
-    const where = text ?  [
-      {
-        fullname: ILike(`%${text}%`),
-      },
-      {
-        email: ILike(`%${text}%`),
-      },
-      {
-        phoneNumber: ILike(`%${text}%`),
-      },
-      {
-        rut: ILike(`%${text}%`),
-      },
-    ] : []
-    const request = await this.userRepository.find({
-      where: where,
-      order: {
-        createdAt: "DESC"
-      },
-      skip: pagination.skip,
-      take: pagination.take
-    })
-    const itemCount = request.length
+    const whereQuery = text ? `LOWER(u.fullname) like '%${text.toLowerCase()}%'or u."phoneNumber" like %${text}% or LOWER(u.email) like '%${text
+      .toLowerCase()
+      .replace(
+        "-",
+        ""
+      )}%' or translate(u.rut, '-', '') like '%${text.toLowerCase()}%' or u.rut like '%${text.toLowerCase()}%'`: ``
+    const query = this.userRepository
+      .createQueryBuilder("u")
+      .where(whereQuery)
+      .skip(pagination.skip)
+      .take(pagination.take);
+
+    const itemCount = await query.getCount();
+    const { entities } = await query.getRawAndEntities();
     const pageMetaDto = new PaginationMeta({
       pageOptionsDto: pagination,
       itemCount,
     });
     pageMetaDto.skip = (pageMetaDto.page - 1) * pageMetaDto.take;
-    return new PageDto(request, pageMetaDto);
+    return new PageDto(entities, pageMetaDto);
   }
 }
