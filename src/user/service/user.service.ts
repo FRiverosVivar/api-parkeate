@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { Equal, Repository } from "typeorm";
+import { Equal, ILike, Repository } from "typeorm";
 import { UserEntity } from "../entity/user.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { forkJoin, from, map, Observable, of, switchMap } from "rxjs";
@@ -458,5 +458,36 @@ export class UserService {
       dataClients.push(client);
     });
     return dataClients;
+  }
+  async fingPaginatedUsers(pagination: PageOptionsDto, text: string) {
+    const where = text ?  [
+      {
+        fullname: ILike(`%${text}%`),
+      },
+      {
+        email: ILike(`%${text}%`),
+      },
+      {
+        phoneNumber: ILike(`%${text}%`),
+      },
+      {
+        rut: ILike(`%${text}%`),
+      },
+    ] : []
+    const request = await this.userRepository.find({
+      where: where,
+      order: {
+        createdAt: "DESC"
+      },
+      skip: pagination.skip,
+      take: pagination.take
+    })
+    const itemCount = request.length
+    const pageMetaDto = new PaginationMeta({
+      pageOptionsDto: pagination,
+      itemCount,
+    });
+    pageMetaDto.skip = (pageMetaDto.page - 1) * pageMetaDto.take;
+    return new PageDto(request, pageMetaDto);
   }
 }

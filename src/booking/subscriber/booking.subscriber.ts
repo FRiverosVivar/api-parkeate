@@ -24,9 +24,18 @@ export class BookingSubscriber
       take: 1,
     });
     const lastBooking = lastBookings.pop();
-    const lastNum = lastBooking
-      ? parseInt(lastBooking.numberId.split("-")[1]) + 1
-      : 1;
-    event.entity.numberId = `${date}-${lastNum}`;
+    if(!lastBooking)
+      return (event.entity.numberId = `${date}-${1}`);
+
+    const previousLastNum = lastBooking.numberId.split("-")[1]
+    if(previousLastNum && !isNaN(parseInt(previousLastNum))) {
+      const lastNum = lastBooking && lastBooking.numberId && lastBooking.numberId.includes("-")
+        ?  Number(previousLastNum) + 1
+        : 1;
+      return (event.entity.numberId = `${date}-${lastNum}`);
+    }
+
+    return event.entity.numberId = `${date}-${1}`;
+
   }
 }

@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { Equal, In, Not, Repository } from "typeorm";
+import { Equal, ILike, In, Not, Repository } from "typeorm";
 import { ClientEntity } from "../entity/client.entity";
 import { forkJoin, from, map, Observable, of, switchMap, tap } from "rxjs";
 import { EmailTypesEnum } from "../../utils/email/enum/email-types.enum";
@@ -29,6 +29,7 @@ import {
   PageOptionsDto,
   PaginationMeta,
 } from "src/utils/interfaces/pagination.type";
+import { RequestStatusEnum } from "../../requests/enum/request-status.enum";
 
 @Injectable()
 export class ClientService {
@@ -303,5 +304,37 @@ export class ClientService {
       dataClients.push(client);
     });
     return dataClients;
+  }
+
+  async findPaginatedClients(pagination: PageOptionsDto, text: string) {
+const where = text ?  [
+    {
+      fullname: ILike(`%${text}%`),
+    },
+    {
+      email: ILike(`%${text}%`),
+    },
+    {
+      phoneNumber: ILike(`%${text}%`),
+    },
+    {
+      rut: ILike(`%${text}%`),
+    },
+  ] : []
+    const request = await this.clientRepository.find({
+      where:where,
+      order: {
+        createdAt: "DESC"
+      },
+      skip: pagination.skip,
+      take: pagination.take
+    })
+    const itemCount = request.length
+    const pageMetaDto = new PaginationMeta({
+      pageOptionsDto: pagination,
+      itemCount,
+    });
+    pageMetaDto.skip = (pageMetaDto.page - 1) * pageMetaDto.take;
+    return new PageDto(request, pageMetaDto);
   }
 }

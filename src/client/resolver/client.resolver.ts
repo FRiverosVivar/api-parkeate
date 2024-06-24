@@ -10,6 +10,15 @@ import { CreatePhotoInput } from "../../photo/model/create-photo.input";
 import { EmailVerificationCode } from "../model/email-verification-code.response";
 import { SmsVerificationCode } from "../model/sms-code.response";
 import { RecoverPasswordCodeAndClientId } from "../model/recover-password.response";
+import {
+  ClientsPaginated,
+  EventsPaginated,
+  PageOptionsDto,
+  RequestsPaginated
+} from "../../utils/interfaces/pagination.type";
+import { UserType } from "../../auth/decorator/user-type.decorator";
+import { UserTypesEnum } from "../../user/constants/constants";
+import { UserTypeGuard } from "../../auth/guards/user-type.guard";
 
 @Resolver(() => ClientEntity)
 export class ClientResolver {
@@ -82,5 +91,14 @@ export class ClientResolver {
     @Args("rut", { type: () => String }) rut: string
   ) {
     return this.clientService.checkClientAndGetCodeToValidate(rut);
+  }
+  @Query(() => ClientsPaginated)
+  @UserType(UserTypesEnum.ADMIN)
+  @UseGuards(JwtAuthGuard, UserTypeGuard)
+  getPaginatedClients(
+    @Args("paginationOptions") paginationOptions: PageOptionsDto,
+    @Args("text", {  type: () => String, nullable: true }) text: string,
+  ) {
+    return this.clientService.findPaginatedClients(paginationOptions, text);
   }
 }

@@ -12,4 +12,6 @@ export class CreateUserInput extends BasicCustomerInputAbstract {
   dniPhoto: string;
   @Field(() => Boolean, { nullable: true })
   supplier: boolean;
+  @Field(() => Boolean, { nullable: true })
+  whitelisted: boolean;
 }

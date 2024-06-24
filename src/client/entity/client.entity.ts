@@ -43,18 +43,18 @@ export class ClientEntity extends BaseCustomer {
   @Field(() => Int, { nullable: true })
   bankType: BanksEnum;
   @Column({ nullable: true })
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   bankAccountName: string;
   @Column({ nullable: true })
-  @Field(() => Int)
+  @Field(() => Int, { nullable: true })
   bankAccountType: BankAccountTypeEnum;
   @Column({ nullable: true })
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   bankAccountNumber: string;
   @Column({ nullable: true })
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   bankAccountEmail: string;
   @Column({ nullable: true })
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   supplier: boolean;
 }

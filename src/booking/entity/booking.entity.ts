@@ -31,8 +31,9 @@ export class BookingEntity extends BaseEntityWithIdAbstract {
   @Column()
   @Field(() => Int)
   bookingState: BookingStatesEnum;
-  @ManyToOne(() => ParkingEntity, (p) => p.bookings, { eager: true })
-  @Field(() => ParkingEntity)
+  @ManyToOne(() => ParkingEntity, (p) => p.bookings, { eager: true, nullable: true,
+    onDelete: "SET NULL" })
+  @Field(() => ParkingEntity, {nullable: true})
   parking: ParkingEntity;
   @ManyToOne(() => UserEntity, (p) => p.bookings, { eager: true })
   @Field(() => UserEntity)
