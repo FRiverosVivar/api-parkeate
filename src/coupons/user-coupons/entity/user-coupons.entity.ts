@@ -14,9 +14,6 @@ export class UserCouponEntity extends BaseEntityWithIdAbstract {
   @ManyToOne(() => CouponEntity, (c) => c.assignedUsers, { nullable: true })
   @Field(() => CouponEntity)
   coupon: CouponEntity;
-  @ManyToOne(() => BookingEntity, (b) => b.coupon, { nullable: true })
-  @Field(() => BookingEntity)
-  booking: BookingEntity;
   @Column()
   @Field(() => Int)
   quantityRemaining: number;
