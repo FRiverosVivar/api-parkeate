@@ -460,7 +460,7 @@ export class UserService {
     return dataClients;
   }
   async fingPaginatedUsers(pagination: PageOptionsDto, text: string) {
-    const whereQuery = text ? `LOWER(u.fullname) like '%${text.toLowerCase()}%'or u."phoneNumber" like %${text}% or LOWER(u.email) like '%${text
+    const whereQuery = text ? `LOWER(u.fullname) like '%${text.toLowerCase()}%'or u."phoneNumber" like '%${text}%' or LOWER(u.email) like '%${text
       .toLowerCase()
       .replace(
         "-",

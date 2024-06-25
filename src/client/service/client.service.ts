@@ -307,7 +307,7 @@ export class ClientService {
   }
 
   async findPaginatedClients(pagination: PageOptionsDto, text: string) {
-    const whereQuery = text ? `LOWER(c.fullname) like '%${text.toLowerCase()}%'or c."phoneNumber" like %${text}% or LOWER(c.email) like '%${text
+    const whereQuery = text ? `LOWER(c.fullname) like '%${text.toLowerCase()}%' or c."phoneNumber" like '%${text}%' or LOWER(c.email) like '%${text
       .toLowerCase()
       .replace(
         "-",
