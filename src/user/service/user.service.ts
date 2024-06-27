@@ -469,7 +469,7 @@ export class UserService {
     const query = this.userRepository
       .createQueryBuilder("u")
       .where(whereQuery)
-      .orderBy("a.createdAt", "DESC")
+      .orderBy("u.createdAt", "DESC")
       .skip(pagination.skip)
       .take(pagination.take);
 
