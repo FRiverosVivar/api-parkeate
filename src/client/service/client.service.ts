@@ -316,6 +316,7 @@ export class ClientService {
     const query = this.clientRepository
       .createQueryBuilder("c")
       .where(whereQuery)
+      .orderBy("c.createdAt", "DESC")
       .skip(pagination.skip)
       .take(pagination.take);
 
