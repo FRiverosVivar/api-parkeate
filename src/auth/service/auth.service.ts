@@ -36,7 +36,7 @@ export class AuthService {
   ) {}
   createUser(createUserInput: CreateUserInput): Observable<UserEntity> {
     if (!createUserInput.wallet) createUserInput.wallet = 0;
-
+    createUserInput.whitelisted = false;
     return this.userService.getUserByRut(createUserInput.rut).pipe(
       switchMap((existingUser) => {
         if (existingUser) {

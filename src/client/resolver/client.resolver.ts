@@ -101,4 +101,12 @@ export class ClientResolver {
   ) {
     return this.clientService.findPaginatedClients(paginationOptions, text);
   }
+  @Mutation(() => ClientEntity)
+  @UserType(UserTypesEnum.ADMIN)
+  @UseGuards(JwtAuthGuard, UserTypeGuard)
+  deleteClient(
+    @Args("id") id: string
+  ): Observable<ClientEntity> {
+    return this.clientService.deleteClient(id);
+  }
 }

@@ -432,6 +432,12 @@ export class UserService {
       columns
     );
   }
+  deleteUser(userId: string): Observable<UserEntity> {
+    return this.findUserById(userId).pipe(
+      switchMap((user: UserEntity) => {
+        return from(this.userRepository.remove(user));
+      }));
+  }
   mapClientsToExcelData(clients: UserEntity[]) {
     const dataClients: Array<{
       id: string;
@@ -460,7 +466,7 @@ export class UserService {
     return dataClients;
   }
   async fingPaginatedUsers(pagination: PageOptionsDto, text: string) {
-    const whereQuery = text ? `LOWER(u.fullname) like '%${text.toLowerCase()}%'or u."phoneNumber" like %${text}% or LOWER(u.email) like '%${text
+    const whereQuery = text ? `LOWER(u.fullname) like '%${text.toLowerCase()}%'or u."phoneNumber" like '%${text}%' or LOWER(u.email) like '%${text
       .toLowerCase()
       .replace(
         "-",
@@ -469,6 +475,7 @@ export class UserService {
     const query = this.userRepository
       .createQueryBuilder("u")
       .where(whereQuery)
+      .orderBy("u.createdAt", "DESC")
       .skip(pagination.skip)
       .take(pagination.take);
 

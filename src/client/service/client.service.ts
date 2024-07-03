@@ -262,6 +262,13 @@ export class ClientService {
       })
     );
   }
+  deleteClient(clientId: string): Observable<ClientEntity> {
+    return this.findClientById(clientId).pipe(
+      switchMap((client: ClientEntity) => {
+        return from(this.clientRepository.remove(client));
+      })
+    );
+  }
   async exportClients() {
     const columns = [
       { header: "Id", key: "id" },
@@ -307,7 +314,7 @@ export class ClientService {
   }
 
   async findPaginatedClients(pagination: PageOptionsDto, text: string) {
-    const whereQuery = text ? `LOWER(c.fullname) like '%${text.toLowerCase()}%'or c."phoneNumber" like %${text}% or LOWER(c.email) like '%${text
+    const whereQuery = text ? `LOWER(c.fullname) like '%${text.toLowerCase()}%' or c."phoneNumber" like '%${text}%' or LOWER(c.email) like '%${text
       .toLowerCase()
       .replace(
         "-",
@@ -316,6 +323,7 @@ export class ClientService {
     const query = this.clientRepository
       .createQueryBuilder("c")
       .where(whereQuery)
+      .orderBy("c.createdAt", "DESC")
       .skip(pagination.skip)
       .take(pagination.take);
 
