@@ -155,4 +155,10 @@ export class UserResolver {
   ) {
     return this.userService.fingPaginatedUsers(paginationOptions, text);
   }
+  @Mutation( () => UserEntity )
+  @UserType(UserTypesEnum.ADMIN)
+  @UseGuards(JwtAuthGuard, UserTypeGuard)
+  deleteUser(@Args("id") id: string) {
+    return this.userService.deleteUser(id);
+  }
 }

@@ -432,6 +432,12 @@ export class UserService {
       columns
     );
   }
+  deleteUser(userId: string): Observable<UserEntity> {
+    return this.findUserById(userId).pipe(
+      switchMap((user: UserEntity) => {
+        return from(this.userRepository.remove(user));
+      }));
+  }
   mapClientsToExcelData(clients: UserEntity[]) {
     const dataClients: Array<{
       id: string;

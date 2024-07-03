@@ -262,6 +262,13 @@ export class ClientService {
       })
     );
   }
+  deleteClient(clientId: string): Observable<ClientEntity> {
+    return this.findClientById(clientId).pipe(
+      switchMap((client: ClientEntity) => {
+        return from(this.clientRepository.remove(client));
+      })
+    );
+  }
   async exportClients() {
     const columns = [
       { header: "Id", key: "id" },
