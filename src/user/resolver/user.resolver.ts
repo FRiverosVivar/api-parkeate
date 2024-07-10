@@ -28,6 +28,8 @@ import { type } from "os";
 import { Any } from "typeorm";
 import { Card, PaykuCustomer } from "../model/payku.model";
 import { RecoverPasswordCodeAndClientId } from "../../client/model/recover-password.response";
+import { CreateUserInput } from "../model/dto/create-user.input";
+import { UserBatchResponse } from "../model/dto/user-batch.response";
 
 @Resolver(() => UserEntity)
 export class UserResolver {
@@ -160,5 +162,11 @@ export class UserResolver {
   @UseGuards(JwtAuthGuard, UserTypeGuard)
   deleteUser(@Args("id") id: string) {
     return this.userService.deleteUser(id);
+  }
+  @Mutation( () => UserBatchResponse )
+  @UserType(UserTypesEnum.ADMIN)
+  @UseGuards(JwtAuthGuard, UserTypeGuard)
+  createUsersBatch(@Args("createUserInputs") createUserInputs: CreateUserInput[]) {
+    return this.userService.createUsersBatch(createUserInputs);
   }
 }

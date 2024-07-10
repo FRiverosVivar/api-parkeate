@@ -27,6 +27,7 @@ import { ExcelService } from "src/utils/excel/excel.service";
 import * as _ from "lodash";
 import { RecoverPasswordCodeAndClientId } from "../../client/model/recover-password.response";
 import { RecoverPasswordCodeAndUserId } from "../model/dto/recover-password-code-and-userid.response";
+import { UserBatchResponse } from "../model/dto/user-batch.response";
 
 @Injectable()
 export class UserService {
@@ -487,5 +488,20 @@ export class UserService {
     });
     pageMetaDto.skip = (pageMetaDto.page - 1) * pageMetaDto.take;
     return new PageDto(entities, pageMetaDto);
+  }
+  createUsersBatch(createUsersInput: CreateUserInput[]): UserBatchResponse {
+    const created: UserEntity[] = []
+    const failed: CreateUserInput[] = []
+    createUsersInput.forEach(async (u) => {
+      const user = await this.createUser(u).toPromise()
+      if(user)
+        return created.push(user)
+
+      return failed.push(u)
+    })
+    return {
+      created,
+      failed
+    }
   }
 }
