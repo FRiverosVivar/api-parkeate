@@ -1,12 +1,12 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { Equal, ILike, Repository } from "typeorm";
+import { Equal, Repository } from "typeorm";
 import { UserEntity } from "../entity/user.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { forkJoin, from, map, Observable, of, switchMap } from "rxjs";
 import { UpdateUserInput } from "../model/dto/update-user.input";
 import * as uuid from "uuid";
 import { UUIDBadFormatException } from "../../utils/exceptions/UUIDBadFormat.exception";
-import { CreateUserInput } from "../model/dto/create-user.input";
+import { CreateUserInput, OutputCreateUserInput } from "../model/dto/create-user.input";
 import { FileUpload } from "graphql-upload-minimal";
 import { EmailService } from "../../utils/email/email.service";
 import { EmailTypesEnum } from "../../utils/email/enum/email-types.enum";
@@ -25,7 +25,6 @@ import { CryptService } from "src/utils/crypt/crypt.service";
 import { PaykuCreateClientInput } from "src/utils/interfaces/payku-create-client.input";
 import { ExcelService } from "src/utils/excel/excel.service";
 import * as _ from "lodash";
-import { RecoverPasswordCodeAndClientId } from "../../client/model/recover-password.response";
 import { RecoverPasswordCodeAndUserId } from "../model/dto/recover-password-code-and-userid.response";
 import { UserBatchResponse } from "../model/dto/user-batch.response";
 
@@ -489,19 +488,21 @@ export class UserService {
     pageMetaDto.skip = (pageMetaDto.page - 1) * pageMetaDto.take;
     return new PageDto(entities, pageMetaDto);
   }
-  createUsersBatch(createUsersInput: CreateUserInput[]): UserBatchResponse {
+  async createUsersBatch(createUsersInput: CreateUserInput[]): Promise<UserBatchResponse> {
     const created: UserEntity[] = []
-    const failed: CreateUserInput[] = []
-    createUsersInput.forEach(async (u) => {
-      const user = await this.createUser(u).toPromise()
-      if(user)
-        return created.push(user)
+    const failed: OutputCreateUserInput[] = []
+    for(let input of createUsersInput){
+      const user = await this.createUser(input).toPromise()
+      if(user){
+        created.push(user)
+        continue;
+      }
 
-      return failed.push(u)
-    })
+      failed.push(input)
+    }
     return {
       created,
       failed
-    }
+    };
   }
 }
