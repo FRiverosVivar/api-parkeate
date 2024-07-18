@@ -27,6 +27,7 @@ import { ExcelService } from "src/utils/excel/excel.service";
 import * as _ from "lodash";
 import { RecoverPasswordCodeAndUserId } from "../model/dto/recover-password-code-and-userid.response";
 import { UserBatchResponse } from "../model/dto/user-batch.response";
+import { SendTemplatedEmailCommandOutput } from "@aws-sdk/client-ses";
 
 @Injectable()
 export class UserService {
@@ -40,16 +41,18 @@ export class UserService {
     private readonly crypto: CryptService,
     private readonly excelService: ExcelService
   ) {}
-  createUser(userDTO: CreateUserInput): Observable<UserEntity> {
+  createUser(userDTO: CreateUserInput, sendEmail: boolean = true): Observable<UserEntity> {
     userDTO.wallet = 0;
     const user = this.userRepository.create(userDTO);
-    const emailSubject = from(
-      this.emailService.sendEmail(
-        EmailTypesEnum.REGISTER,
-        user.email,
-        JSON.stringify({ name: user.fullname })
-      )
-    );
+    let emailSubject: Observable<SendTemplatedEmailCommandOutput> = of({} as SendTemplatedEmailCommandOutput);
+    if(sendEmail)
+      emailSubject = from(
+        this.emailService.sendEmail(
+          EmailTypesEnum.REGISTER,
+          user.email,
+          JSON.stringify({ name: user.fullname })
+        )
+      );
 
     const saveUserSubject = from(this.userRepository.save(user));
     return this.getUserByRut(user.rut).pipe(
@@ -492,7 +495,7 @@ export class UserService {
     const created: UserEntity[] = []
     const failed: OutputCreateUserInput[] = []
     for(let input of createUsersInput){
-      const user = await this.createUser(input).toPromise()
+      const user = await this.createUser(input, false).toPromise()
       if(user){
         created.push(user)
         continue;
