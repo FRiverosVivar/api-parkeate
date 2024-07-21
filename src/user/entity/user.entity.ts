@@ -63,4 +63,10 @@ export class UserEntity extends BaseCustomer {
   @Column({ nullable: true })
   @Field(() => Boolean, { nullable: true })
   whitelisted: boolean;
+  @Column({ nullable: true })
+  @Field(() => Number, { nullable: true })
+  cardNumbers: number;
+  @Column({ nullable: true })
+  @Field(() => String, { nullable: true })
+  subscriptionToken: string;
 }
