@@ -8,7 +8,7 @@ export class UpdateUserInput extends PartialType(CreateUserInput) {
   @Field(() => String)
   id: string;
   @Field(() => Number, { nullable: true })
-  cardNumbers: number;
+  cardNumbers?: number;
   @Field(() => String, { nullable: true })
-  subscriptionToken: string;
+  subscriptionToken?: string;
 }
