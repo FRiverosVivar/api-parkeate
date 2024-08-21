@@ -30,6 +30,7 @@ import { Card, PaykuCustomer } from "../model/payku.model";
 import { RecoverPasswordCodeAndClientId } from "../../client/model/recover-password.response";
 import { CreateUserInput, OutputCreateUserInput } from "../model/dto/create-user.input";
 import { UserBatchResponse } from "../model/dto/user-batch.response";
+import { UserFilterInput } from "../model/dto/filter-user.input";
 
 @Resolver(() => UserEntity)
 export class UserResolver {
@@ -148,14 +149,16 @@ export class UserResolver {
   ) {
     return this.userService.checkUserAndGetCodeToValidate(rut);
   }
+
   @Query(() => UsersPaginated)
   @UserType(UserTypesEnum.ADMIN)
-  @UseGuards(JwtAuthGuard, UserTypeGuard)
+  // @UseGuards(JwtAuthGuard, UserTypeGuard)
   getPaginatedUsers(
     @Args("paginationOptions") paginationOptions: PageOptionsDto,
     @Args("text", {  type: () => String, nullable: true }) text: string,
+    @Args("filters", {  type: () => UserFilterInput , nullable: true }) filters?: UserFilterInput,
   ) {
-    return this.userService.fingPaginatedUsers(paginationOptions, text);
+    return this.userService.fingPaginatedUsers(paginationOptions, text,filters);
   }
   @Mutation( () => UserEntity )
   @UserType(UserTypesEnum.ADMIN)
