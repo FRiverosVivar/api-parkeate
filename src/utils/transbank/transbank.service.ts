@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { DateTime } from "luxon";
-import { WebpayPlus } from "transbank-sdk"; // ES6 Modules
+import { WebpayPlus,Oneclick} from "transbank-sdk"; // ES6 Modules
 import {
   Options,
   IntegrationApiKeys,
@@ -61,5 +61,20 @@ export class TransbankService {
       )
     );
     return tx.status(token);
+  }
+  createInscriptionOneClick(userName: string, email: string, response_url: string): Promise<any> {
+    const inscription = new Oneclick.MallInscription(
+      new Options(IntegrationCommerceCodes.ONECLICK_MALL, IntegrationApiKeys.WEBPAY, Environment.Integration)
+    )
+    return inscription.start(userName, email, response_url)
+  } 
+
+  confirmInscriptionOneClick(token: string): Promise<any> {
+    const inscription = new Oneclick.MallInscription(
+      new Options(IntegrationCommerceCodes.ONECLICK_MALL, IntegrationApiKeys.WEBPAY, Environment.Integration)
+    )
+    // TODO: save response.transback_user in user entity
+    //let response = inscription.finish(token)
+    return inscription.finish(token)
   }
 }
