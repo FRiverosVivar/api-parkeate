@@ -286,18 +286,20 @@ export class AppController {
     }
   @Post("/tbk/confirmInscriptionOneClick")
   async confirmInscriptionOneClick(
-    @Query("token") token: string) {
-      return this.tbkService.confirmInscriptionOneClick(token)
+    @Query("token") token: string,
+    @Query("userId") userId: string) {
+      return this.tbkService.confirmInscriptionOneClick(token,userId)
     }
-  // @Post("/tbk/deleteInscriptionOneClick")
-  // async deleteInscriptionOneClick(
-  //   @Query("token") token: string) {
-  //     return this.tbkService.deleteInscriptionOneClick(token)
-  //   }
+  @Post("/tbk/deleteInscriptionOneClick")
+  async deleteInscriptionOneClick(
+    @Query("token") token: string,
+    @Query("username") username: string,
+    @Query("userId") userId: string) {
+      return this.tbkService.deleteInscriptionOneClick(token,username,userId)
+    }
 //   @Post("/tbk/validateInscriptionOneClick")
 //   async validateInscriptionOneClick(
 //     @Query("token") token: string) {
 //       return this.tbkService.validateInscriptionOneClick(token)
 //     }
-// }
-
+}
