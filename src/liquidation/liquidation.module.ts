@@ -9,9 +9,9 @@ import { EmailService } from "src/utils/email/email.service";
 import { LiquidationController } from "./controller/liquidation.controller";
 import { LiquidationSubscriber } from "./subscriber/liquidation.subscriber";
 import { DataSourceOptions } from "typeorm";
-registerEnumType(LiquidationEnum,{
-  name: 'LiquidationEnum'
-})
+registerEnumType(LiquidationEnum, {
+  name: "LiquidationEnum",
+});
 @Global()
 @Module({
   imports: [TypeOrmModule.forFeature([LiquidationEntity])],

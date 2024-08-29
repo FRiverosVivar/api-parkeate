@@ -7,7 +7,7 @@ import { BuildingResolver } from "./resolver/building.resolver";
 @Global()
 @Module({
   imports: [TypeOrmModule.forFeature([BuildingEntity])],
-  providers: [BuildingResolver, BuildingService ],
+  providers: [BuildingResolver, BuildingService],
   exports: [BuildingResolver, BuildingService],
 })
 export class BuildingModule {}

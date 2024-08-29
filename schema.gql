@@ -103,7 +103,7 @@ type UserEntity {
   validatedAccount: Boolean!
 
   """type of the user"""
-  userType: UserTypesEnum!
+  userType: Int!
 
   """validated phone"""
   restrictedParkings: [ParkingEntity!]
@@ -118,14 +118,11 @@ type UserEntity {
   paykuClientId: String
   paykuSubId: String
   supplier: String!
-}
-
-enum UserTypesEnum {
-  USER
-  MANAGER
-  ROOT_MANAGER
-  ADMIN
-  ROOT
+  whitelisted: Boolean
+  cardNumbers: Float
+  subscriptionToken: String
+  cardType: String
+  tbkToken: String
 }
 
 type HoldingEntity {
@@ -313,11 +310,11 @@ type ClientEntity {
   liquidations: [LiquidationEntity!]!
   preferedLiquidationPayRate: Int!
   bankType: Int
-  bankAccountName: String!
-  bankAccountType: Int!
-  bankAccountNumber: String!
-  bankAccountEmail: String!
-  supplier: String!
+  bankAccountName: String
+  bankAccountType: Int
+  bankAccountNumber: String
+  bankAccountEmail: String
+  supplier: String
 }
 
 type ScheduleEntity {
@@ -406,7 +403,7 @@ type BookingEntity {
   numberId: String!
   bookingType: Int!
   bookingState: Int!
-  parking: ParkingEntity!
+  parking: ParkingEntity
   user: UserEntity!
   initialPrice: Float!
   dateStart: DateTime!
@@ -441,13 +438,16 @@ type RequestEntity {
   address: String!
   location: Geometry!
   quantity: Float!
-  scheduleStart: DateTime!
-  scheduleEnd: DateTime!
+  scheduleStart: String
+  scheduleEnd: DateTime
   floor: String!
   parkingNumber: String!
   isOwner: Boolean!
   isCompany: Boolean!
   sentCalendar: Boolean!
+  rut: String!
+  apartmentNumber: String
+  parkingPhoto: String
 }
 
 type PaginationMeta {
@@ -462,6 +462,11 @@ type PaginationMeta {
 
 type BuildingsPaginated {
   data: [BuildingEntity!]!
+  meta: PaginationMeta!
+}
+
+type ClientsPaginated {
+  data: [ClientEntity!]!
   meta: PaginationMeta!
 }
 
@@ -510,9 +515,22 @@ type RequestsPaginated {
   meta: PaginationMeta!
 }
 
+type UsersPaginated {
+  data: [UserEntity!]!
+  meta: PaginationMeta!
+}
+
 type UserLoginResponse {
   user: UserEntity!
   access_token: String!
+}
+
+type OutputCreateUserInput {
+  wallet: Int
+  licenseDriver: String
+  dniPhoto: String
+  supplier: Boolean
+  whitelisted: Boolean
 }
 
 type ClientLoginResponse {
@@ -543,6 +561,11 @@ type Card {
 type RecoverPasswordCodeAndClientId {
   id: String!
   code: Float!
+}
+
+type UserBatchResponse {
+  created: [UserEntity!]!
+  failed: [OutputCreateUserInput!]!
 }
 
 type MostProfitableParking {
@@ -723,6 +746,7 @@ type Query {
   getPaykuClientCardData: [Card!]!
   addCardToClient: String!
   checkUserAndGetCodeToValidate(rut: String!): RecoverPasswordCodeAndClientId!
+  getPaginatedUsers(paginationOptions: PageOptionsDto!, text: String): UsersPaginated!
   clientById(clientId: String!): ClientEntity!
   clients: [ClientEntity!]!
   clientByRut(rut: String!): ClientEntity
@@ -730,6 +754,7 @@ type Query {
   getClientEmailCode(fullname: String!, email: String!): EmailVerificationCode!
   getClientSMSCode(phoneNumber: String!): SmsVerificationCode!
   checkClientAndGetCodeToValidate(rut: String!): RecoverPasswordCodeAndClientId!
+  getPaginatedClients(paginationOptions: PageOptionsDto!, text: String): ClientsPaginated!
   findVehicleById(vehicleId: String!): VehicleEntity!
   findVehiclesByUserId: [VehicleEntity!]!
   findVehiclesWithModelPlateOrOwner(text: String!): [VehicleEntity!]!
@@ -750,7 +775,7 @@ type Query {
   findRecentBookingsFromBuildings: [BookingEntity!]!
   getBookingCurrentPriceToPay(bookingId: String!, userCouponId: String): CurrentPriceBookingOutput!
   GetBookingsFromTheCurrentDayOfBuilding(buildingId: String!): [BookingEntity!]!
-  getPaginatedRequests(paginationOptions: PageOptionsDto!): RequestsPaginated!
+  getPaginatedRequests(paginationOptions: PageOptionsDto!, statusFilters: [Float!]): RequestsPaginated!
   forceToLiquidateToAllBookings: [LiquidationEntity!]!
   getAllLiquidations(paginationOptions: PageOptionsDto!): LiquidationsPaginated!
   updateLiquidation(updateLiquidationInput: UpdateLiquidationInput!): LiquidationEntity!
@@ -815,6 +840,7 @@ type Mutation {
   updateBuilding(updateBuildingInput: UpdateBuildingInput!, tags: [String!]): BuildingEntity!
   removeTag(tagId: String!): TagsEntity!
   setBuildingPhoto(buildingId: String!, createPhotoInput: CreatePhotoInput!, file: Upload!): BuildingEntity!
+  deleteBuilding(buildingId: String!): BuildingEntity!
   createTag(createTagInput: CreateTagInput!): TagsEntity!
   updateTag(updateTagInput: UpdateTagInput!): TagsEntity!
   createUser(createUserInput: CreateUserInput!): UserEntity!
@@ -830,9 +856,12 @@ type Mutation {
   updateUser(updateUserInput: UpdateUserInput!): UserEntity!
   setProfilePhoto(userId: String!, photoInput: CreatePhotoInput!, photo: Upload!): UserEntity!
   removeUser(userId: String!): UserEntity!
+  deleteUser(id: String!): UserEntity!
+  createUsersBatch(createUserInputs: [CreateUserInput!]!): UserBatchResponse!
   updateClient(updateClientInput: UpdateClientInput!): ClientEntity!
   setClientProfilePhoto(clientId: String!, photoInput: CreatePhotoInput!, photo: Upload!): ClientEntity!
   removeClient(clientId: String!): ClientEntity!
+  deleteClient(id: String!): ClientEntity!
   createVehicle(createVehicleInput: CreateVehicleInput!, ownerId: String!): VehicleEntity!
   updateVehicle(updateVehicleInput: UpdateVehicleInput!): VehicleEntity!
   removeVehicle(vehicleId: String!): VehicleEntity!
@@ -846,6 +875,7 @@ type Mutation {
   generatePaymentFromPayku(bookingId: String!, paygate: String!, subId: String!, priceToPay: Float!, couponId: String, anticipatedBooking: Boolean, bookingNextState: Float): BookingEntity!
   createRequest(createRequestInput: CreateRequestInput!): RequestEntity!
   updateRequest(updateRequestInput: UpdateRequestInput!): RequestEntity!
+  setRequestPhoto(requestId: String!, photoInput: CreatePhotoInput!, photo: Upload!): RequestEntity!
   uploadPaymentReceipt(liquidationId: String!, receiptPdf: Upload!): LiquidationEntity!
   generateBulkOfCodes(generateCouponsOptions: GenerateCouponOptions!): [CouponEntity!]!
   assignCouponToUser(userId: String!, couponId: String!): CouponEntity!
@@ -1051,6 +1081,7 @@ input CreateUserInput {
   licenseDriver: String
   dniPhoto: String
   supplier: Boolean
+  whitelisted: Boolean
 }
 
 input CreateClientInput {
@@ -1176,7 +1207,11 @@ input UpdateUserInput {
   licenseDriver: String
   dniPhoto: String
   supplier: Boolean
+  whitelisted: Boolean
   id: String!
+  cardNumbers: Float
+  subscriptionToken: String
+  cardType: String
 }
 
 input UpdateClientInput {
@@ -1316,7 +1351,7 @@ input CreateRequestInput {
   address: String
   location: Geometry
   quantity: Float
-  scheduleStart: DateTime
+  scheduleStart: String
   scheduleEnd: DateTime
   floor: String
   parkingNumber: String
@@ -1324,6 +1359,9 @@ input CreateRequestInput {
   isCompany: Boolean
   sentCalendar: Boolean
   requestState: Boolean
+  rut: String
+  apartmentNumber: String
+  parkingPhoto: String
 }
 
 input UpdateRequestInput {
@@ -1338,7 +1376,7 @@ input UpdateRequestInput {
   address: String
   location: Geometry
   quantity: Float
-  scheduleStart: DateTime
+  scheduleStart: String
   scheduleEnd: DateTime
   floor: String
   parkingNumber: String
@@ -1346,6 +1384,9 @@ input UpdateRequestInput {
   isCompany: Boolean
   sentCalendar: Boolean
   requestState: Boolean
+  rut: String
+  apartmentNumber: String
+  parkingPhoto: String
   id: String!
 }
 

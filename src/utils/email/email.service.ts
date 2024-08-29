@@ -8,7 +8,7 @@ import {
   SendTemplatedEmailCommand,
   SESClient,
   SESClientConfig,
-  TemplateMetadata
+  TemplateMetadata,
 } from "@aws-sdk/client-ses";
 import * as lodash from "lodash";
 import { EmailTypesEnum } from "./enum/email-types.enum";
@@ -94,7 +94,9 @@ export class EmailService implements OnModuleInit {
     emailType: EmailTypesEnum
   ) {}
   private async verifyListOfEmailTemplates(): Promise<void> {
-    const list = await this.SESClient.send(new ListTemplatesCommand({ "MaxItems": 20}));
+    const list = await this.SESClient.send(
+      new ListTemplatesCommand({ MaxItems: 20 })
+    );
     const result = this.filterTemplatesAndFindMissingTemplates(
       list.TemplatesMetadata!
     );

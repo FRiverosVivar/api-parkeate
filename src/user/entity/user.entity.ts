@@ -74,5 +74,5 @@ export class UserEntity extends BaseCustomer {
   cardType: string;
   @Column({ nullable: true })
   @Field(() => String, { nullable: true })
-  tbkToken: string;
+  tbkToken?: string;
 }

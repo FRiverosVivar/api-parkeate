@@ -5,5 +5,5 @@ import { CreateVehicleInput } from "./create-vehicle.input";
 @ArgsType()
 export class UpdateVehicleInput extends PartialType(CreateVehicleInput) {
   @Field(() => String)
-  id: string
+  id: string;
 }
