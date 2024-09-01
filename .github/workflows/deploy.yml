@@ -56,7 +56,7 @@ jobs:
       - name: Upload to S3
         env:
           ENV_TYPE: ${{ github.ref_name == 'release/prod' && 'prod' || 'dev' }}
-        run: aws s3 cp artifact-api_parkeate-${{ env.ENV_TYPE }}${{ env.ISO_STRING }}.zip s3://codepipeline-sa-east-1-566589953636.s3.${{secrets.AWS_REGION}}.amazonaws.com/api-${{ env.ENV_TYPE }}/BuildArtif/artifact-api_parkeate-${{ env.ENV_TYPE }}${{ env.ISO_STRING }}.zip
+        run: aws s3 cp artifact-api_parkeate-${{ env.ENV_TYPE }}-${{ env.ISO_STRING }}.zip s3://codepipeline-sa-east-1-566589953636.s3.${{secrets.AWS_REGION}}.amazonaws.com/api-${{ env.ENV_TYPE }}/BuildArtif/artifact-api_parkeate-${{ env.ENV_TYPE }}-${{ env.ISO_STRING }}.zip
 
       - name: Deploy to CodeDeploy
         env:
