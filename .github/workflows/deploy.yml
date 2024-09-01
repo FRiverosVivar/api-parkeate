@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - release/prod
-      - release/dev
+      - release/develop
 
 jobs:
   build:
