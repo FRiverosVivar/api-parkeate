@@ -17,26 +17,25 @@ export class TagsResolver {
   constructor(private readonly tagsService: TagsService) {}
 
   @Mutation(() => TagsEntity)
-  createTag(@Args('createTagInput') createTagInput: CreateTagInput) {
+  createTag(@Args("createTagInput") createTagInput: CreateTagInput) {
     return this.tagsService.createTag(createTagInput);
   }
-  @Query(() => [TagsEntity], { name: 'findTagById' })
-  findTagById(@Args('tagId', { type: () => String }) tagId: string) {
+  @Query(() => [TagsEntity], { name: "findTagById" })
+  findTagById(@Args("tagId", { type: () => String }) tagId: string) {
     return this.tagsService.findTagById(tagId);
   }
-  @Query(() => [TagsEntity], { name: 'findTagsByBuildingId' })
-  findTagsByParkingId(@Args('buildingId', { type: () => String }) buildingId: string) {
+  @Query(() => [TagsEntity], { name: "findTagsByBuildingId" })
+  findTagsByParkingId(
+    @Args("buildingId", { type: () => String }) buildingId: string
+  ) {
     return this.tagsService.findTagsByBuildingId(buildingId);
   }
   @Mutation(() => TagsEntity)
-  updateTag(
-    @Args('updateTagInput') updateTagInput: UpdateTagInput,
-  ) {
+  updateTag(@Args("updateTagInput") updateTagInput: UpdateTagInput) {
     return this.tagsService.updateTag(updateTagInput);
   }
   @Mutation(() => TagsEntity)
-  removeTag(@Args('tagId') tagId: string) {
+  removeTag(@Args("tagId") tagId: string) {
     return this.tagsService.removeTag(tagId);
   }
-
 }

@@ -3,22 +3,22 @@ import { Field, Int, ObjectType } from "@nestjs/graphql";
 import { BookingStatesEnum } from "../../../booking/enum/booking-states.enum";
 import { BaseEntityWithIdAbstract } from "../../interfaces/base-entity-with-id.abstract";
 
-@Entity('cron')
+@Entity("cron")
 @ObjectType()
 export class CronEntity extends BaseEntityWithIdAbstract {
-  @Column({type: 'timestamptz'})
+  @Column({ type: "timestamptz" })
   @Field(() => Date)
-  dateStart: Date
-  @Column({type: 'timestamptz'})
+  dateStart: Date;
+  @Column({ type: "timestamptz" })
   @Field(() => Date)
-  dateEnd: Date
+  dateEnd: Date;
   @Column()
   @Field(() => String)
-  bookingId: string
+  bookingId: string;
   @Column()
   @Field(() => Int)
-  stateWhenEnd: BookingStatesEnum
+  stateWhenEnd: BookingStatesEnum;
   @Column()
   @Field(() => Boolean)
-  executed: boolean
+  executed: boolean;
 }

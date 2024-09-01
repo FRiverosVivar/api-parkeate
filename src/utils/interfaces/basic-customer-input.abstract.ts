@@ -5,14 +5,14 @@ import { UserTypesEnum } from "../../user/constants/constants";
 @InputType()
 @ArgsType()
 export class BasicCustomerInputAbstract extends BasicProfileInputAbstract {
-  @Field(() => String, { description: 'hashed password of the user' })
+  @Field(() => String, { description: "hashed password of the user" })
   password: string;
   @Field(() => Boolean)
   validatedAccount: boolean;
-  @Field(() => Boolean, { description: 'validated email'})
+  @Field(() => Boolean, { description: "validated email" })
   validatedEmail: boolean;
-  @Field(() => Boolean, { description: 'validated phone'})
+  @Field(() => Boolean, { description: "validated phone" })
   validatedPhone: boolean;
-  @Field(() => Int, { description: 'type of the user' })
+  @Field(() => Int, { description: "type of the user" })
   userType: UserTypesEnum;
 }

@@ -1,6 +1,7 @@
 import {
-  DeleteObjectCommand, GetObjectCommand,
-  PutObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand,
+  PutObjectCommand, PutObjectCommandInput,
   S3Client,
   S3ClientConfig
 } from "@aws-sdk/client-s3";
@@ -12,24 +13,24 @@ import {
   Logger,
   LoggerService,
   NotFoundException,
-} from '@nestjs/common';
-import { BucketOptions } from '../middleware/bucket.interface';
-import { ConfigService } from '@nestjs/config';
-import { Readable } from 'stream';
-import * as sharp from 'sharp';
+} from "@nestjs/common";
+import { BucketOptions } from "../middleware/bucket.interface";
+import { ConfigService } from "@nestjs/config";
+import { Readable } from "stream";
+import * as sharp from "sharp";
 import {
   FileTypesEnum,
   MAX_IMAGE_SIZE,
   MAX_WIDTH,
   QUALITY_ARRAY,
   UPLOADER_OPTIONS,
-} from '../constants/file.constants';
-import { v4 as uuidV4, v5 as uuidV5 } from 'uuid';
-import { RatioEnum } from '../constants/ratio.enum';
-import { FileOptions } from '../middleware/uploader.interface';
-import { FileUpload } from 'graphql-upload-minimal';
-import { from, map, Observable, of, switchMap } from 'rxjs';
-import { FileSizeException } from '../../utils/exceptions/file-size.exception';
+} from "../constants/file.constants";
+import { v4 as uuidV4, v5 as uuidV5 } from "uuid";
+import { RatioEnum } from "../constants/ratio.enum";
+import { FileOptions } from "../middleware/uploader.interface";
+import { FileUpload } from "graphql-upload-minimal";
+import { from, map, Observable, of, switchMap } from "rxjs";
+import { FileSizeException } from "../../utils/exceptions/file-size.exception";
 
 @Injectable()
 export class FileService {
@@ -39,19 +40,19 @@ export class FileService {
   public fileTypes = FileTypesEnum;
   constructor(
     @Inject(UPLOADER_OPTIONS) options: FileOptions,
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigService
   ) {
     const s3Config = <S3ClientConfig>(
-      this.configService.get<S3ClientConfig>('uploader.clientConfig')
+      this.configService.get<S3ClientConfig>("uploader.clientConfig")
     );
     this.client = new S3Client(s3Config);
     this.bucketData = this.configService.get<BucketOptions>(
-      'uploader.bucketData',
+      "uploader.bucketData"
     );
     this.loggerService = new Logger(FileService.name);
   }
   private validateFileType(mimetype: string): boolean {
-    const val = mimetype.split('/');
+    const val = mimetype.split("/");
     const newFileType = val[1];
     return !!Object.values(this.fileTypes).find((type) => type === newFileType);
   }
@@ -60,18 +61,18 @@ export class FileService {
 
     return new Promise((resolve, reject) =>
       stream
-        .on('error', (error: any) => reject(error))
-        .on('data', (data: Uint8Array) => buffer.push(data))
-        .on('end', () => resolve(Buffer.concat(buffer))),
+        .on("error", (error: any) => reject(error))
+        .on("data", (data: Uint8Array) => buffer.push(data))
+        .on("end", () => resolve(Buffer.concat(buffer)))
     );
   }
   private static async compressImage(
     buffer: Buffer,
-    ratio?: number,
+    ratio?: number
   ): Promise<Buffer> {
     let compressBuffer: sharp.Sharp | Buffer = sharp(buffer).jpeg({
       mozjpeg: true,
-      chromaSubsampling: '4:4:4',
+      chromaSubsampling: "4:4:4",
       force: true,
     });
 
@@ -79,8 +80,8 @@ export class FileService {
       compressBuffer.resize({
         width: MAX_WIDTH,
         height: Math.round(MAX_WIDTH * ratio),
-        fit: 'cover',
-      })
+        fit: "cover",
+      });
     }
 
     compressBuffer = await compressBuffer.rotate().toBuffer();
@@ -89,7 +90,7 @@ export class FileService {
       const smallerBuffer = await sharp(compressBuffer)
         .jpeg({
           quality,
-          chromaSubsampling: '4:4:4',
+          chromaSubsampling: "4:4:4",
           force: true,
         })
         .toBuffer();
@@ -105,7 +106,7 @@ export class FileService {
   private uploadToS3(
     id: string,
     fileBuffer: Buffer,
-    fileExt: string,
+    fileExt: string
   ): Observable<string> {
     if (!this.bucketData) {
       throw new InternalServerErrorException();
@@ -113,16 +114,16 @@ export class FileService {
 
     const key =
       this.bucketData?.folder +
-      '/' +
+      "/" +
       uuidV5(this.bucketData?.appUuid, id) +
-      '/' +
+      "/" +
       uuidV4() +
       fileExt;
-    const putObjectOptions = {
+    const putObjectOptions: PutObjectCommandInput = {
       Bucket: this.bucketData.name,
       Body: fileBuffer,
       Key: key,
-      ACL: 'public-read',
+      ACL: "public-read",
       ContentType: fileExt,
     };
 
@@ -132,13 +133,13 @@ export class FileService {
           return of(this.bucketData.url + key);
         }
         throw new InternalServerErrorException();
-      }),
+      })
     );
   }
   public processFile(
     userId: string,
     file: FileUpload,
-    ratio?: RatioEnum,
+    ratio?: RatioEnum
   ): Observable<string> {
     if (!file) {
       throw new BadRequestException();
@@ -150,7 +151,7 @@ export class FileService {
           throw new FileSizeException();
         }
 
-        if (this.checkIfMimetypeIsFromImage(file.mimetype.split('/')[1])) {
+        if (this.checkIfMimetypeIsFromImage(file.mimetype.split("/")[1])) {
           return from(FileService.compressImage(buffer, ratio));
         }
         return of(buffer);
@@ -159,9 +160,9 @@ export class FileService {
         return this.uploadToS3(
           userId,
           buffer,
-          '.' + file.filename.split('.')[1],
+          "." + file.filename.split(".")[1]
         );
-      }),
+      })
     );
   }
   private checkIfMimetypeIsFromImage(fileType: string): boolean {
@@ -174,10 +175,10 @@ export class FileService {
   public deleteFile(url: string): Observable<boolean> {
     if (!this.bucketData) throw new NotFoundException();
 
-    const keyArr = url.split('.com/');
+    const keyArr = url.split(".com/");
 
     if (keyArr.length !== 2 || !this.bucketData.url.includes(keyArr[0])) {
-      this.loggerService.error('Invalid url to delete file');
+      this.loggerService.error("Invalid url to delete file");
     }
 
     return from(
@@ -185,30 +186,34 @@ export class FileService {
         new DeleteObjectCommand({
           Bucket: this.bucketData.name,
           Key: keyArr[1],
-        }),
-      ),
+        })
+      )
     ).pipe(
       map((value) => {
         if (value) {
           return true;
         }
         throw new NotFoundException();
-      }),
+      })
     );
   }
-  public uploadPDFBufferToS3(clientId: string,pdfBuffer: Buffer, name: string): Observable<string> {
+  public uploadPDFBufferToS3(
+    clientId: string,
+    pdfBuffer: Buffer,
+    name: string
+  ): Observable<string> {
     if (!this.bucketData) {
       throw new InternalServerErrorException();
     }
 
-    const key = 'pdf/' +name
-    const putObjectOptions = {
+    const key = "pdf/" + name;
+    const putObjectOptions: PutObjectCommandInput = {
       Bucket: this.bucketData.name,
       Body: pdfBuffer,
       Key: key,
-      ACL: 'public-read',
-      ContentType: 'application/pdf',
-      ServerSideEncryption: 'AES256'
+      ACL: "public-read",
+      ContentType: "application/pdf",
+      ServerSideEncryption: "AES256",
     };
     return from(this.client.send(new PutObjectCommand(putObjectOptions))).pipe(
       switchMap((output) => {
@@ -216,10 +221,10 @@ export class FileService {
           return of(this.bucketData.url + key);
         }
         throw new InternalServerErrorException();
-      }),
+      })
     );
   }
   getBufferFromFileUpload(file: FileUpload) {
-    return FileService.streamToBuffer(file.createReadStream())
+    return FileService.streamToBuffer(file.createReadStream());
   }
 }

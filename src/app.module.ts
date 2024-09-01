@@ -39,9 +39,7 @@ import { TransbankService } from "./utils/transbank/transbank.service";
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: `${process.cwd()}/src/environments/${
-        process.env.NODE_ENV
-      }.env`,
+      envFilePath: `.env`,
       load: [FileConfig],
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
