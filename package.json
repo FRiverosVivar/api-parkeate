@@ -58,6 +58,7 @@
     "class-validator": "^0.14.0",
     "exceljs": "^4.4.0",
     "geojson": "^0.5.0",
+    "graphql": "^16.9.0",
     "graphql-scalars": "^1.22.2",
     "graphql-upload-minimal": "^1.5.4",
     "hbs": "^4.2.0",
