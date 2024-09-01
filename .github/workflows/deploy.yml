@@ -41,20 +41,26 @@ jobs:
         run: echo "ISO_STRING=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
 
       - name: Prepare Artifact
+        env:
+          ENV_TYPE: ${{ github.ref_name == 'release/prod' && 'prod' || 'dev' }}
         run: |
           zip -r artifact-api_parkeate-${{ env.ENV_TYPE }}-${{ env.ISO_STRING }}.zip .
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
+        env:
+          ENV_TYPE: ${{ github.ref_name == 'release/prod' && 'prod' || 'dev' }}
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{secrets.AWS_REGION}}
 
       - name: Upload to S3
-        run: aws s3 cp artifact-api_parkeate-${{ env.ENV_TYPE }}-${{ env.ISO_STRING }}.zip s3://codepipeline-sa-east-1-566589953636.s3.${{secrets.AWS_REGION}}.amazonaws.com/api-${{ env.ENV_TYPE }}/BuildArtif/artifact-api_parkeate-${{ env.ENV_TYPE }}-${{ env.ISO_STRING }}.zip
+        run: aws s3 cp artifact-api_parkeate-${{ env.ENV_TYPE }}${{ env.ISO_STRING }}.zip s3://codepipeline-sa-east-1-566589953636.s3.${{secrets.AWS_REGION}}.amazonaws.com/api-${{ env.ENV_TYPE }}/BuildArtif/artifact-api_parkeate-${{ env.ENV_TYPE }}${{ env.ISO_STRING }}.zip
 
       - name: Deploy to CodeDeploy
+        env:
+          ENV_TYPE: ${{ github.ref_name == 'release/prod' && 'prod' || 'dev' }}
         run: |
           aws deploy create-deployment \
           --application-name parkeate-api \
