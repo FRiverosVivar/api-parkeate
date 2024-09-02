@@ -63,7 +63,7 @@ jobs:
           ENV_TYPE: ${{ github.ref_name == 'release/prod' && 'prod' || 'dev' }}
         run: |
           aws deploy create-deployment \
-          --application-name parkeate-api \
+          --application-name API \
           --deployment-config-name CodeDeployDefault.OneAtATime \
           --deployment-group-name parkeate-api-dev \
           --s3-location bucket=codepipeline-sa-east-1-566589953636,key=api-${{ env.ENV_TYPE }}/BuildArtif/artifact-api_parkeate-${{ env.ENV_TYPE }}-${{ env.ISO_STRING }}.zip,bundleType=zip
