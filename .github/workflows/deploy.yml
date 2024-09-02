@@ -58,15 +58,17 @@ jobs:
           ENV_TYPE: ${{ github.ref_name == 'release/prod' && 'prod' || 'dev' }}
         run: aws s3 cp artifact-api_parkeate-${{ env.ENV_TYPE }}-${{ env.ISO_STRING }}.zip s3://codepipeline-${{secrets.AWS_REGION}}-566589953636/api-${{ env.ENV_TYPE }}-env/BuildArtif/artifact-api_parkeate-${{ env.ENV_TYPE }}-${{ env.ISO_STRING }}.zip --sse aws:kms
 
-      - name: Deploy to CodeDeploy
+      - name: Deploy to Elastic Beanstalk
         env:
           ENV_TYPE: ${{ github.ref_name == 'release/prod' && 'prod' || 'dev' }}
+        id: deploy
         run: |
-          aws deploy create-deployment \
-          --application-name API \
-          --deployment-config-name CodeDeployDefault.OneAtATime \
-          --deployment-group-name parkeate-api-dev \
-          --s3-location bucket=codepipeline-sa-east-1-566589953636,key=api-${{ env.ENV_TYPE }}-env/BuildArtif/artifact-api_parkeate-${{ env.ENV_TYPE }}-${{ env.ISO_STRING }}.zip,bundleType=zip
+            aws elasticbeanstalk create-application-version --application-name api-${{ env.ENV_TYPE }} \
+              --version-label ${{ github.sha }} \
+              --source-bundle S3Bucket="codepipeline-${{secrets.AWS_REGION}}-566589953636",S3Key="api-${{ env.ENV_TYPE }}-env/BuildArtif/artifact-api_parkeate-${{ env.ENV_TYPE }}-${{ env.ISO_STRING }}.zip"
+            
+            aws elasticbeanstalk update-environment --environment-name api-${{ env.ENV_TYPE }}-env \
+              --version-label ${{ github.sha }}
 
       - name: Deployment success
         if: success()
