@@ -1,6 +1,6 @@
 import {
   DeleteObjectCommand, GetObjectCommand,
-  PutObjectCommand,
+  PutObjectCommand, PutObjectCommandInput,
   S3Client,
   S3ClientConfig
 } from "@aws-sdk/client-s3";
@@ -202,7 +202,7 @@ export class FileService {
     }
 
     const key = 'pdf/' +name
-    const putObjectOptions = {
+    const putObjectOptions: PutObjectCommandInput = {
       Bucket: this.bucketData.name,
       Body: pdfBuffer,
       Key: key,
