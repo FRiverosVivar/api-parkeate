@@ -1,7 +1,10 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
 import { DateTime } from "luxon";
 import { from, Observable, switchMap } from "rxjs";
+import { TransbankEntity } from "src/transbank/entity/transbank.entity";
 import { UserEntity } from "src/user/entity/user.entity";
+import { UpdateUserInput } from "src/user/model/dto/update-user.input";
 import { UserService } from "src/user/service/user.service";
 import { WebpayPlus,Oneclick} from "transbank-sdk"; // ES6 Modules
 import {
@@ -10,11 +13,14 @@ import {
   Environment,
   IntegrationCommerceCodes,
 } from "transbank-sdk";
+import { Repository } from "typeorm";
 
 @Injectable()
 export class TransbankService {
   constructor(
-    private readonly userService: UserService
+    private readonly userService: UserService,
+    @InjectRepository(TransbankEntity)
+    private readonly transbankRepository: Repository<TransbankEntity>
   ) {}
 
   generateMobileTransaction(amount?: number): Promise<any> {
@@ -89,16 +95,30 @@ export class TransbankService {
     if(badResponse) {
       throw new BadRequestException() //TODO: create a custom exception
     }
-    return user.pipe(
-      switchMap((u) => {
-        console.log(u)
-        u.tbkToken = response.tbk_user
-        return from(this.userService.updateUser(u))
-      })
-    ) 
+
+    //También deberia ir dentro de un switchmap??
+    //Y luego actualizar el user ¿?¿?
+    const newTransbankRecord = this.transbankRepository.create({
+      tbk_user: response.tbk_user,
+      authorization_code: response.authorization_code,
+      card_type: response.card_type,
+      card_number: response.card_number,
+      // user: user //Pendiente cómo guardar el user
+    })
+    return from(this.transbankRepository.save(newTransbankRecord))
+    .pipe(
+      switchMap((t) => {
+        console.log(t)
+        const updateUserInput: UpdateUserInput = {
+          id: t.user.id,
+          tbkId: t.id
+        }
+        return from(this.userService.updateUser(updateUserInput))
+      })       
+    )
   }
 
-  async deleteInscriptionOneClick(token: string,username: string,userId: string): Promise<Observable<UserEntity>> {
+  async deleteInscriptionOneClick(token: string,username: string,userId: string): Promise<any> {
     const user = this.userService.findUserById(userId)
     if(!user) throw new NotFoundException()
 
@@ -112,12 +132,12 @@ export class TransbankService {
       throw new BadRequestException() //TODO: create a custom exception
     }
    //tbkToken to null
-   return user.pipe(
-     switchMap((u) => {
-        u.tbkToken = null
-        return from(this.userService.updateUser(u))
-      })
-    )
+  //  return user.pipe(
+  //    switchMap((u) => {
+  //       u.tbkToken = null
+  //       return from(this.userService.updateUser(u))
+  //     })
+  //   )
 
 
   }

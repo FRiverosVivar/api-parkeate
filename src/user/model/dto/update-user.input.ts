@@ -13,4 +13,8 @@ export class UpdateUserInput extends PartialType(CreateUserInput) {
   subscriptionToken?: string;
   @Field(() => String, { nullable: true })
   cardType?: string;
+
+  //Preguntar si es necesario para el tbk
+  @Field(() => String, { nullable: true })
+  tbkId?: string;
 }
