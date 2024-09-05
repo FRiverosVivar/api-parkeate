@@ -31,7 +31,7 @@ registerEnumType(BookingStatesEnum, {
     SchedulerRegistry,
     CryptService,
     NotificationService,
-    TransbankService,
+    // TransbankService,
   ],
   exports: [BookingService, BookingResolver],
 })
