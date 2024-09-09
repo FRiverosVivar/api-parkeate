@@ -7,14 +7,8 @@ import { Column } from "typeorm";
 export class UpdateUserInput extends PartialType(CreateUserInput) {
   @Field(() => String)
   id: string;
-  @Field(() => Number, { nullable: true })
-  cardNumbers?: number;
-  @Field(() => String, { nullable: true })
-  subscriptionToken?: string;
-  @Field(() => String, { nullable: true })
-  cardType?: string;
 
-  //Preguntar si es necesario para el tbk
+  // `tbkId` is optional, and it's only added when the user made an inscription to Oneclick
   @Field(() => String, { nullable: true })
   tbkId?: string;
 }
