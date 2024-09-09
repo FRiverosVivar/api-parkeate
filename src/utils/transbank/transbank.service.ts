@@ -1,7 +1,7 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DateTime } from "luxon";
-import { from, Observable, switchMap } from "rxjs";
+import { from, Observable, of, switchMap } from "rxjs";
 import { TransbankEntity } from "src/transbank/entity/transbank.entity";
 import { UserEntity } from "src/user/entity/user.entity";
 import { UpdateUserInput } from "src/user/model/dto/update-user.input";
@@ -13,6 +13,7 @@ import {
   Environment,
   IntegrationCommerceCodes,
 } from "transbank-sdk";
+import MallInscription from "transbank-sdk/dist/es5/transbank/webpay/oneclick/mall_inscription";
 import { Repository } from "typeorm";
 
 @Injectable()
@@ -83,39 +84,52 @@ export class TransbankService {
     }
   } 
 
-  async confirmInscriptionOneClick(token: string,userId: string): Promise<Observable<UserEntity>> { 
-    const user = this.userService.findUserById(userId)
-    if(!user) throw new NotFoundException()
-
-    const inscription = new Oneclick.MallInscription(
-      new Options(IntegrationCommerceCodes.ONECLICK_MALL, IntegrationApiKeys.WEBPAY, Environment.Integration)
-    )    
-    let response = await inscription.finish(token)
-    let badResponse = response.response_code < 0
-    if(badResponse) {
-      throw new BadRequestException() //TODO: create a custom exception
-    }
-
-    //También deberia ir dentro de un switchmap??
-    //Y luego actualizar el user ¿?¿?
-    const newTransbankRecord = this.transbankRepository.create({
-      tbk_user: response.tbk_user,
-      authorization_code: response.authorization_code,
-      card_type: response.card_type,
-      card_number: response.card_number,
-      // user: user //Pendiente cómo guardar el user
-    })
-    return from(this.transbankRepository.save(newTransbankRecord))
-    .pipe(
-      switchMap((t) => {
-        console.log(t)
-        const updateUserInput: UpdateUserInput = {
-          id: t.user.id,
-          tbkId: t.id
+  async confirmInscriptionOneClick(token: string, userId: string): Promise<Observable<MallInscription>> {
+    return from(this.userService.findUserById(userId)).pipe(
+      switchMap((user) => {
+        if (!user) {
+          throw new NotFoundException();
         }
-        return from(this.userService.updateUser(updateUserInput))
-      })       
-    )
+        const inscription = new Oneclick.MallInscription(
+          new Options(
+            IntegrationCommerceCodes.ONECLICK_MALL,
+            IntegrationApiKeys.WEBPAY,
+            Environment.Integration
+          )
+        );
+  
+        return from(inscription.finish(token)).pipe(
+          switchMap((response) => {
+            const badResponse = response.response_code < 0;
+            if (badResponse) {
+                throw new BadRequestException(); //TODO: create a custom exception
+            }
+  
+            const newTransbankRecord = this.transbankRepository.create({
+              tbk_user: response.tbk_user,
+              authorization_code: response.authorization_code,
+              card_type: response.card_type,
+              card_number: response.card_number.replace(/X/g, ""),
+              user: user.id,
+            });
+            return from(this.transbankRepository.save(newTransbankRecord)).pipe(
+              switchMap((t) => {
+                const updateUserInput: UpdateUserInput = {
+                  id: user.id, 
+                  tbkId: t.id 
+                };
+                return from(this.userService.updateUser(updateUserInput)).pipe(
+                  switchMap(() => {
+                    return of(response);
+                  })
+                )
+              }),
+  
+            );
+          })
+        );
+      }),
+    );
   }
 
   async deleteInscriptionOneClick(token: string,username: string,userId: string): Promise<any> {
