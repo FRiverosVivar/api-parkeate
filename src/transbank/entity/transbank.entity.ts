@@ -25,7 +25,7 @@ export class TransbankEntity {
   @Field(() => String)
   card_number: string;
   
-  @ManyToOne(() => UserEntity, (u) => u.tbkId) //Consultar si exponer todo el userEntity o no
-  @Field(() => UserEntity)
-  user: UserEntity;
+  @ManyToOne(() => UserEntity, (u) => u.tbkId)
+  @Field(() => String)
+  user: string;
 }
