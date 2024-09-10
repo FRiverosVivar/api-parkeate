@@ -6,7 +6,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { TransbankEntity } from './entity/transbank.entity';
 import { HttpModule } from '@nestjs/axios';
 
-//Preguntar qué tiene que tener este modulo
 @Global()
 @Module({
     imports: [

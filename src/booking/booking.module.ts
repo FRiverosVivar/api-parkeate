@@ -12,7 +12,6 @@ import { SchedulerRegistry } from "@nestjs/schedule";
 import { HttpModule } from "@nestjs/axios";
 import { CryptService } from "src/utils/crypt/crypt.service";
 import { NotificationService } from "src/utils/notification/notification.service";
-import { TransbankService } from "src/utils/transbank/transbank.service";
 
 registerEnumType(BookingTypesEnum, {
   name: "BookingTypes",
@@ -31,7 +30,6 @@ registerEnumType(BookingStatesEnum, {
     SchedulerRegistry,
     CryptService,
     NotificationService,
-    // TransbankService,
   ],
   exports: [BookingService, BookingResolver],
 })

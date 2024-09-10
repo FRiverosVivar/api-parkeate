@@ -6,7 +6,7 @@ import { TransbankEntity } from "src/transbank/entity/transbank.entity";
 import { UserEntity } from "src/user/entity/user.entity";
 import { UpdateUserInput } from "src/user/model/dto/update-user.input";
 import { UserService } from "src/user/service/user.service";
-import { WebpayPlus,Oneclick} from "transbank-sdk"; // ES6 Modules
+import { WebpayPlus,Oneclick, TransactionDetail} from "transbank-sdk"; // ES6 Modules
 import {
   Options,
   IntegrationApiKeys,
@@ -144,15 +144,52 @@ export class TransbankService {
     let badResponse = false // testing
     if(badResponse) {
       throw new BadRequestException() //TODO: create a custom exception
-    }
-   //tbkToken to null
-  //  return user.pipe(
-  //    switchMap((u) => {
-  //       u.tbkToken = null
-  //       return from(this.userService.updateUser(u))
-  //     })
-  //   )
+    }  }
 
+    //under construction
+//   async authorizeInscriptionOneClick(token: string, userId: string): Promise<any> {
+//     try{
 
-  }
+//       const generateBuyOrderCode = () => {
+//         const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+//         let code = "";
+//         for (let i = 0; i < 10; i++) {
+//           code += possible.charAt(Math.floor(Math.random() * possible.length));
+//         }
+//         return "test-park-"+code;
+//       };
+//       const user = await this.userService.findUserById(userId).toPromise(); // Ensure the observable is resolved
+//       if (!user) {
+//         throw new NotFoundException();
+//       }
+//       let username = 'ivito';
+//       let montoTest = 50
+//       console.log({user});
+      
+//       const details = [
+//         new TransactionDetail(montoTest, IntegrationCommerceCodes.ONECLICK_MALL,generateBuyOrderCode())
+//       ]
+//       console.log({details});
+      
+//       const tx = new Oneclick.MallTransaction(
+//         new Options(
+//           IntegrationCommerceCodes.ONECLICK_MALL,
+//           IntegrationApiKeys.WEBPAY,
+//           Environment.Integration
+//         )
+//   );
+  
+//     console.log({tx});
+    
+//   const response = await tx.authorize(username,token,generateBuyOrderCode(),details);
+//   console.log({response});
+  
+  
+//   return response;
+// }
+//   catch(e){
+//     console.log(e)
+//     throw new BadRequestException();
+//   }
+// }
 }
