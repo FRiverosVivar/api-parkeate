@@ -1,5 +1,5 @@
-import { InputType, Int, Field, PartialType, ArgsType } from '@nestjs/graphql';
-import { CreateUserInput } from './create-user.input';
+import { InputType, Int, Field, PartialType, ArgsType } from "@nestjs/graphql";
+import { CreateUserInput } from "./create-user.input";
 import { Column } from "typeorm";
 
 @InputType()

@@ -6,7 +6,7 @@ import { BasicProfileAbstract } from "../../utils/interfaces/basic-profile.abstr
 @ObjectType()
 @Entity()
 export class ProfilePhotoEntity extends ProfilePhotoAbstract {
-  @OneToOne(() => BasicProfileAbstract, { eager: true})
+  @OneToOne(() => BasicProfileAbstract, { eager: true })
   @Field(() => String)
   entity: string;
 }

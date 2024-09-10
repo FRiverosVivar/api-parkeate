@@ -1,4 +1,10 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DateTime } from "luxon";
 import { from, Observable, of, switchMap } from "rxjs";
@@ -74,15 +80,27 @@ export class TransbankService {
     );
     return tx.status(token);
   }
-  async createInscriptionOneClick(userName: string, email: string, response_url: string): Promise<any> {
+  async createInscriptionOneClick(
+    userName: string,
+    email: string,
+    response_url: string
+  ): Promise<any> {
     const inscription = new Oneclick.MallInscription(
-      new Options(IntegrationCommerceCodes.ONECLICK_MALL, IntegrationApiKeys.WEBPAY, Environment.Integration)
-    )
-    let startInscription = await inscription.start(userName, email, response_url)
+      new Options(
+        IntegrationCommerceCodes.ONECLICK_MALL,
+        IntegrationApiKeys.WEBPAY,
+        Environment.Integration
+      )
+    );
+    let startInscription = await inscription.start(
+      userName,
+      email,
+      response_url
+    );
     return {
-      url: `${startInscription.url_webpay}?TBK_TOKEN=${startInscription.token}`
-    }
-  } 
+      url: `${startInscription.url_webpay}?TBK_TOKEN=${startInscription.token}`,
+    };
+  }
 
   async confirmInscriptionOneClick(token: string, userId: string): Promise<Observable<MallInscription>> {
     return from(this.userService.findUserById(userId)).pipe(

@@ -6,7 +6,7 @@ import { ParkingEntity } from "../../parking/entity/parking.entity";
 @InputType()
 @ArgsType()
 export class CreateScheduleInput {
-  @Field(() => Int, { description: 'day of the schedule' })
+  @Field(() => Int, { description: "day of the schedule" })
   day: ScheduleDaysEnum;
   @Field(() => Date)
   scheduleStart: Date;

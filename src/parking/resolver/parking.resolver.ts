@@ -164,5 +164,4 @@ export class ParkingResolver {
       userCouponId
     );
   }
-
 }

@@ -1,6 +1,6 @@
-import { ArgsType, Field, InputType, Int } from '@nestjs/graphql';
-import { FileDto } from './image.dto';
-import { RatioEnum } from '../../constants/ratio.enum';
+import { ArgsType, Field, InputType, Int } from "@nestjs/graphql";
+import { FileDto } from "./image.dto";
+import { RatioEnum } from "../../constants/ratio.enum";
 
 @InputType()
 @ArgsType()

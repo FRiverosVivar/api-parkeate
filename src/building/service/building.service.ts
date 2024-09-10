@@ -83,13 +83,11 @@ export class BuildingService {
         const parkings = b.parkingList;
 
         const reserved = _.find(parkings, (p) => p.reserved);
-        if (reserved)
-          return of(null)
+        if (reserved) return of(null);
 
         return from(this.buildingRepository.remove([b])).pipe(map((b) => b[0]));
       })
     );
-
   }
   updateBuilding(
     updateBuildingInput: UpdateBuildingInput,

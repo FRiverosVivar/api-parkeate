@@ -5,7 +5,7 @@ import { MultiplePhotosAbstract } from "../model/multiple-photos.abstract";
 @ObjectType()
 @Entity()
 export class MultiplePhotosEntity extends MultiplePhotosAbstract {
-  @ManyToOne(() => Object, { eager: true})
+  @ManyToOne(() => Object, { eager: true })
   @Field(() => String)
   entity: string;
 }

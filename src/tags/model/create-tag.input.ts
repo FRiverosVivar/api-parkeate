@@ -5,9 +5,9 @@ import { ParkingEntity } from "../../parking/entity/parking.entity";
 @ArgsType()
 export class CreateTagInput {
   @Field(() => String)
-  name: string
-  @Field( () => String)
-  color: string
+  name: string;
   @Field(() => String)
-  icon: string
+  color: string;
+  @Field(() => String)
+  icon: string;
 }

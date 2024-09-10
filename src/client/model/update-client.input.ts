@@ -1,5 +1,5 @@
-import { ArgsType, Field, InputType, PartialType } from '@nestjs/graphql';
-import { CreateClientInput } from './create-client.input';
+import { ArgsType, Field, InputType, PartialType } from "@nestjs/graphql";
+import { CreateClientInput } from "./create-client.input";
 
 @InputType()
 @ArgsType()
