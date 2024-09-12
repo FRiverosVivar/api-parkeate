@@ -762,6 +762,26 @@ export class BookingService implements OnModuleInit {
       })
     );
   }
+  getLastBookingsByClientId(clientId: string, bookingType: number) {    
+    return this.bookingRepository.find({
+      relations: {
+        parking: {
+          client: true,
+          building: true,
+        },
+      },
+      where: {
+        parking: {
+          client: {
+            id: clientId,
+          },
+        },
+        bookingState: BookingStatesEnum.FINALIZED,
+        finalPrice: Not(IsNull()),
+        bookingType: bookingType,
+      },
+    });
+  }
   changeBookingUser(
     bookingId: string,
     userId: string
