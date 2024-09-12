@@ -775,6 +775,7 @@ type Query {
   findRecentBookingsFromBuildings: [BookingEntity!]!
   getBookingCurrentPriceToPay(bookingId: String!, userCouponId: String): CurrentPriceBookingOutput!
   GetBookingsFromTheCurrentDayOfBuilding(buildingId: String!): [BookingEntity!]!
+  getLastBookingsByClientId(userId: String, bookingType: Float!): [BookingEntity!]!
   getPaginatedRequests(paginationOptions: PageOptionsDto!, statusFilters: [Float!]): RequestsPaginated!
   forceToLiquidateToAllBookings: [LiquidationEntity!]!
   getAllLiquidations(paginationOptions: PageOptionsDto!): LiquidationsPaginated!
