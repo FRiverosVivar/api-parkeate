@@ -26,6 +26,7 @@ import { BookingPriceCalculated } from "../model/booking-calculate-price.output"
 import { BookingStatesEnum } from "../enum/booking-states.enum";
 import { type } from "os";
 import { CurrentPriceBookingOutput } from "../model/current-price-booking.output";
+import { BookingTypesEnum } from "../enum/booking-types.enum";
 
 @Resolver(BookingEntity)
 export class BookingResolver {
@@ -197,5 +198,15 @@ export class BookingResolver {
     return this.bookingService.getBookingsFromTheCurrentDayOfBuilding(
       buildingId
     );
+  }
+  @Query(() => [BookingEntity],{
+    name: "getLastBookingsByClientId",
+  })
+  // @UseGuards(JwtAuthGuard)
+  getLastBookingsByClientId( 
+    @Args("bookingType") bookingType: number,
+    @CurrentUser() user: UserEntity,
+  ) {
+    return this.bookingService.getLastBookingsByClientId(user.id,bookingType);
   }
 }
