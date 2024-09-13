@@ -1,13 +1,10 @@
 import { Field, InputType } from "@nestjs/graphql";
 import { IsIn } from "class-validator";
-
 @InputType()
 export class UserFilterInput {
-  @Field(() => String, { nullable: true })
-  @IsIn(["validated", "notValidated", null])
-  filterByValidatedEmail: "validated" | "notValidated" | null;
+@Field(() => Boolean, { nullable: true })
+filterByValidatedEmail?: boolean;
 
-  @Field(() => String, { nullable: true })
-  @IsIn(["validated", "notValidated", null])
-  filterByValidatedPhone: "validated" | "notValidated" | null;
+@Field(() => Boolean, { nullable: true })
+filterByValidatedPhone?: boolean;
 }

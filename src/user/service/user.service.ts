@@ -481,15 +481,15 @@ export class UserService {
     or LOWER(u.email) like '%${text.toLowerCase().replace("-","")}%'
     or translate(u.rut, '-', '') like '%${text.toLowerCase()}%'
     or u.rut like '%${text.toLowerCase()}%'`: ``
-        
-    if(filters?.filterByValidatedPhone){
-      if(whereQuery !== "") whereQuery += " and "
-      whereQuery += `u.validatedPhone = ${filters.filterByValidatedPhone === 'validated' ? 'true' : 'false'}`
 
-    } 
-    if(filters?.filterByValidatedEmail){
+
+    if (filters?.filterByValidatedEmail) {
       if(whereQuery !== "") whereQuery += " and "
-      whereQuery += `u.validatedEmail = ${filters.filterByValidatedEmail === 'validated' ? 'true' : 'false'}`
+      whereQuery += `u.validatedEmail = ${filters.filterByValidatedEmail}`
+    }
+    if (filters?.filterByValidatedPhone) {
+      if(whereQuery !== "") whereQuery += " and "
+      whereQuery += `u.validatedPhone = ${filters.filterByValidatedPhone}`
     }
 
     const query = this.userRepository
