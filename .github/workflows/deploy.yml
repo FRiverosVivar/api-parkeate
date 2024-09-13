@@ -1,0 +1,75 @@
+name: CI/CD Pipeline for NestJS on GH Actions ~ Deploy on AWS CodeDeploy
+on:
+  push:
+    branches:
+      - release/prod
+      - release/develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'release/prod' && 'Production' || 'Development' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.20.1'
+      - name: Create .env file
+        run: |
+          echo "PG_HOST=${{ secrets.PG_HOST }}" >> .env
+          echo "PG_USER=${{ secrets.PG_USER }}" >> .env
+          echo "PG_PORT=${{ secrets.PG_PORT }}" >> .env
+          echo "PG_PASSWORD=${{ secrets.PG_PASSWORD }}" >> .env
+          echo "PG_DB=${{ secrets.PG_DB }}" >> .env
+          echo "GRAPHQL_DEBUG=${{ secrets.GRAPHQL_DEBUG }}" >> .env
+          echo "GRAPHQL_PLAYGROUND=${{ secrets.GRAPHQL_PLAYGROUND }}" >> .env
+          echo "HASH_ROUNDS=${{ secrets.HASH_ROUNDS }}" >> .env
+          echo "WEB_BASE_URL=${{ secrets.WEB_BASE_URL }}" >> .env
+          echo "CERT=${{ secrets.CERT }}" >> .env
+          echo "EXECUTABLE_PATH=${{ secrets.EXECUTABLE_PATH }}" >> .env
+      - name: Build
+        env:
+          ENV_TYPE: ${{ github.ref_name == 'release/prod' && 'prod' || 'dev' }}
+        run: |
+          yarn run predeploy
+
+      - name: Generate ISO String
+        id: generate_iso
+        run: echo "ISO_STRING=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+
+      - name: Prepare Artifact
+        env:
+          ENV_TYPE: ${{ github.ref_name == 'release/prod' && 'prod' || 'dev' }}
+        run: |
+          zip -r artifact-api_parkeate-${{ env.ENV_TYPE }}-${{ env.ISO_STRING }}.zip .
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{secrets.AWS_REGION}}
+
+      - name: Upload to S3
+        env:
+          ENV_TYPE: ${{ github.ref_name == 'release/prod' && 'prod' || 'dev' }}
+        run: aws s3 cp artifact-api_parkeate-${{ env.ENV_TYPE }}-${{ env.ISO_STRING }}.zip s3://codepipeline-${{secrets.AWS_REGION}}-566589953636/api-${{ env.ENV_TYPE }}-env/BuildArtif/artifact-api_parkeate-${{ env.ENV_TYPE }}-${{ env.ISO_STRING }}.zip --sse aws:kms
+
+      - name: Deploy to Elastic Beanstalk
+        env:
+          ENV_TYPE: ${{ github.ref_name == 'release/prod' && 'prod' || 'dev' }}
+        id: deploy
+        run: |
+            aws elasticbeanstalk create-application-version --application-name api-${{ env.ENV_TYPE }} \
+              --version-label ${{ github.sha }} \
+              --source-bundle S3Bucket="codepipeline-${{secrets.AWS_REGION}}-566589953636",S3Key="api-${{ env.ENV_TYPE }}-env/BuildArtif/artifact-api_parkeate-${{ env.ENV_TYPE }}-${{ env.ISO_STRING }}.zip"
+            
+            aws elasticbeanstalk update-environment --environment-name api-${{ env.ENV_TYPE }}-env \
+              --version-label ${{ github.sha }}
+
+      - name: Deployment success
+        if: success()
+        run: echo "Parkeate! | Deployment to ${{ github.ref }} environment successful!"

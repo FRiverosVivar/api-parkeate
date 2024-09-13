@@ -9,8 +9,8 @@ export class MostProfitableParking {
   totalPrice: number;
 }
 export interface RawParkingMostRentedOfDay {
-  parkingId: string,
-  quantityOfBookings: number
+  parkingId: string;
+  quantityOfBookings: number;
 }
 @ObjectType()
 export class MostRentedParking {
@@ -21,18 +21,18 @@ export class MostRentedParking {
 }
 @ObjectType()
 export class TopMostRentedParkings {
-  @Field(() => MostRentedParking, { nullable: true})
+  @Field(() => MostRentedParking, { nullable: true })
   monday: MostRentedParking | undefined;
-  @Field(() => MostRentedParking, { nullable: true})
+  @Field(() => MostRentedParking, { nullable: true })
   tuesday: MostRentedParking | undefined;
-  @Field(() => MostRentedParking, { nullable: true})
+  @Field(() => MostRentedParking, { nullable: true })
   wednesday: MostRentedParking | undefined;
-  @Field(() => MostRentedParking, { nullable: true})
+  @Field(() => MostRentedParking, { nullable: true })
   thursday: MostRentedParking | undefined;
-  @Field(() => MostRentedParking, { nullable: true})
+  @Field(() => MostRentedParking, { nullable: true })
   friday: MostRentedParking | undefined;
-  @Field(() => MostRentedParking, { nullable: true})
+  @Field(() => MostRentedParking, { nullable: true })
   saturday: MostRentedParking | undefined;
-  @Field(() => MostRentedParking, { nullable: true})
+  @Field(() => MostRentedParking, { nullable: true })
   sunday: MostRentedParking | undefined;
 }

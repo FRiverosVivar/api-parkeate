@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { Equal, Repository } from "typeorm";
 import { UserEntity } from "../entity/user.entity";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -6,7 +10,10 @@ import { forkJoin, from, map, Observable, of, switchMap } from "rxjs";
 import { UpdateUserInput } from "../model/dto/update-user.input";
 import * as uuid from "uuid";
 import { UUIDBadFormatException } from "../../utils/exceptions/UUIDBadFormat.exception";
-import { CreateUserInput, OutputCreateUserInput } from "../model/dto/create-user.input";
+import {
+  CreateUserInput,
+  OutputCreateUserInput,
+} from "../model/dto/create-user.input";
 import { FileUpload } from "graphql-upload-minimal";
 import { EmailService } from "../../utils/email/email.service";
 import { EmailTypesEnum } from "../../utils/email/enum/email-types.enum";
@@ -17,7 +24,11 @@ import { PhotoService } from "../../photo/service/photo.service";
 import { CreatePhotoInput } from "../../photo/model/create-photo.input";
 import { EmailVerificationCode } from "../../client/model/email-verification-code.response";
 import { SmsVerificationCode } from "../../client/model/sms-code.response";
-import { PageDto, PageOptionsDto, PaginationMeta } from "../../utils/interfaces/pagination.type";
+import {
+  PageDto,
+  PageOptionsDto,
+  PaginationMeta,
+} from "../../utils/interfaces/pagination.type";
 import { ClientEntity } from "../../client/entity/client.entity";
 import { UserTypesEnum, UserTypesEnumNames } from "../constants/constants";
 import { HttpService } from "@nestjs/axios";
@@ -42,11 +53,16 @@ export class UserService {
     private readonly crypto: CryptService,
     private readonly excelService: ExcelService
   ) {}
-  createUser(userDTO: CreateUserInput, sendEmail: boolean = true): Observable<UserEntity> {
+  createUser(
+    userDTO: CreateUserInput,
+    sendEmail: boolean = true
+  ): Observable<UserEntity> {
     userDTO.wallet = 0;
     const user = this.userRepository.create(userDTO);
-    let emailSubject: Observable<SendTemplatedEmailCommandOutput> = of({} as SendTemplatedEmailCommandOutput);
-    if(sendEmail)
+    let emailSubject: Observable<SendTemplatedEmailCommandOutput> = of(
+      {} as SendTemplatedEmailCommandOutput
+    );
+    if (sendEmail)
       emailSubject = from(
         this.emailService.sendEmail(
           EmailTypesEnum.REGISTER,
@@ -431,16 +447,14 @@ export class UserService {
     ];
     const clients = await this.userRepository.find();
     const data = this.mapClientsToExcelData(clients);
-    return await this.excelService.createExcelFromDataArray(
-      data,
-      columns
-    );
+    return await this.excelService.createExcelFromDataArray(data, columns);
   }
   deleteUser(userId: string): Observable<UserEntity> {
     return this.findUserById(userId).pipe(
       switchMap((user: UserEntity) => {
         return from(this.userRepository.remove(user));
-      }));
+      })
+    );
   }
   mapClientsToExcelData(clients: UserEntity[]) {
     const dataClients: Array<{
@@ -509,21 +523,23 @@ export class UserService {
     pageMetaDto.skip = (pageMetaDto.page - 1) * pageMetaDto.take;
     return new PageDto(entities, pageMetaDto);
   }
-  async createUsersBatch(createUsersInput: CreateUserInput[]): Promise<UserBatchResponse> {
-    const created: UserEntity[] = []
-    const failed: OutputCreateUserInput[] = []
-    for(let input of createUsersInput){
-      const user = await this.createUser(input, false).toPromise()
-      if(user){
-        created.push(user)
+  async createUsersBatch(
+    createUsersInput: CreateUserInput[]
+  ): Promise<UserBatchResponse> {
+    const created: UserEntity[] = [];
+    const failed: OutputCreateUserInput[] = [];
+    for (let input of createUsersInput) {
+      const user = await this.createUser(input, false).toPromise();
+      if (user) {
+        created.push(user);
         continue;
       }
 
-      failed.push(input)
+      failed.push(input);
     }
     return {
       created,
-      failed
+      failed,
     };
   }
 }

@@ -4,19 +4,19 @@ import { BaseEntityWithIdAbstract } from "../../utils/interfaces/base-entity-wit
 import { ScheduleDaysEnum } from "../enum/schedule-days.enum";
 import { ParkingEntity } from "../../parking/entity/parking.entity";
 
-@Entity('schedule')
+@Entity("schedule")
 @ObjectType()
 export class ScheduleEntity extends BaseEntityWithIdAbstract {
-  @Column({ type: 'enum', enum: ScheduleDaysEnum })
-  @Field(() => Int, { description: 'day of the schedule' })
+  @Column({ type: "enum", enum: ScheduleDaysEnum })
+  @Field(() => Int, { description: "day of the schedule" })
   day: ScheduleDaysEnum;
-  @Column({type: 'timestamptz'})
+  @Column({ type: "timestamptz" })
   @Field(() => Date)
   scheduleStart: Date;
-  @Column({type: 'timestamptz'})
+  @Column({ type: "timestamptz" })
   @Field(() => Date)
   scheduleEnd: Date;
   @ManyToOne(() => ParkingEntity, (p) => p.schedule)
   @Field(() => ParkingEntity)
-  parking: ParkingEntity
+  parking: ParkingEntity;
 }

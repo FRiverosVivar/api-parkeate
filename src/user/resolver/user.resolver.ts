@@ -17,7 +17,8 @@ import {
   PageOptionsDto,
   ParkingBlockedUsersPaginated,
   ParkingCouponAssignedUsersPaginated,
-  ParkingsPaginated, UsersPaginated
+  ParkingsPaginated,
+  UsersPaginated,
 } from "../../utils/interfaces/pagination.type";
 import { CurrentUser } from "../../auth/decorator/current-user.decorator";
 import { ClientEntity } from "../../client/entity/client.entity";
@@ -28,7 +29,10 @@ import { type } from "os";
 import { Any } from "typeorm";
 import { Card, PaykuCustomer } from "../model/payku.model";
 import { RecoverPasswordCodeAndClientId } from "../../client/model/recover-password.response";
-import { CreateUserInput, OutputCreateUserInput } from "../model/dto/create-user.input";
+import {
+  CreateUserInput,
+  OutputCreateUserInput,
+} from "../model/dto/create-user.input";
 import { UserBatchResponse } from "../model/dto/user-batch.response";
 import { UserFilterInput } from "../model/dto/filter-user.input";
 
@@ -160,18 +164,21 @@ export class UserResolver {
   ) {
     return this.userService.fingPaginatedUsers(paginationOptions, text,filters);
   }
-  @Mutation( () => UserEntity )
+  @Mutation(() => UserEntity)
   @UserType(UserTypesEnum.ADMIN)
   @UseGuards(JwtAuthGuard, UserTypeGuard)
   deleteUser(@Args("id") id: string) {
     return this.userService.deleteUser(id);
   }
-  @Mutation( () => UserBatchResponse )
+  @Mutation(() => UserBatchResponse)
   @UserType(UserTypesEnum.ADMIN)
   @UseGuards(JwtAuthGuard, UserTypeGuard)
-  createUsersBatch(@Args("createUserInputs", {
-    type: () => [CreateUserInput]
-  }) createUserInputs: CreateUserInput[]) {
+  createUsersBatch(
+    @Args("createUserInputs", {
+      type: () => [CreateUserInput],
+    })
+    createUserInputs: CreateUserInput[]
+  ) {
     return this.userService.createUsersBatch(createUserInputs);
   }
 }

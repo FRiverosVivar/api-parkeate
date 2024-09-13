@@ -1,9 +1,9 @@
 export enum ScheduleDaysEnum {
-  MONDAY ,
+  MONDAY,
   TUESDAY,
   WEDNESDAY,
   THURSDAY,
   FRIDAY,
   SATURDAY,
-  SUNDAY
+  SUNDAY,
 }

@@ -3,7 +3,11 @@ import { RequestEntity } from "../entity/request.entity";
 import { RequestService } from "../service/request.service";
 import { Public } from "../../auth/decorator/public.decorator";
 import { CreateRequestInput } from "../model/create-request.input";
-import { EventsPaginated, PageOptionsDto, RequestsPaginated } from "../../utils/interfaces/pagination.type";
+import {
+  EventsPaginated,
+  PageOptionsDto,
+  RequestsPaginated,
+} from "../../utils/interfaces/pagination.type";
 import { UserType } from "../../auth/decorator/user-type.decorator";
 import { UserTypesEnum } from "../../user/constants/constants";
 import { UseGuards } from "@nestjs/common";
@@ -19,12 +23,11 @@ import { ClientEntity } from "../../client/entity/client.entity";
 
 @Resolver(() => RequestEntity)
 export class RequestResolver {
-  constructor(private requestService: RequestService) {
-  }
-  @Mutation(() => RequestEntity, { name: 'createRequest' })
+  constructor(private requestService: RequestService) {}
+  @Mutation(() => RequestEntity, { name: "createRequest" })
   @Public()
   createRequest(
-    @Args('createRequestInput') createRequestInput: CreateRequestInput,
+    @Args("createRequestInput") createRequestInput: CreateRequestInput
   ) {
     return this.requestService.createRequest(createRequestInput);
   }
@@ -33,22 +36,26 @@ export class RequestResolver {
   @UseGuards(JwtAuthGuard, UserTypeGuard)
   getPaginatedRequests(
     @Args("paginationOptions") paginationOptions: PageOptionsDto,
-    @Args("statusFilters", {  type: () => [Number], nullable: true }) statusFilters: number[],
+    @Args("statusFilters", { type: () => [Number], nullable: true })
+    statusFilters: number[]
   ) {
-    return this.requestService.findPaginatedRequests(paginationOptions, statusFilters);
+    return this.requestService.findPaginatedRequests(
+      paginationOptions,
+      statusFilters
+    );
   }
-  @Mutation(() => RequestEntity, { name: 'updateRequest' })
+  @Mutation(() => RequestEntity, { name: "updateRequest" })
   updateRequest(
     @Args("updateRequestInput") updateRequestInput: UpdateRequestInput
   ) {
     return this.requestService.updateRequest(updateRequestInput);
   }
 
-  @Mutation(() => RequestEntity, { name: 'setRequestPhoto' })
+  @Mutation(() => RequestEntity, { name: "setRequestPhoto" })
   setRequestPhoto(
     @Args("requestId", { type: () => String }) requestId: string,
     @Args("photoInput", { type: () => CreatePhotoInput })
-      photoInput: CreatePhotoInput,
+    photoInput: CreatePhotoInput,
     @Args("photo", { type: () => GraphQLUpload }) photo: FileUpload
   ): Observable<RequestEntity> {
     return this.requestService.setRequestPhoto(requestId, photo, photoInput);

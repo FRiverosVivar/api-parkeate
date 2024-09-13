@@ -38,7 +38,7 @@ export class AppController {
     private readonly userService: UserService,
     private readonly parkingService: ParkingService,
     private readonly requestService: RequestService,
-    private readonly tbkService: TransbankService,
+    private readonly tbkService: TransbankService
   ) {}
 
   @Get("/booking/confirmPayment")
@@ -114,7 +114,7 @@ export class AppController {
     @Query("bookingId") bookingId: string,
     @Query("finalPrice") finalPrice: number,
     @Query("userCouponId") couponId: string,
-    @Query("amountUserWallet") amountUserWallet: string,
+    @Query("amountUserWallet") amountUserWallet: string
   ): Observable<BookingEntity> {
     const updateBookingInput: UpdateBookingInput = {
       id: bookingId,
@@ -124,19 +124,25 @@ export class AppController {
     };
     return this.bookingService.updateBooking(updateBookingInput).pipe(
       switchMap((b) => {
-        if(amountUserWallet && amountUserWallet !== "" && +amountUserWallet > 0) {
+        if (
+          amountUserWallet &&
+          amountUserWallet !== "" &&
+          +amountUserWallet > 0
+        ) {
           const updateUserInput: UpdateUserInput = {
             id: b.user.id,
-            wallet: Math.round(b.user.wallet - +amountUserWallet)
-          }
-          return from(this.userService.updateUser(updateUserInput).pipe(
-            switchMap(() => of(b))
-          ));
+            wallet: Math.round(b.user.wallet - +amountUserWallet),
+          };
+          return from(
+            this.userService
+              .updateUser(updateUserInput)
+              .pipe(switchMap(() => of(b)))
+          );
         }
         return of(b);
       }),
       switchMap((b) => {
-        if(!couponId || couponId === "") return of(b);
+        if (!couponId || couponId === "") return of(b);
         return from(this.couponService.findUserCoupon(couponId)).pipe(
           switchMap((uc: UserCouponEntity) => {
             const updateUserCouponInput: UpdateUserCouponInput = {
@@ -147,18 +153,18 @@ export class AppController {
 
             return from(
               this.couponService.updateUserCoupon(updateUserCouponInput)
-            ).pipe((switchMap(() => of(b))))
+            ).pipe(switchMap(() => of(b)));
           })
         );
       })
-    )
+    );
   }
   @Post("/booking/confirmPayment/extended")
   paymentExtraTime(
     @Query("bookingId") bookingId: string,
     @Query("finalPrice") finalPrice: number,
     @Query("userCouponId") couponId: string,
-    @Query("amountUserWallet") amountUserWallet: string,
+    @Query("amountUserWallet") amountUserWallet: string
   ): Observable<BookingEntity> {
     const updateBookingInput: UpdateBookingInput = {
       id: bookingId,
@@ -168,19 +174,25 @@ export class AppController {
     };
     return this.bookingService.updateBooking(updateBookingInput).pipe(
       switchMap((b) => {
-        if(amountUserWallet && amountUserWallet !== "" && +amountUserWallet > 0) {
+        if (
+          amountUserWallet &&
+          amountUserWallet !== "" &&
+          +amountUserWallet > 0
+        ) {
           const updateUserInput: UpdateUserInput = {
             id: b.user.id,
-            wallet: Math.round(b.user.wallet - +amountUserWallet)
-          }
-          return from(this.userService.updateUser(updateUserInput).pipe(
-            switchMap(() => of(b))
-          ));
+            wallet: Math.round(b.user.wallet - +amountUserWallet),
+          };
+          return from(
+            this.userService
+              .updateUser(updateUserInput)
+              .pipe(switchMap(() => of(b)))
+          );
         }
         return of(b);
       }),
       switchMap((b) => {
-        if(!couponId || couponId === "") return of(b);
+        if (!couponId || couponId === "") return of(b);
         return from(this.couponService.findUserCoupon(couponId)).pipe(
           switchMap((uc: UserCouponEntity) => {
             const updateUserCouponInput: UpdateUserCouponInput = {
@@ -191,11 +203,11 @@ export class AppController {
 
             return from(
               this.couponService.updateUserCoupon(updateUserCouponInput)
-            ).pipe((switchMap(() => of(b))))
+            ).pipe(switchMap(() => of(b)));
           })
         );
       })
-    )
+    );
   }
   @Post("/booking/confirmPayment/new-client")
   createPaykuClient(@Body() body: any): Observable<any> {
@@ -239,7 +251,10 @@ export class AppController {
   async exportParkings(@Res() res: Response, @Body() parkings: string[]) {
     const buffer = await this.parkingService.exportParkings(parkings);
     return res
-      .set("Content-Disposition", `attachment; filename=exportedParkings-{${DateTime.now().toISO()}}.xlsx`)
+      .set(
+        "Content-Disposition",
+        `attachment; filename=exportedParkings-{${DateTime.now().toISO()}}.xlsx`
+      )
       .send(buffer);
   }
   @Post("/booking/confirmPayment/exportRequests")
@@ -248,33 +263,68 @@ export class AppController {
   async exportRequests(@Res() res: Response, @Body() requests: string[]) {
     const buffer = await this.requestService.exportRequests(requests);
     return res
-      .set("Content-Disposition", `attachment; filename=exportedRequests-{${DateTime.now().toISO()}}.xlsx`)
+      .set(
+        "Content-Disposition",
+        `attachment; filename=exportedRequests-{${DateTime.now().toISO()}}.xlsx`
+      )
       .send(buffer);
   }
   @Post("/booking/confirmPayment/updateRequest")
   async updateRequest(
-  @Query("id") id: string,
-  @Query("status") status: number) {
+    @Query("id") id: string,
+    @Query("status") status: number
+  ) {
     const updateRequest = {
       id,
       status: +status,
-    }
-    return this.requestService.updateRequest(updateRequest)
+    };
+    return this.requestService.updateRequest(updateRequest);
   }
   @Post("/tbk")
   async generateTransaction(
     @Query("amount") amount: string,
-    @Query("callbackUrl") callbackUrl: string) {
-    return this.tbkService.generateTransaction(Number(amount), callbackUrl)
+    @Query("callbackUrl") callbackUrl: string
+  ) {
+    return this.tbkService.generateTransaction(Number(amount), callbackUrl);
   }
   @Get("/tbk")
-  async confirmTransaction(
-    @Query("token") token: string) {
-    return this.tbkService.confirmTransaction(token)
+  async confirmTransaction(@Query("token") token: string) {
+    return this.tbkService.confirmTransaction(token);
   }
   @Get("/tbk/status")
-  async transactionStatus(
-    @Query("token") token: string) {
-    return this.tbkService.transactionStatus(token)
+  async transactionStatus(@Query("token") token: string) {
+    return this.tbkService.transactionStatus(token);
   }
+  @Post("/tbk/createInscriptionOneClick")
+  async createInscriptionOneClick(
+    @Query("userName") userName: string,
+    @Query("email") email: string,
+    @Query("callBackUrl") callBackUrl: string
+  ) {
+    return this.tbkService.createInscriptionOneClick(
+      userName,
+      email,
+      callBackUrl
+    );
+  }
+  @Post("/tbk/confirmInscriptionOneClick")
+  async confirmInscriptionOneClick(
+    @Query("token") token: string,
+    @Query("userId") userId: string
+  ) {
+    return this.tbkService.confirmInscriptionOneClick(token, userId);
+  }
+  @Post("/tbk/deleteInscriptionOneClick")
+  async deleteInscriptionOneClick(
+    @Query("token") token: string,
+    @Query("username") username: string,
+    @Query("userId") userId: string
+  ) {
+    return this.tbkService.deleteInscriptionOneClick(token, username, userId);
+  }
+  //   @Post("/tbk/validateInscriptionOneClick")
+  //   async validateInscriptionOneClick(
+  //     @Query("token") token: string) {
+  //       return this.tbkService.validateInscriptionOneClick(token)
+  //     }
 }

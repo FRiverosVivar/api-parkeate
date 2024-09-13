@@ -152,13 +152,18 @@ export class BookingResolver {
   findRecentBookingsFromBuildings(@CurrentUser() client: ClientEntity) {
     return this.bookingService.findRecentBookingsFromBuildings(client);
   }
-  @Query(() => CurrentPriceBookingOutput, { name: "getBookingCurrentPriceToPay" })
+  @Query(() => CurrentPriceBookingOutput, {
+    name: "getBookingCurrentPriceToPay",
+  })
   @UseGuards(JwtAuthGuard)
   getBookingCurrentPriceToPay(
     @Args("bookingId") bookingId: string,
     @Args("userCouponId", { nullable: true }) userCouponId: string
   ) {
-    return this.bookingService.getBookingCurrentPriceToPay(bookingId, userCouponId);
+    return this.bookingService.getBookingCurrentPriceToPay(
+      bookingId,
+      userCouponId
+    );
   }
   @Mutation(() => BookingEntity)
   @UseGuards(JwtAuthGuard)
