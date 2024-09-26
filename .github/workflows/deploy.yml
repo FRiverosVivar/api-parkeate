@@ -1,4 +1,4 @@
-name: CI/CD Pipeline for Parkeate! on GH Actions ~ Deploy on AWS CodeDeploy
+name: CI/CD Pipeline for Parkeate! on GH Actions ~ Deploy on AWS Elastic Beanstalk
 on:
   push:
     branches:
