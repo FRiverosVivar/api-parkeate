@@ -206,7 +206,6 @@ export class BookingResolver {
   getLastBookingsByClientId( 
     @Args("bookingType") bookingType: number,
     @Args("userId") userId: string,
-    
   ) {
     return this.bookingService.getLastBookingsByClientId(userId,bookingType);
   }
