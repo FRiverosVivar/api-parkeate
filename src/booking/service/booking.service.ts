@@ -778,6 +778,9 @@ export class BookingService implements OnModuleInit {
         finalPrice: Not(IsNull()),
         bookingType: bookingType,
       },
+      order: {
+        dateStart: "DESC",
+      }
     });
   }
   changeBookingUser(
