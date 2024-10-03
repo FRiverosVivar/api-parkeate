@@ -39,6 +39,7 @@ import * as _ from "lodash";
 import { RecoverPasswordCodeAndUserId } from "../model/dto/recover-password-code-and-userid.response";
 import { UserBatchResponse } from "../model/dto/user-batch.response";
 import { SendTemplatedEmailCommandOutput } from "@aws-sdk/client-ses";
+import { UserFilterInput } from "../model/dto/filter-user.input";
 
 @Injectable()
 export class UserService {
@@ -482,28 +483,43 @@ export class UserService {
     });
     return dataClients;
   }
-  async fingPaginatedUsers(pagination: PageOptionsDto, text: string) {
-    const whereQuery = text
-      ? `LOWER(u.fullname) like '%${text.toLowerCase()}%'or u."phoneNumber" like '%${text}%' or LOWER(u.email) like '%${text
-          .toLowerCase()
-          .replace(
-            "-",
-            ""
-          )}%' or translate(u.rut, '-', '') like '%${text.toLowerCase()}%' or u.rut like '%${text.toLowerCase()}%'`
-      : ``;
+  async fingPaginatedUsers(
+    pagination: PageOptionsDto,
+    text: string,
+    filters?: UserFilterInput
+  
+  ) {
+    let whereQuery = text ? 
+    `LOWER(u.fullname) like '%${text.toLowerCase()}%'
+    or u."phoneNumber" like '%${text}%'
+    or LOWER(u.email) like '%${text.toLowerCase().replace("-","")}%'
+    or translate(u.rut, '-', '') like '%${text.toLowerCase()}%'
+    or u.rut like '%${text.toLowerCase()}%'`: ``
+
+
+    if (filters?.filterByValidatedEmail) {
+      if(whereQuery !== "") whereQuery += " and "
+      whereQuery += `u.validatedEmail = ${filters.filterByValidatedEmail}`
+    }
+    if (filters?.filterByValidatedPhone) {
+      if(whereQuery !== "") whereQuery += " and "
+      whereQuery += `u.validatedPhone = ${filters.filterByValidatedPhone}`
+    }
+
     const query = this.userRepository
       .createQueryBuilder("u")
       .where(whereQuery)
       .orderBy("u.createdAt", "DESC")
       .skip(pagination.skip)
       .take(pagination.take);
+    
 
     const itemCount = await query.getCount();
     const { entities } = await query.getRawAndEntities();
     const pageMetaDto = new PaginationMeta({
       pageOptionsDto: pagination,
       itemCount,
-    });
+    });    
     pageMetaDto.skip = (pageMetaDto.page - 1) * pageMetaDto.take;
     return new PageDto(entities, pageMetaDto);
   }
