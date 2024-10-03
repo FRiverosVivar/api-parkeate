@@ -202,7 +202,7 @@ export class BookingResolver {
   @Query(() => [BookingEntity],{
     name: "getLastBookingsByUserId",
   })
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
  getLastBookingsByUserId( 
     @Args("bookingType") bookingType: number,
     @Args("userId") userId: string,
