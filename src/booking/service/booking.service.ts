@@ -762,7 +762,7 @@ export class BookingService implements OnModuleInit {
       })
     );
   }
-  getLastBookingsByClientId(clientId: string, bookingType: number) {    
+  getLastBookingsByUserId(userId: string, bookingType: number) {    
     return this.bookingRepository.find({
       relations: {
         parking: {
@@ -771,10 +771,8 @@ export class BookingService implements OnModuleInit {
         },
       },
       where: {
-        parking: {
-          client: {
-            id: clientId,
-          },
+        user: {
+          id: userId,
         },
         bookingState: BookingStatesEnum.FINALIZED,
         finalPrice: Not(IsNull()),

@@ -200,13 +200,13 @@ export class BookingResolver {
     );
   }
   @Query(() => [BookingEntity],{
-    name: "getLastBookingsByClientId",
+    name: "getLastBookingsByUserId",
   })
-  @UseGuards(JwtAuthGuard)
-  getLastBookingsByClientId( 
+  // @UseGuards(JwtAuthGuard)
+ getLastBookingsByUserId( 
     @Args("bookingType") bookingType: number,
     @Args("userId") userId: string,
   ) {
-    return this.bookingService.getLastBookingsByClientId(userId,bookingType);
+    return this.bookingService.getLastBookingsByUserId(userId,bookingType);
   }
 }
