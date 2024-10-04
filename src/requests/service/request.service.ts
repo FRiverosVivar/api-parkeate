@@ -145,7 +145,8 @@ export class RequestService {
   }
   async findPaginatedRequests(
     pagination: PageOptionsDto,
-    statusFilters: RequestStatusEnum[]
+    statusFilters: RequestStatusEnum[],
+    searchText: string
   ) {
     const query = this.requestRepository
       .createQueryBuilder("r")
@@ -153,7 +154,8 @@ export class RequestService {
       .where(
         statusFilters && statusFilters.length > 0
           ? `r.status IN (${statusFilters.join(",")})`
-          : `r.status IN (0,1,2)`
+          : `r.status IN (0,1,2) ${searchText ? `AND LOWER(r.fullName) like '%${searchText.toLowerCase()}%'` : ``}
+          `
       )
       .skip(pagination.skip)
       .take(pagination.take);
