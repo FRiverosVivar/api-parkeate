@@ -8,6 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    concurrency: build-${{ github.ref }}
     environment: ${{ github.ref_name == 'release/prod' && 'Production' || 'Development' }}
     steps:
       - name: Checkout code
