@@ -762,7 +762,7 @@ export class BookingService implements OnModuleInit {
       })
     );
   }
-  getLastBookingsByUserId(userId: string, bookingType: number) {    
+  getLastBookingsByUserId(userId: string, bookingType: number) {
     return this.bookingRepository.find({
       relations: {
         parking: {
