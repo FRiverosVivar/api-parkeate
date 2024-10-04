@@ -47,8 +47,11 @@ const getTypeOrmConfig = () => {
     autoLoadEntities: true,
     synchronize: true,
     subscribers: [LiquidationSubscriber, BookingSubscriber],
-  }
-  if(process.env.NODE_ENV === "prod" || process.env.NODE_ENV === "development") {
+  };
+  if (
+    process.env.NODE_ENV === "prod" ||
+    process.env.NODE_ENV === "development"
+  ) {
     baseConfig = {
       ssl: {
         ca: fs.readFileSync("./develop.pem"),
@@ -58,12 +61,12 @@ const getTypeOrmConfig = () => {
           rejectUnauthorized: false,
         },
       },
-      ...baseConfig
-    }
+      ...baseConfig,
+    };
   }
 
   return baseConfig;
-}
+};
 @Module({
   imports: [
     ConfigModule.forRoot({
