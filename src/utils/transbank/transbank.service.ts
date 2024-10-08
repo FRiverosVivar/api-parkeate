@@ -115,7 +115,7 @@ export class TransbankService {
             Environment.Integration
           )
         );
-  
+       // PREGUNTAR MULTI TARJETA EN INSCRIPCION
         return from(inscription.finish(token)).pipe(
           switchMap((response) => {
             const badResponse = response.response_code < 0;
@@ -165,49 +165,44 @@ export class TransbankService {
     }  }
 
     //under construction
-//   async authorizeInscriptionOneClick(token: string, userId: string): Promise<any> {
-//     try{
+  async authorizeInscriptionOneClick(token: string, userId: string,amount:number): Promise<any> {
+    try{
 
-//       const generateBuyOrderCode = () => {
-//         const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-//         let code = "";
-//         for (let i = 0; i < 10; i++) {
-//           code += possible.charAt(Math.floor(Math.random() * possible.length));
-//         }
-//         return "test-park-"+code;
-//       };
-//       const user = await this.userService.findUserById(userId).toPromise(); // Ensure the observable is resolved
-//       if (!user) {
-//         throw new NotFoundException();
-//       }
-//       let username = 'ivito';
-//       let montoTest = 50
-//       console.log({user});
+      const generateBuyOrderCode = () => {
+        const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        let code = "";
+        for (let i = 0; i < 10; i++) {
+          code += possible.charAt(Math.floor(Math.random() * possible.length));
+        }
+        return "test-0n3Cl1k-"+code;
+      };
+      const user = await this.userService.findUserById(userId).toPromise(); // Ensure the observable is resolved
+      if (!user) {
+        throw new NotFoundException();
+      }
+      let username = user.fullname;
+      let montoTest = 50
+      const code = generateBuyOrderCode();
+      const details = [
+        new TransactionDetail(amount, IntegrationCommerceCodes.ONECLICK_MALL_CHILD1,code)
+      ]
       
-//       const details = [
-//         new TransactionDetail(montoTest, IntegrationCommerceCodes.ONECLICK_MALL,generateBuyOrderCode())
-//       ]
-//       console.log({details});
-      
-//       const tx = new Oneclick.MallTransaction(
-//         new Options(
-//           IntegrationCommerceCodes.ONECLICK_MALL,
-//           IntegrationApiKeys.WEBPAY,
-//           Environment.Integration
-//         )
-//   );
+      const tx = new Oneclick.MallTransaction(
+        new Options(
+          IntegrationCommerceCodes.ONECLICK_MALL,
+          IntegrationApiKeys.WEBPAY,
+          Environment.Integration
+        )
+  );
   
-//     console.log({tx});
     
-//   const response = await tx.authorize(username,token,generateBuyOrderCode(),details);
-//   console.log({response});
+  const response = await tx.authorize(username,token,code,details);
   
-  
-//   return response;
-// }
-//   catch(e){
-//     console.log(e)
-//     throw new BadRequestException();
-//   }
-// }
+  return response;
+}
+  catch(e){
+    console.log(e)
+    throw new BadRequestException();
+  }
+}
 }
