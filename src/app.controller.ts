@@ -318,13 +318,19 @@ export class AppController {
   async deleteInscriptionOneClick(
     @Query("token") token: string,
     @Query("username") username: string,
-    @Query("userId") userId: string
-  ) {
-    return this.tbkService.deleteInscriptionOneClick(token, username, userId);
-  }
-  //   @Post("/tbk/validateInscriptionOneClick")
-  //   async validateInscriptionOneClick(
-  //     @Query("token") token: string) {
-  //       return this.tbkService.validateInscriptionOneClick(token)
-  //     }
+    @Query("userId") userId: string) {
+      return this.tbkService.deleteInscriptionOneClick(token,username,userId)
+    }
+  @Post("/tbk/authorizeInscriptionOneClick")
+  async authorizeInscriptionOneClick(
+    @Query("token") token: string,
+    @Query("userId") userId: string,
+    @Query("amount") amount: number) {
+      return this.tbkService.authorizeInscriptionOneClick(token,userId,amount)
+    }
+//   @Post("/tbk/validateInscriptionOneClick")
+//   async validateInscriptionOneClick(
+//     @Query("token") token: string) {
+//       return this.tbkService.validateInscriptionOneClick(token)
+//     }
 }

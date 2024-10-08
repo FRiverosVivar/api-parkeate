@@ -72,7 +72,10 @@ export class UserEntity extends BaseCustomer {
   @Column({ nullable: true })
   @Field(() => String, { nullable: true })
   cardType: string;
+  @Column({ nullable: true,type: 'varchar', length: 40 })
+  @Field(() => String, { nullable: true })
+  tbkToken: string;
   @Column({ nullable: true })
   @Field(() => String, { nullable: true })
-  tbkToken?: string;
+  tbkId: string;
 }

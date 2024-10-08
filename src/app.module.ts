@@ -34,6 +34,7 @@ import { UserService } from "./user/service/user.service";
 import { EventModule } from "./event/event.module";
 import { ParkingGuardModule } from "./parkingGuard/parkingGuard.module";
 import { TransbankService } from "./utils/transbank/transbank.service";
+import { TransbankModule } from "./transbank/transbank.module";
 const getTypeOrmConfig = () => {
   let baseConfig: TypeOrmModuleOptions = {
     keepConnectionAlive: true,
@@ -100,8 +101,9 @@ const getTypeOrmConfig = () => {
     CouponModule,
     HttpModule,
     ParkingGuardModule,
+    TransbankModule,
   ],
   controllers: [AppController],
-  providers: [AppService, EmailService, TransbankService],
+  providers: [AppService, EmailService],
 })
 export class AppModule {}
