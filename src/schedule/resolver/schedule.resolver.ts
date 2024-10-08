@@ -11,21 +11,21 @@ export class ScheduleResolver {
   constructor(private scheduleService: ScheduleService) {}
   @Mutation(() => ScheduleEntity)
   createSchedule(
-    @Args('createScheduleInput') createScheduleInput: CreateScheduleInput,
-    @Args('parkingId') parkingId: string,
-  ):Observable<ScheduleEntity> {
+    @Args("createScheduleInput") createScheduleInput: CreateScheduleInput,
+    @Args("parkingId") parkingId: string
+  ): Observable<ScheduleEntity> {
     return this.scheduleService.createSchedule(createScheduleInput, parkingId);
   }
   @Mutation(() => ScheduleEntity)
   removeSchedule(
-    @Args('scheduleId') scheduleId: string
-  ):Observable<ScheduleEntity> {
-    return this.scheduleService.removeSchedule(scheduleId)
+    @Args("scheduleId") scheduleId: string
+  ): Observable<ScheduleEntity> {
+    return this.scheduleService.removeSchedule(scheduleId);
   }
   @Mutation(() => ScheduleEntity)
   updateSchedule(
-    @Args('updateScheduleInput') updateScheduleInput: UpdateScheduleInput
+    @Args("updateScheduleInput") updateScheduleInput: UpdateScheduleInput
   ) {
-    return this.scheduleService.updateSchedule(updateScheduleInput)
+    return this.scheduleService.updateSchedule(updateScheduleInput);
   }
 }

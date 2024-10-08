@@ -7,13 +7,13 @@ import { EmailService } from "../utils/email/email.service";
 import { registerEnumType } from "@nestjs/graphql";
 import { VehicleTypeEnum } from "./model/vehicle-type.enum";
 
-registerEnumType(VehicleTypeEnum,{
-    name: 'VehicleTypeEnum'
-})
+registerEnumType(VehicleTypeEnum, {
+  name: "VehicleTypeEnum",
+});
 @Global()
 @Module({
-    imports: [TypeOrmModule.forFeature([VehicleEntity])],
-    providers: [VehicleResolver, VehicleService, EmailService],
-    exports: [VehicleResolver, VehicleService],
+  imports: [TypeOrmModule.forFeature([VehicleEntity])],
+  providers: [VehicleResolver, VehicleService, EmailService],
+  exports: [VehicleResolver, VehicleService],
 })
 export class VehicleModule {}

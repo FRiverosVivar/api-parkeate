@@ -1,4 +1,4 @@
-import { ArgsType, Field, InputType } from '@nestjs/graphql';
+import { ArgsType, Field, InputType } from "@nestjs/graphql";
 import { UserTypesEnum } from "../../user/constants/constants";
 
 @InputType()
@@ -9,5 +9,5 @@ export class UserPayload {
   @Field(() => String)
   sub: string;
   @Field(() => UserTypesEnum)
-  userType: UserTypesEnum
+  userType: UserTypesEnum;
 }

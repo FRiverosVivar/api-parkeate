@@ -7,7 +7,7 @@ import { RequestTypeEnum } from "../enum/request-type.enum";
 
 @InputType()
 @ArgsType()
-export class CreateRequestInput   {
+export class CreateRequestInput {
   @Field(() => String)
   fullName: string;
   @Field(() => Number)
@@ -22,9 +22,9 @@ export class CreateRequestInput   {
   state: string;
   @Field(() => String)
   city: string;
-  @Field(() => Number, {nullable: true})
+  @Field(() => Number, { nullable: true })
   parkingType: RequestParkingTypeEnum;
-  @Field(() => String, {nullable: true})
+  @Field(() => String, { nullable: true })
   address: string;
   @Index({ spatial: true })
   @Column({
@@ -33,30 +33,30 @@ export class CreateRequestInput   {
     srid: 4326,
     nullable: true,
   })
-  @Field(() => GeometryGQL, {nullable: true})
+  @Field(() => GeometryGQL, { nullable: true })
   location: Point;
-  @Field(() => Number, {nullable: true})
+  @Field(() => Number, { nullable: true })
   quantity: number;
-  @Field(() => String,{nullable: true})
+  @Field(() => String, { nullable: true })
   scheduleStart: string;
-  @Field(() => Date,{nullable: true})
+  @Field(() => Date, { nullable: true })
   scheduleEnd: Date;
-  @Field(() => String,{nullable: true})
+  @Field(() => String, { nullable: true })
   floor: string;
-  @Field(() => String,{nullable: true})
+  @Field(() => String, { nullable: true })
   parkingNumber: string;
-  @Field(() => Boolean, {nullable: true})
+  @Field(() => Boolean, { nullable: true })
   isOwner: boolean;
-  @Field(() => Boolean, {nullable: true})
+  @Field(() => Boolean, { nullable: true })
   isCompany: boolean;
-  @Field(() => Boolean, {nullable: true})
+  @Field(() => Boolean, { nullable: true })
   sentCalendar: boolean;
-  @Field(() => Boolean, {nullable: true})
+  @Field(() => Boolean, { nullable: true })
   requestState: boolean;
-  @Field(() => String, {nullable: true})
+  @Field(() => String, { nullable: true })
   rut: string;
-  @Field(() => String, {nullable: true})
+  @Field(() => String, { nullable: true })
   apartmentNumber: string;
-  @Field(() => String, {nullable: true})
+  @Field(() => String, { nullable: true })
   parkingPhoto: string;
 }

@@ -19,7 +19,7 @@ import {
   of,
   switchMap,
   take,
-  tap
+  tap,
 } from "rxjs";
 import * as uuid from "uuid";
 import { UUIDBadFormatException } from "../../utils/exceptions/UUIDBadFormat.exception";
@@ -35,7 +35,6 @@ import { BookingNotificationsEnum } from "../enum/booking-notifications.enum";
 import { EmailTypesEnum } from "../../utils/email/enum/email-types.enum";
 import { BookingStatesEnum } from "../enum/booking-states.enum";
 import { DateTime, Duration, Settings } from "luxon";
-import { CronJob } from "cron";
 import { BookingTypesEnum } from "../enum/booking-types.enum";
 import { UpdateUserInput } from "../../user/model/dto/update-user.input";
 import { CronService } from "../../utils/cron/cron.service";
@@ -70,6 +69,7 @@ import { ParkingType } from "../../parking/model/parking-type.enum";
 import { CouponsTypeEnum } from "../../coupons/constants/coupons-type.enum";
 import { ParkingEntity } from "../../parking/entity/parking.entity";
 import { CurrentPriceBookingOutput } from "../model/current-price-booking.output";
+import { CronJob } from "cron";
 
 @Injectable()
 export class BookingService implements OnModuleInit {
@@ -743,24 +743,45 @@ export class BookingService implements OnModuleInit {
             const updateParking = {
               id: oldParking.id,
               reserved: false,
-            }
+            };
             const updateNewParking = {
               id: p.id,
               reserved: true,
-            }
+            };
 
             return combineLatest([
-                this.parkingService.updateParking(updateParking),
-                this.parkingService.updateParking(updateNewParking),
+              this.parkingService.updateParking(updateParking),
+              this.parkingService.updateParking(updateNewParking),
             ]).pipe(
-                switchMap(() => {
-                  return from(this.bookingRepository.save(b))
-                })
-              )
-            })
+              switchMap(() => {
+                return from(this.bookingRepository.save(b));
+              })
+            );
+          })
         );
       })
     );
+  }
+  getLastBookingsByUserId(userId: string, bookingType: number) {
+    return this.bookingRepository.find({
+      relations: {
+        parking: {
+          client: true,
+          building: true,
+        },
+      },
+      where: {
+        user: {
+          id: userId,
+        },
+        bookingState: BookingStatesEnum.FINALIZED,
+        finalPrice: Not(IsNull()),
+        bookingType: bookingType,
+      },
+      order: {
+        dateStart: "DESC",
+      }
+    });
   }
   changeBookingUser(
     bookingId: string,
@@ -1122,7 +1143,7 @@ export class BookingService implements OnModuleInit {
       Settings.defaultZone.name
     );
     job.start();
-    this.scheduler.addCronJob(bookingId, job);
+    this.scheduler.addCronJob(bookingId, job as unknown as CronJob);
   }
   async createNewCron(
     dateStart: DateTime,
@@ -1155,7 +1176,7 @@ export class BookingService implements OnModuleInit {
       Settings.defaultZone.name
     );
     job.start();
-    this.scheduler.addCronJob(bookingId, job);
+    this.scheduler.addCronJob(bookingId, job as unknown as CronJob);
   }
   async executeStateChangeFromBooking(
     cron: CronEntity,
@@ -1192,42 +1213,63 @@ export class BookingService implements OnModuleInit {
     const userCoupon = userCouponid
       ? await this.couponService.getUserCouponFromRepository(userCouponid)
       : undefined;
-    const b = (await this.findBookingById(bookingId, { relations: { parking: true } }).toPromise())!;
-    const p = b.parking
-    if(b.dateExtended) {
+    const b = (await this.findBookingById(bookingId, {
+      relations: { parking: true },
+    }).toPromise())!;
+    const p = b.parking;
+    if (b.dateExtended) {
       const now = DateTime.now();
       const isoExtendedDate = DateTime.fromJSDate(
-        b.dateExtended
-          ? b.dateExtended
-          : b.dateStart
+        b.dateExtended ? b.dateExtended : b.dateStart
       );
       const diff = now.diff(isoExtendedDate, ["minutes"], {
         conversionAccuracy: "casual",
       });
-      return this.calculateCurrentPriceWithParkingPrice(p, userCoupon, diff, b.user.wallet);
+      return this.calculateCurrentPriceWithParkingPrice(
+        p,
+        userCoupon,
+        diff,
+        b.user.wallet
+      );
     }
 
-    const duration = Duration.fromMillis(65*60000);
-    return this.calculateCurrentPriceWithParkingPrice(p, userCoupon, duration, b.user.wallet);
+    const duration = Duration.fromMillis(65 * 60000);
+    return this.calculateCurrentPriceWithParkingPrice(
+      p,
+      userCoupon,
+      duration,
+      b.user.wallet
+    );
   }
-  calculateCurrentPriceWithParkingPrice(p: ParkingEntity, userCoupon: UserCouponEntity | undefined | null, diff: Duration, userWallet: number) {
+  calculateCurrentPriceWithParkingPrice(
+    p: ParkingEntity,
+    userCoupon: UserCouponEntity | undefined | null,
+    diff: Duration,
+    userWallet: number
+  ) {
     switch (p.type) {
       case ParkingType.PER_MINUTE: {
         if (userCoupon) {
           switch (userCoupon.coupon.type) {
             case CouponsTypeEnum.DISCOUNT_TO_TOTAL_PRICE: {
               const basePrice = +p.pricePerMinute * diff.minutes;
-              if(userCoupon.coupon.value >= basePrice) return {
-                amountToBePaid: 0,
-                tax: 0,
-                userWalletDiscount: 0,
-                initialPrice: Math.round(basePrice),
-                discount: Math.round(basePrice),
-              }
+              if (userCoupon.coupon.value >= basePrice)
+                return {
+                  amountToBePaid: 0,
+                  tax: 0,
+                  userWalletDiscount: 0,
+                  initialPrice: Math.round(basePrice),
+                  discount: Math.round(basePrice),
+                };
               const basePriceWith80Percent = Math.round((basePrice * 80) / 100);
-              const userWalletDiscount = userWallet >= basePriceWith80Percent ? basePriceWith80Percent: userWallet;
+              const userWalletDiscount =
+                userWallet >= basePriceWith80Percent
+                  ? basePriceWith80Percent
+                  : userWallet;
               const discount = userCoupon.coupon.value;
-              const finalPriceWithDiscounts = Math.round((basePrice - discount ) - userWalletDiscount)
+              const finalPriceWithDiscounts = Math.round(
+                basePrice - discount - userWalletDiscount
+              );
               const tax = Math.round(finalPriceWithDiscounts * 0.19);
 
               const price: CurrentPriceBookingOutput = {
@@ -1240,22 +1282,28 @@ export class BookingService implements OnModuleInit {
               return price;
             }
             case CouponsTypeEnum.DISCOUNT_TO_PRICE_PER_MINUTE: {
-              if(userCoupon.coupon.value >= +p.pricePerMinute) return {
-                amountToBePaid: 0,
-                tax: 0,
-                userWalletDiscount: 0,
-                initialPrice: Math.round(+p.pricePerMinute * diff.minutes),
-                discount: Math.round(+p.pricePerMinute * diff.minutes),
-              }
+              if (userCoupon.coupon.value >= +p.pricePerMinute)
+                return {
+                  amountToBePaid: 0,
+                  tax: 0,
+                  userWalletDiscount: 0,
+                  initialPrice: Math.round(+p.pricePerMinute * diff.minutes),
+                  discount: Math.round(+p.pricePerMinute * diff.minutes),
+                };
 
               const basePricePerMinute = Math.round(
                 +p.pricePerMinute - userCoupon.coupon.value
               );
-              const basePrice = Math.round(basePricePerMinute * diff.minutes)
+              const basePrice = Math.round(basePricePerMinute * diff.minutes);
 
               const basePriceWith80Percent = Math.round((basePrice * 80) / 100);
-              const userWalletDiscount = userWallet >= basePriceWith80Percent ? basePriceWith80Percent: userWallet;
-              const finalPriceWithDiscounts = Math.round(basePrice - userWalletDiscount)
+              const userWalletDiscount =
+                userWallet >= basePriceWith80Percent
+                  ? basePriceWith80Percent
+                  : userWallet;
+              const finalPriceWithDiscounts = Math.round(
+                basePrice - userWalletDiscount
+              );
               const tax = Math.round(finalPriceWithDiscounts * 0.19);
               const discount = userCoupon.coupon.value;
 
@@ -1269,18 +1317,26 @@ export class BookingService implements OnModuleInit {
               return price;
             }
             case CouponsTypeEnum.DISCOUNT_PERCENTAGE_TO_TOTAL_PRICE: {
-              const couponValue = userCoupon.coupon.value > 100 ? 100 : userCoupon.coupon.value;
+              const couponValue =
+                userCoupon.coupon.value > 100 ? 100 : userCoupon.coupon.value;
               const basePricePerMinute = Math.round(
                 Math.round(+p.pricePerMinute * diff.minutes)
               );
-              const baseCouponDiscount = Math.round((basePricePerMinute * couponValue) / 100)
+              const baseCouponDiscount = Math.round(
+                (basePricePerMinute * couponValue) / 100
+              );
               const basePrice = Math.round(
                 basePricePerMinute - baseCouponDiscount
-              )
+              );
               const basePriceWith80Percent = Math.round((basePrice * 80) / 100);
-              const userWalletDiscount = userWallet >= basePriceWith80Percent ? basePriceWith80Percent: userWallet;
-              const discount = baseCouponDiscount
-              const amountToBePaid = Math.round((basePrice * 1.19) - userWalletDiscount)
+              const userWalletDiscount =
+                userWallet >= basePriceWith80Percent
+                  ? basePriceWith80Percent
+                  : userWallet;
+              const discount = baseCouponDiscount;
+              const amountToBePaid = Math.round(
+                basePrice * 1.19 - userWalletDiscount
+              );
               const tax = Math.round(amountToBePaid * 0.19);
 
               const price: CurrentPriceBookingOutput = {
@@ -1293,24 +1349,35 @@ export class BookingService implements OnModuleInit {
               return price;
             }
             case CouponsTypeEnum.DISCOUNT_PERCENTAGE_TO_PRICE_PER_MINUTE: {
-              const couponValue = userCoupon.coupon.value > 100 ? 100 : userCoupon.coupon.value;
+              const couponValue =
+                userCoupon.coupon.value > 100 ? 100 : userCoupon.coupon.value;
               const basePercentageDiscountPerMinute = Math.round(
                 (+p.pricePerMinute * couponValue) / 100
               );
               const basePricePerMinute = Math.round(
                 +p.pricePerMinute - basePercentageDiscountPerMinute
               );
-              const basePrice = Math.round(basePricePerMinute * diff.minutes)
+              const basePrice = Math.round(basePricePerMinute * diff.minutes);
               const basePriceWith80Percent = Math.round((basePrice * 80) / 100);
-              const userWalletDiscount = userWallet >= basePriceWith80Percent ? basePriceWith80Percent: userWallet;
-              const finalPriceWithDiscounts = Math.round(basePrice - userWalletDiscount)
+              const userWalletDiscount =
+                userWallet >= basePriceWith80Percent
+                  ? basePriceWith80Percent
+                  : userWallet;
+              const finalPriceWithDiscounts = Math.round(
+                basePrice - userWalletDiscount
+              );
               const tax = Math.round(finalPriceWithDiscounts * 0.19);
               const price: CurrentPriceBookingOutput = {
                 amountToBePaid: Math.round(finalPriceWithDiscounts + tax),
                 tax: tax,
                 userWalletDiscount: userWalletDiscount,
-                initialPrice: basePrice === 0 ? Math.round(+p.pricePerMinute * diff.minutes):basePrice,
-                discount: Math.round(basePercentageDiscountPerMinute * diff.minutes)
+                initialPrice:
+                  basePrice === 0
+                    ? Math.round(+p.pricePerMinute * diff.minutes)
+                    : basePrice,
+                discount: Math.round(
+                  basePercentageDiscountPerMinute * diff.minutes
+                ),
               };
               return price;
             }
@@ -1320,23 +1387,30 @@ export class BookingService implements OnModuleInit {
                 userWalletDiscount: 0,
                 tax: Math.round(+p.pricePerMinute * diff.minutes * 0.19),
                 initialPrice: Math.round(+p.pricePerMinute * diff.minutes),
-                discount: Math.round(Math.round(+p.pricePerMinute * diff.minutes * 1.19)),
+                discount: Math.round(
+                  Math.round(+p.pricePerMinute * diff.minutes * 1.19)
+                ),
               };
               return price;
             }
           }
         }
-        const basePrice = Math.round(+p.pricePerMinute * diff.minutes)
+        const basePrice = Math.round(+p.pricePerMinute * diff.minutes);
         const basePriceWith80Percent = Math.round((basePrice * 80) / 100);
-        const userWalletDiscount = userWallet >= basePriceWith80Percent ? basePriceWith80Percent: userWallet;
-        const finalPriceWithDiscounts = Math.round(basePrice - userWalletDiscount)
+        const userWalletDiscount =
+          userWallet >= basePriceWith80Percent
+            ? basePriceWith80Percent
+            : userWallet;
+        const finalPriceWithDiscounts = Math.round(
+          basePrice - userWalletDiscount
+        );
         const tax = Math.round(finalPriceWithDiscounts * 0.19);
         const price: CurrentPriceBookingOutput = {
           amountToBePaid: Math.round(finalPriceWithDiscounts + tax),
           tax: Math.round(+p.pricePerMinute * diff.minutes * 0.19),
           userWalletDiscount: userWalletDiscount,
           initialPrice: Math.round(+p.pricePerMinute * diff.minutes),
-          discount: 0
+          discount: 0,
         };
         return price;
       }

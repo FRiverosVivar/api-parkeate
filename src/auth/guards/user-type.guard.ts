@@ -7,19 +7,21 @@ import { GqlExecutionContext } from "@nestjs/graphql";
 export class UserTypeGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
   matchesUserTypes(userType: UserTypesEnum, types: number[]) {
-
     return types.some((type) => userType >= type);
   }
   canActivate(context: ExecutionContext): boolean {
     const type = this.reflector.get<UserTypesEnum[]>(
-      'usertype',
-      context.getHandler(),
+      "usertype",
+      context.getHandler()
     );
     if (!type) {
       return true;
     }
     const ctx = GqlExecutionContext.create(context);
-    const userType = ctx.getContext().req.user.userType
-    return this.matchesUserTypes(userType ? userType : UserTypesEnum.USER, type)
+    const userType = ctx.getContext().req.user.userType;
+    return this.matchesUserTypes(
+      userType ? userType : UserTypesEnum.USER,
+      type
+    );
   }
 }

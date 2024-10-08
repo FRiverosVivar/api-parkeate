@@ -5,5 +5,5 @@ import { CreateRequestInput } from "./create-request.input";
 @ArgsType()
 export class UpdateRequestInput extends PartialType(CreateRequestInput) {
   @Field(() => String)
-  id: string
+  id: string;
 }

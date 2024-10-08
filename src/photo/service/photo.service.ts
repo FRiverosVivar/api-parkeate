@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { PhotoEntity } from "../entity/photo.entity";
@@ -17,32 +22,34 @@ export class PhotoService {
     @InjectRepository(PhotoEntity)
     private readonly photoRepository: Repository<PhotoEntity>,
     private fileService: FileService
-  ) {
-  }
-  createPhoto(createPhotoInput: CreatePhotoInput, file: FileUpload): Observable<PhotoEntity> {
+  ) {}
+  createPhoto(
+    createPhotoInput: CreatePhotoInput,
+    file: FileUpload
+  ): Observable<PhotoEntity> {
     return this.fileService.processFile(createPhotoInput.creatorId, file).pipe(
       switchMap((url) => {
-        if(!url)
-          throw new InternalServerErrorException()
+        if (!url) throw new InternalServerErrorException();
 
         createPhotoInput.url = url;
         const photo = this.photoRepository.create(createPhotoInput);
         return of(photo);
-      }),
+      })
     );
   }
   removePhoto(photoUrl: string): Observable<PhotoEntity> {
     return this.findPhotoByUrl(photoUrl).pipe(
       switchMap((p) => {
-        return forkJoin(
-          [this.photoRepository.remove(p), this.fileService.deleteFile(p.url)]
-        ).pipe(
+        return forkJoin([
+          this.photoRepository.remove(p),
+          this.fileService.deleteFile(p.url),
+        ]).pipe(
           map(([v, f]) => {
             return v;
           })
-        )
+        );
       })
-    )
+    );
   }
   updatePhoto(updatePhotoInput: UpdatePhotoInput): Observable<PhotoEntity> {
     if (!uuid.validate(updatePhotoInput.id)) {
@@ -51,14 +58,14 @@ export class PhotoService {
     return from(
       this.photoRepository.preload({
         ...updatePhotoInput,
-      }),
+      })
     ).pipe(
       switchMap((photo) => {
         if (!photo) {
           throw new NotFoundException();
         }
         return from(this.photoRepository.save(photo));
-      }),
+      })
     );
   }
   findPhotoById(photoId: string): Observable<PhotoEntity> {
@@ -67,25 +74,23 @@ export class PhotoService {
     }
     return this.getPhotoById(photoId).pipe(
       map((p) => {
-        if(!p)
-          throw new NotFoundException()
+        if (!p) throw new NotFoundException();
 
         return p;
       })
-    )
+    );
   }
   findPhotoByUrl(url: string): Observable<PhotoEntity> {
-    if (url === '' || !url.includes(FileConstants.BUCKET_NAME)) {
+    if (url === "" || !url.includes(FileConstants.BUCKET_NAME)) {
       throw new BadRequestException();
     }
     return this.getPhotoByUrl(url).pipe(
       map((p) => {
-        if(!p)
-          throw new NotFoundException()
+        if (!p) throw new NotFoundException();
 
         return p;
       })
-    )
+    );
   }
   getPhotoById(photoId: string): Observable<PhotoEntity | null> {
     return from(
@@ -93,7 +98,7 @@ export class PhotoService {
         where: {
           id: photoId,
         },
-      }),
+      })
     );
   }
 
@@ -103,7 +108,7 @@ export class PhotoService {
         where: {
           url: url,
         },
-      }),
+      })
     );
   }
   // getPhotoByAssignedId(assignedId: string): Observable<PhotoEntity | null> {

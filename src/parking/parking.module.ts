@@ -7,12 +7,12 @@ import { registerEnumType } from "@nestjs/graphql";
 import { ParkingType } from "./model/parking-type.enum";
 import { ExcelService } from "../utils/excel/excel.service";
 registerEnumType(ParkingType, {
-  name: 'ParkingType',
+  name: "ParkingType",
 });
 @Global()
 @Module({
   imports: [TypeOrmModule.forFeature([ParkingEntity])],
   providers: [ParkingResolver, ParkingService, ExcelService],
-  exports: [ParkingResolver,ParkingService],
+  exports: [ParkingResolver, ParkingService],
 })
 export class ParkingModule {}

@@ -14,7 +14,7 @@ import {
   ClientsPaginated,
   EventsPaginated,
   PageOptionsDto,
-  RequestsPaginated
+  RequestsPaginated,
 } from "../../utils/interfaces/pagination.type";
 import { UserType } from "../../auth/decorator/user-type.decorator";
 import { UserTypesEnum } from "../../user/constants/constants";
@@ -97,16 +97,14 @@ export class ClientResolver {
   @UseGuards(JwtAuthGuard, UserTypeGuard)
   getPaginatedClients(
     @Args("paginationOptions") paginationOptions: PageOptionsDto,
-    @Args("text", {  type: () => String, nullable: true }) text: string,
+    @Args("text", { type: () => String, nullable: true }) text: string
   ) {
     return this.clientService.findPaginatedClients(paginationOptions, text);
   }
   @Mutation(() => ClientEntity)
   @UserType(UserTypesEnum.ADMIN)
   @UseGuards(JwtAuthGuard, UserTypeGuard)
-  deleteClient(
-    @Args("id") id: string
-  ): Observable<ClientEntity> {
+  deleteClient(@Args("id") id: string): Observable<ClientEntity> {
     return this.clientService.deleteClient(id);
   }
 }

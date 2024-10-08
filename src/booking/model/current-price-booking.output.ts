@@ -9,7 +9,7 @@ export class CurrentPriceBookingOutput {
   @Field(() => Number)
   initialPrice: number;
   @Field(() => Number)
-  userWalletDiscount: number
+  userWalletDiscount: number;
   @Field(() => Number, { nullable: true })
   discount?: number;
 }

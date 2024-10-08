@@ -24,16 +24,19 @@ export class ClientEntity extends BaseCustomer {
   @Column({ type: "enum", enum: UserTypesEnum })
   @Field(() => Int, { description: "type of the user" })
   userType: UserTypesEnum;
-  @OneToMany(() => ParkingEntity, (p) => p.client, {onDelete: "CASCADE"})
+  @OneToMany(() => ParkingEntity, (p) => p.client, { onDelete: "CASCADE" })
   @Field(() => [ParkingEntity])
   parkingList: ParkingEntity[];
-  @OneToMany(() => BuildingEntity, (b) => b.client, {onDelete: "SET NULL"})
+  @OneToMany(() => BuildingEntity, (b) => b.client, { onDelete: "SET NULL" })
   @Field(() => [BuildingEntity])
   buildings: BuildingEntity[];
-  @ManyToOne(() => HoldingEntity, (h) => h.clientList, { nullable: true, onDelete: "CASCADE" })
+  @ManyToOne(() => HoldingEntity, (h) => h.clientList, {
+    nullable: true,
+    onDelete: "CASCADE",
+  })
   @Field(() => HoldingEntity, { nullable: true })
   holding: HoldingEntity;
-  @OneToMany(() => LiquidationEntity, (l) => l.client, {onDelete: "SET NULL"})
+  @OneToMany(() => LiquidationEntity, (l) => l.client, { onDelete: "SET NULL" })
   @Field(() => [LiquidationEntity])
   liquidations: LiquidationEntity[];
   @Column({ default: LiquidationEnum.BIWEEKLY15 })

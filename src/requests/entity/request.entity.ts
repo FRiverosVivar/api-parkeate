@@ -30,10 +30,10 @@ export class RequestEntity extends BaseEntityWithIdAbstract {
   @Column()
   @Field(() => String)
   city: string;
-  @Column({nullable: true})
+  @Column({ nullable: true })
   @Field(() => Number)
   parkingType: RequestParkingTypeEnum;
-  @Column({nullable: true})
+  @Column({ nullable: true })
   @Field(() => String)
   address: string;
   @Index({ spatial: true })
@@ -45,37 +45,37 @@ export class RequestEntity extends BaseEntityWithIdAbstract {
   })
   @Field(() => GeometryGQL)
   location: Point;
-  @Column({nullable: true})
+  @Column({ nullable: true })
   @Field(() => Number)
   quantity: number;
-  @Column({nullable: true})
-  @Field(() => String, {nullable: true})
+  @Column({ nullable: true })
+  @Field(() => String, { nullable: true })
   scheduleStart: string;
-  @Column({nullable: true})
-  @Field(() => Date, {nullable: true})
+  @Column({ nullable: true })
+  @Field(() => Date, { nullable: true })
   scheduleEnd: Date;
-  @Column({nullable: true})
+  @Column({ nullable: true })
   @Field(() => String)
   floor: string;
-  @Column({nullable: true})
+  @Column({ nullable: true })
   @Field(() => String)
   parkingNumber: string;
-  @Column({nullable: true})
+  @Column({ nullable: true })
   @Field(() => Boolean)
   isOwner: boolean;
-  @Column({nullable: true})
+  @Column({ nullable: true })
   @Field(() => Boolean)
   isCompany: boolean;
-  @Column({nullable: true})
+  @Column({ nullable: true })
   @Field(() => Boolean)
   sentCalendar: boolean;
-  @Column({nullable: true})
+  @Column({ nullable: true })
   @Field(() => String)
   rut: string;
-  @Column({nullable: true})
-  @Field(() => String, {nullable: true})
+  @Column({ nullable: true })
+  @Field(() => String, { nullable: true })
   apartmentNumber: string;
-  @Column({nullable: true})
-  @Field(() => String, {nullable: true})
+  @Column({ nullable: true })
+  @Field(() => String, { nullable: true })
   parkingPhoto: string;
 }

@@ -1,5 +1,5 @@
-import { IsMimeType, IsString } from 'class-validator';
-import { ReadStream } from 'fs';
+import { IsMimeType, IsString } from "class-validator";
+import { ReadStream } from "fs";
 
 export abstract class FilePropertiesDto {
   @IsString()

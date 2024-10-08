@@ -3,7 +3,9 @@ import { CreateLiquidationInput } from "./create-liquidation.input";
 
 @InputType()
 @ArgsType()
-export class UpdateLiquidationInput extends PartialType(CreateLiquidationInput) {
-    @Field(() => String)
-    id: string;
+export class UpdateLiquidationInput extends PartialType(
+  CreateLiquidationInput
+) {
+  @Field(() => String)
+  id: string;
 }

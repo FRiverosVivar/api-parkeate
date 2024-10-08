@@ -4,6 +4,6 @@ import { CreateCouponInput } from "./create-coupon.input";
 @InputType()
 @ArgsType()
 export class UpdateCouponInput extends PartialType(CreateCouponInput) {
-    @Field(() => String)
-    id: string
+  @Field(() => String)
+  id: string;
 }

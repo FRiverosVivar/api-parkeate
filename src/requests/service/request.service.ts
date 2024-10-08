@@ -9,8 +9,15 @@ import { UUIDBadFormatException } from "../../utils/exceptions/UUIDBadFormat.exc
 import { EmailService } from "src/utils/email/email.service";
 import { EmailTypesEnum } from "../../utils/email/enum/email-types.enum";
 import { UpdateRequestInput } from "../model/update-request.input";
-import { RequestStatusEnum, RequestStatusNames } from "../enum/request-status.enum";
-import { PageDto, PageOptionsDto, PaginationMeta } from "../../utils/interfaces/pagination.type";
+import {
+  RequestStatusEnum,
+  RequestStatusNames,
+} from "../enum/request-status.enum";
+import {
+  PageDto,
+  PageOptionsDto,
+  PaginationMeta,
+} from "../../utils/interfaces/pagination.type";
 import { ExcelService } from "../../utils/excel/excel.service";
 import { RequestParkingTypeNames } from "../enum/request-parking-type.enum";
 import { DateTime } from "luxon";
@@ -38,62 +45,81 @@ export class RequestService {
         const data = {
           name: request.fullName,
           requestStatus: RequestStatusNames[request.status],
-          days: DateTime.now().toFormat('dd/MM/yyyy'),
-          hours: DateTime.now().toFormat('HH:mm'),
-        }
-        return from(this.emailService.sendEmail(EmailTypesEnum.REQUEST_CREATED, request.email, JSON.stringify(data))).pipe(
-          map(() => r)
-        )
+          days: DateTime.now().toFormat("dd/MM/yyyy"),
+          hours: DateTime.now().toFormat("HH:mm"),
+        };
+        return from(
+          this.emailService.sendEmail(
+            EmailTypesEnum.REQUEST_CREATED,
+            request.email,
+            JSON.stringify(data)
+          )
+        ).pipe(map(() => r));
       })
     );
   }
-  updateRequest(updateRequestInput: UpdateRequestInput): Observable<RequestEntity> {
-
+  updateRequest(
+    updateRequestInput: UpdateRequestInput
+  ): Observable<RequestEntity> {
     if (!uuid.validate(updateRequestInput.id)) {
       throw new UUIDBadFormatException();
     }
 
-    return from(this.requestRepository.preload(updateRequestInput)).pipe(switchMap((request) => {
-      if (!request) {
-        throw new NotFoundException();
-      }
-      return from(this.requestRepository.save(request)).pipe(
-        tap((r) => {
-          switch(updateRequestInput.status) {
-            case RequestStatusEnum.PENDING:{
-              const data = {
-                name: request.fullName,
-                requestStatus: RequestStatusNames[request.status],
-                days: DateTime.now().toFormat('dd/MM/yyyy'),
-                hours: DateTime.now().toFormat('HH:mm'),
+    return from(this.requestRepository.preload(updateRequestInput)).pipe(
+      switchMap((request) => {
+        if (!request) {
+          throw new NotFoundException();
+        }
+        return from(this.requestRepository.save(request)).pipe(
+          tap((r) => {
+            switch (updateRequestInput.status) {
+              case RequestStatusEnum.PENDING: {
+                const data = {
+                  name: request.fullName,
+                  requestStatus: RequestStatusNames[request.status],
+                  days: DateTime.now().toFormat("dd/MM/yyyy"),
+                  hours: DateTime.now().toFormat("HH:mm"),
+                };
+                this.emailService.sendEmail(
+                  EmailTypesEnum.REQUEST_CREATED,
+                  request.email,
+                  JSON.stringify(data)
+                );
+                break;
               }
-              this.emailService.sendEmail(EmailTypesEnum.REQUEST_CREATED, request.email, JSON.stringify(data))
-              break;
-            }
-            case RequestStatusEnum.FINISHED:{
-              const data = {
-                name: request.fullName,
-                requestStatus: RequestStatusNames[request.status],
-                days: DateTime.now().toFormat('dd/MM/yyyy'),
-                hours: DateTime.now().toFormat('HH:mm'),
+              case RequestStatusEnum.FINISHED: {
+                const data = {
+                  name: request.fullName,
+                  requestStatus: RequestStatusNames[request.status],
+                  days: DateTime.now().toFormat("dd/MM/yyyy"),
+                  hours: DateTime.now().toFormat("HH:mm"),
+                };
+                this.emailService.sendEmail(
+                  EmailTypesEnum.REQUEST_FINALIZED,
+                  request.email,
+                  JSON.stringify(data)
+                );
+                break;
               }
-              this.emailService.sendEmail(EmailTypesEnum.REQUEST_FINALIZED, request.email, JSON.stringify(data))
-              break;
-            }
-            case RequestStatusEnum.CANCELED:{
-              const data = {
-                name: request.fullName,
-                requestStatus: RequestStatusNames[request.status],
-                days: DateTime.now().toFormat('dd/MM/yyyy'),
-                hours: DateTime.now().toFormat('HH:mm'),
+              case RequestStatusEnum.CANCELED: {
+                const data = {
+                  name: request.fullName,
+                  requestStatus: RequestStatusNames[request.status],
+                  days: DateTime.now().toFormat("dd/MM/yyyy"),
+                  hours: DateTime.now().toFormat("HH:mm"),
+                };
+                this.emailService.sendEmail(
+                  EmailTypesEnum.REQUEST_CANCELED,
+                  request.email,
+                  JSON.stringify(data)
+                );
+                break;
               }
-              this.emailService.sendEmail(EmailTypesEnum.REQUEST_CANCELED, request.email, JSON.stringify(data))
-              break;
             }
-          }
-        })
-      )
-    }))
+          })
+        );
+      })
+    );
   }
   findRequestById(requestId: string): Observable<RequestEntity> {
     if (!uuid.validate(requestId)) {
@@ -117,11 +143,18 @@ export class RequestService {
       })
     );
   }
-  async findPaginatedRequests(pagination: PageOptionsDto, statusFilters: RequestStatusEnum[]) {
+  async findPaginatedRequests(
+    pagination: PageOptionsDto,
+    statusFilters: RequestStatusEnum[]
+  ) {
     const query = this.requestRepository
       .createQueryBuilder("r")
       .orderBy("r.createdAt", "DESC")
-      .where(statusFilters && statusFilters.length > 0 ? `r.status IN (${statusFilters.join(",")})`: `r.status IN (0,1,2)`)
+      .where(
+        statusFilters && statusFilters.length > 0
+          ? `r.status IN (${statusFilters.join(",")})`
+          : `r.status IN (0,1,2)`
+      )
       .skip(pagination.skip)
       .take(pagination.take);
     const itemCount = await query.getCount();
@@ -135,13 +168,11 @@ export class RequestService {
   }
 
   async exportRequests(requestsId: string[]) {
-    const requests = await this.requestRepository.find(
-      {
-        where: {
-          id: In(requestsId)
-        }
-      }
-    )
+    const requests = await this.requestRepository.find({
+      where: {
+        id: In(requestsId),
+      },
+    });
     const columns = [
       { header: "Estado Actual", key: "status" },
       { header: "Nombre", key: "fullName" },
@@ -156,10 +187,7 @@ export class RequestService {
       { header: "Es Empresa", key: "isCompany" },
     ];
     const data = this.mapRequestsData(requests);
-    return await this.excelService.createExcelFromDataArray(
-      data,
-      columns
-    );
+    return await this.excelService.createExcelFromDataArray(data, columns);
   }
   private mapRequestsData(request: RequestEntity[]) {
     return request.map((request) => this.mapRequest(request));
@@ -177,7 +205,7 @@ export class RequestService {
       quantity: request.quantity,
       isOwner: request.isOwner,
       isCompany: request.isCompany,
-    }
+    };
   }
   setRequestPhoto(
     requestId: string,

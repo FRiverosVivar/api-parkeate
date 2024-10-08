@@ -15,51 +15,54 @@ import { CreateHoldingInput } from "../model/create-holding.input";
 
 @Resolver(() => HoldingEntity)
 export class HoldingResolver {
-  constructor(private readonly holdingService: HoldingService) {
-  }
-  @Query(() => [HoldingEntity], { name: 'getAllHoldings' })
+  constructor(private readonly holdingService: HoldingService) {}
+  @Query(() => [HoldingEntity], { name: "getAllHoldings" })
   @UserType(UserTypesEnum.ADMIN)
   @UseGuards(JwtAuthGuard, UserTypeGuard)
   findAllHoldings() {
     return this.holdingService.findAll();
   }
-  @Query(() => HoldingEntity, { name: 'getHoldingById' })
+  @Query(() => HoldingEntity, { name: "getHoldingById" })
   @UserType(UserTypesEnum.USER)
   @UseGuards(JwtAuthGuard, UserTypeGuard)
-  findOneHoldingById(@Args('holdingId', { type: () => String }) holdingId: string) {
+  findOneHoldingById(
+    @Args("holdingId", { type: () => String }) holdingId: string
+  ) {
     return this.holdingService.findHoldingById(holdingId);
   }
-  @Mutation(() => HoldingEntity, { name: 'updateHolding' })
+  @Mutation(() => HoldingEntity, { name: "updateHolding" })
   @UserType(UserTypesEnum.ADMIN)
   @UseGuards(JwtAuthGuard, UserTypeGuard)
   updateHolding(
-    @Args('updateHoldingInput') updateHoldingInput: UpdateHoldingInput,
-    @Args('newClientsId', {type: () => String, nullable: true}) newClientIds?: string[]
+    @Args("updateHoldingInput") updateHoldingInput: UpdateHoldingInput,
+    @Args("newClientsId", { type: () => String, nullable: true })
+    newClientIds?: string[]
   ) {
     return this.holdingService.updateHolding(updateHoldingInput, newClientIds);
   }
-  @Mutation(() => HoldingEntity, { name: 'setHoldingPhoto' })
+  @Mutation(() => HoldingEntity, { name: "setHoldingPhoto" })
   @UserType(UserTypesEnum.ADMIN)
   @UseGuards(UserTypeGuard)
   setHoldingPhoto(
-    @Args('holdingId', { type: () => String }) holdingId: string,
-    @Args('photoInput', { type: () => CreatePhotoInput }) photoInput: CreatePhotoInput,
-    @Args('photo', { type: () => GraphQLUpload }) photo: FileUpload,
+    @Args("holdingId", { type: () => String }) holdingId: string,
+    @Args("photoInput", { type: () => CreatePhotoInput })
+    photoInput: CreatePhotoInput,
+    @Args("photo", { type: () => GraphQLUpload }) photo: FileUpload
   ): Observable<HoldingEntity> {
     return this.holdingService.setProfilePhoto(holdingId, photo, photoInput);
   }
-  @Mutation(() => UserEntity, { name: 'removeHolding' })
+  @Mutation(() => UserEntity, { name: "removeHolding" })
   @UserType(UserTypesEnum.ADMIN)
   @UseGuards(JwtAuthGuard, UserTypeGuard)
-  removeHolding(@Args('holdingId', { type: () => String }) holdingId: string) {
+  removeHolding(@Args("holdingId", { type: () => String }) holdingId: string) {
     return this.holdingService.removeHolding(holdingId);
   }
-  @Mutation(() => UserEntity, { name: 'createHolding' })
+  @Mutation(() => UserEntity, { name: "createHolding" })
   @UserType(UserTypesEnum.ADMIN)
   @UseGuards(JwtAuthGuard, UserTypeGuard)
   createHolding(
-    @Args('createHoldingInput') createHoldingInput: CreateHoldingInput,
-    @Args('clientsIds', {type: () => String}) clientsIds: string[]
+    @Args("createHoldingInput") createHoldingInput: CreateHoldingInput,
+    @Args("clientsIds", { type: () => String }) clientsIds: string[]
   ) {
     return this.holdingService.createHolding(createHoldingInput, clientsIds);
   }

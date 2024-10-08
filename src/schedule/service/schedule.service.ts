@@ -17,28 +17,31 @@ export class ScheduleService {
     @InjectRepository(ScheduleEntity)
     private readonly scheduleRepository: Repository<ScheduleEntity>,
     private readonly parkingService: ParkingService
-  ) {
-  }
-  createSchedule(createScheduleInput: CreateScheduleInput, parkingId: string): Observable<ScheduleEntity> {
+  ) {}
+  createSchedule(
+    createScheduleInput: CreateScheduleInput,
+    parkingId: string
+  ): Observable<ScheduleEntity> {
     const newSchedule = this.scheduleRepository.create(createScheduleInput);
     return this.parkingService.findParkingById(parkingId).pipe(
       switchMap((p) => {
         return this.findSchedulesByParkingId(parkingId).pipe(
           switchMap((schedules) => {
-            newSchedule.parking = p
+            newSchedule.parking = p;
 
-            if(!schedules || schedules.length === 0)
-              return this.scheduleRepository.save(newSchedule)
+            if (!schedules || schedules.length === 0)
+              return this.scheduleRepository.save(newSchedule);
 
-            if(schedules.length >= 6)
-              throw new MaxSchedulesException()
+            if (schedules.length >= 6) throw new MaxSchedulesException();
 
-            if(this.checkDuplicatedScheduleDay(schedules, newSchedule))
-              throw new DuplicatedScheduleException()
+            if (this.checkDuplicatedScheduleDay(schedules, newSchedule))
+              throw new DuplicatedScheduleException();
 
             return this.scheduleRepository.save(newSchedule);
-          }))
-      }))
+          })
+        );
+      })
+    );
   }
   removeSchedule(scheduleId: string): Observable<ScheduleEntity> {
     if (!uuid.validate(scheduleId)) {
@@ -48,20 +51,22 @@ export class ScheduleService {
       switchMap((b) => {
         return from(this.scheduleRepository.remove([b])).pipe(map((b) => b[0]));
       })
-    )
+    );
   }
-  updateSchedule(updateScheduleInput: UpdateScheduleInput): Observable<ScheduleEntity> {
+  updateSchedule(
+    updateScheduleInput: UpdateScheduleInput
+  ): Observable<ScheduleEntity> {
     return from(
       this.scheduleRepository.preload({
         ...updateScheduleInput,
-      }),
+      })
     ).pipe(
       switchMap((schedule) => {
         if (!schedule) {
           throw new NotFoundException();
         }
         return from(this.scheduleRepository.save(schedule));
-      }),
+      })
     );
   }
   findSchedulesByParkingId(parkingId: string): Observable<ScheduleEntity[]> {
@@ -71,23 +76,24 @@ export class ScheduleService {
 
     return this.getSchedulesByParkingId(parkingId).pipe(
       map((schedule) => {
-        if(!schedule)
-          throw new NotFoundException()
+        if (!schedule) throw new NotFoundException();
 
         return schedule;
       })
-    )
+    );
   }
-  getSchedulesByParkingId(parkingId: string): Observable<ScheduleEntity[] | null> {
+  getSchedulesByParkingId(
+    parkingId: string
+  ): Observable<ScheduleEntity[] | null> {
     return from(
       this.scheduleRepository.find({
         where: {
           parking: {
-            id: parkingId
-          }
+            id: parkingId,
+          },
         },
-      }),
-    )
+      })
+    );
   }
   findScheduleById(scheduleId: string): Observable<ScheduleEntity> {
     if (!uuid.validate(scheduleId)) {
@@ -96,12 +102,11 @@ export class ScheduleService {
 
     return this.getScheduleById(scheduleId).pipe(
       map((schedule) => {
-        if(!schedule)
-          throw new NotFoundException()
+        if (!schedule) throw new NotFoundException();
 
         return schedule;
       })
-    )
+    );
   }
   getScheduleById(scheduleId: string): Observable<ScheduleEntity | null> {
     return from(
@@ -109,14 +114,17 @@ export class ScheduleService {
         where: {
           id: scheduleId,
         },
-      }),
-    )
+      })
+    );
   }
-  private checkDuplicatedScheduleDay(schedules: ScheduleEntity[], newSchedule: ScheduleEntity): boolean {
+  private checkDuplicatedScheduleDay(
+    schedules: ScheduleEntity[],
+    newSchedule: ScheduleEntity
+  ): boolean {
     return schedules.some((s) => {
-      if(s.day === newSchedule.day) {
-        return true
+      if (s.day === newSchedule.day) {
+        return true;
       }
-    })
+    });
   }
 }

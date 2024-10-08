@@ -6,5 +6,5 @@ import { BasicProfileAbstract } from "../../utils/interfaces/basic-profile.abstr
 @ArgsType()
 export class CreateProfilePhotoInput extends CreatePhotoInput {
   @Field(() => BasicProfileAbstract)
-  entity: BasicProfileAbstract
+  entity: BasicProfileAbstract;
 }

@@ -80,7 +80,7 @@ export class AuthResolver {
     return this.authService.refreshGuardToken(accessToken);
   }
   @Mutation(() => UserEntity)
-  @UseGuards(JwtAuthGuard)
+  @Public()
   updateUserPassword(
     @Args("updateUserInput") updateUserInput: UpdateUserInput
   ) {

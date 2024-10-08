@@ -5,11 +5,11 @@ import { VehicleTypeEnum } from "./vehicle-type.enum";
 @ArgsType()
 export class CreateVehicleInput {
   @Field(() => String)
-  model: string
-  @Field(() => String, { description: 'patente'})
-  carPlate: string
-  @Field(() => String, { description: 'color'})
-  color: string
-  @Field(() => Int, { description: 'car type'})
-  carType: VehicleTypeEnum
+  model: string;
+  @Field(() => String, { description: "patente" })
+  carPlate: string;
+  @Field(() => String, { description: "color" })
+  color: string;
+  @Field(() => Int, { description: "car type" })
+  carType: VehicleTypeEnum;
 }

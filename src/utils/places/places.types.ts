@@ -1,20 +1,23 @@
 export interface SearchByTextOptionsBase {
   countries?: string[];
-  categories?: string[]
+  categories?: string[];
   maxResults?: number;
   searchIndexName?: string;
   providerName?: string;
 }
-export type Coordinates = [Longitude,Latitude]
+export type Coordinates = [Longitude, Latitude];
 
 // SearchByText options with a bias position
-export interface SearchByTextOptionsWithBiasPosition extends SearchByTextOptionsBase {
+export interface SearchByTextOptionsWithBiasPosition
+  extends SearchByTextOptionsBase {
   biasPosition?: Coordinates;
 }
 
 export type Longitude = number;
 export type Latitude = number;
-export type SearchByTextOptions = | SearchByTextOptionsWithBiasPosition | SearchByTextOptionsWithSearchAreaConstraints;
+export type SearchByTextOptions =
+  | SearchByTextOptionsWithBiasPosition
+  | SearchByTextOptionsWithSearchAreaConstraints;
 export type SWLongitude = Longitude;
 // SW Latitude point for bounding box
 export type SWLatitude = Latitude;
@@ -37,19 +40,18 @@ export type searchByPlaceIdOptions = {
   searchIndexName?: string;
 };
 export interface GooglePlacesResponse {
-  places: GooglePlace[]
+  places: GooglePlace[];
 }
 export interface GooglePlace {
-  formattedAddress: string,
-  location: GoogleLocation,
-  displayName: GooglePlacesDisplayName,
+  formattedAddress: string;
+  location: GoogleLocation;
+  displayName: GooglePlacesDisplayName;
 }
 export interface GoogleLocation {
-  latitude: number,
-  longitude: number,
+  latitude: number;
+  longitude: number;
 }
 export interface GooglePlacesDisplayName {
-  text: string
-  languageCode: string
+  text: string;
+  languageCode: string;
 }
-

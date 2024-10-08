@@ -1,1 +1,1 @@
-export const noReplyEmail = 'no-reply@parkeateapp.com';
+export const noReplyEmail = "no-reply@parkeateapp.com";

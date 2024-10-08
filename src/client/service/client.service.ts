@@ -314,12 +314,14 @@ export class ClientService {
   }
 
   async findPaginatedClients(pagination: PageOptionsDto, text: string) {
-    const whereQuery = text ? `LOWER(c.fullname) like '%${text.toLowerCase()}%' or c."phoneNumber" like '%${text}%' or LOWER(c.email) like '%${text
-      .toLowerCase()
-      .replace(
-        "-",
-        ""
-      )}%' or translate(c.rut, '-', '') like '%${text.toLowerCase()}%' or c.rut like '%${text.toLowerCase()}%'`: ``
+    const whereQuery = text
+      ? `LOWER(c.fullname) like '%${text.toLowerCase()}%' or c."phoneNumber" like '%${text}%' or LOWER(c.email) like '%${text
+          .toLowerCase()
+          .replace(
+            "-",
+            ""
+          )}%' or translate(c.rut, '-', '') like '%${text.toLowerCase()}%' or c.rut like '%${text.toLowerCase()}%'`
+      : ``;
     const query = this.clientRepository
       .createQueryBuilder("c")
       .where(whereQuery)

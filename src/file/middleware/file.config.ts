@@ -1,7 +1,7 @@
-import { FileConfig } from './uploader.interface';
-import { FileConstants } from '../constants/file.constants';
-import { SES_REGION } from '../../utils/email/constants/email-region';
-import { SNS_REGION } from '../../utils/sms/constants/sms-region';
+import { FileConfig } from "./uploader.interface";
+import { FileConstants } from "../constants/file.constants";
+import { SES_REGION } from "../../utils/email/constants/email-region";
+import { SNS_REGION } from "../../utils/sms/constants/sms-region";
 
 export function config(): FileConfig {
   const bucketBase = `api-photos.s3.sa-east-1.amazonaws.com/`;

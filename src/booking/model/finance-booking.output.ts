@@ -15,4 +15,3 @@ export class BookingDailyIncomeFinance {
   @Field(() => Number)
   numberOfIncomeToday: number;
 }
-

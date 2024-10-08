@@ -3,5 +3,5 @@ export enum LiquidationEnum {
   MONTHLY30,
   MONTH_AND_A_HALF45,
   BIMONTHLY60,
-  QUARTERLY90
+  QUARTERLY90,
 }

@@ -22,55 +22,62 @@ export class HoldingService {
     @InjectRepository(HoldingEntity)
     private readonly holdingRepository: Repository<HoldingEntity>,
     private readonly clientService: ClientService,
-    private photoService: PhotoService,
+    private photoService: PhotoService
   ) {}
-  createHolding(createHoldingInput: CreateHoldingInput, clientsIds: string[]): Observable<HoldingEntity> {
-    const clients = this.clientService.findClientsByIds(clientsIds)
+  createHolding(
+    createHoldingInput: CreateHoldingInput,
+    clientsIds: string[]
+  ): Observable<HoldingEntity> {
+    const clients = this.clientService.findClientsByIds(clientsIds);
     const newHolding = this.holdingRepository.create(createHoldingInput);
     return this.getHoldingByRut(newHolding.rut).pipe(
       switchMap((holding) => {
-        if(holding)
-          throw new ExistingRutException()
+        if (holding) throw new ExistingRutException();
 
         return clients.pipe(
           switchMap((c) => {
             newHolding.clientList = c;
-            return from(this.holdingRepository.save(newHolding))
+            return from(this.holdingRepository.save(newHolding));
           })
         );
       })
-    )
+    );
   }
   removeHolding(holdingId: string): Observable<HoldingEntity> {
     if (!uuid.validate(holdingId)) {
       throw new UUIDBadFormatException();
     }
-    return from(
-      this.findHoldingById(holdingId)
-    ).pipe(
+    return from(this.findHoldingById(holdingId)).pipe(
       switchMap((holding) => {
-        return from(this.holdingRepository.remove([holding])).pipe(map((h) => h[0]));
-      }),
+        return from(this.holdingRepository.remove([holding])).pipe(
+          map((h) => h[0])
+        );
+      })
     );
   }
-  updateHolding(updateHoldingInput: UpdateHoldingInput, newClientIds?: string[]): Observable<HoldingEntity> {
+  updateHolding(
+    updateHoldingInput: UpdateHoldingInput,
+    newClientIds?: string[]
+  ): Observable<HoldingEntity> {
     if (!uuid.validate(updateHoldingInput.id)) {
       throw new UUIDBadFormatException();
     }
     return from(
       this.holdingRepository.preload({
         ...updateHoldingInput,
-      }),
+      })
     ).pipe(
       switchMap((holding) => {
         if (!holding) {
           throw new NotFoundException();
         }
-        if(newClientIds)
-          return this.clientService.findClientsByIds(newClientIds).pipe(switchMap((c) => from(this.holdingRepository.save(holding))))
+        if (newClientIds)
+          return this.clientService
+            .findClientsByIds(newClientIds)
+            .pipe(switchMap((c) => from(this.holdingRepository.save(holding))));
 
         return from(this.holdingRepository.save(holding));
-      }),
+      })
     );
   }
   findAll(): Observable<HoldingEntity[]> {
@@ -83,11 +90,10 @@ export class HoldingService {
 
     return this.getHoldingById(holdingId).pipe(
       map((v) => {
-        if(!v)
-          throw new NotFoundException()
+        if (!v) throw new NotFoundException();
         return v;
       })
-    )
+    );
   }
   getHoldingById(holdingId: string): Observable<HoldingEntity | null> {
     return from(
@@ -95,17 +101,16 @@ export class HoldingService {
         where: {
           id: holdingId,
         },
-      }),
+      })
     );
   }
   findHoldingByRut(rut: string): Observable<HoldingEntity> {
     return this.getHoldingByRut(rut).pipe(
       map((v) => {
-        if(!v)
-          throw new NotFoundException()
+        if (!v) throw new NotFoundException();
         return v;
       })
-    )
+    );
   }
   getHoldingByRut(rut: string): Observable<HoldingEntity | null> {
     return from(
@@ -113,10 +118,14 @@ export class HoldingService {
         where: {
           rut: rut,
         },
-      }),
+      })
     );
   }
-  setProfilePhoto(holdingId: string, file: FileUpload, photoInput: CreatePhotoInput): Observable<HoldingEntity> {
+  setProfilePhoto(
+    holdingId: string,
+    file: FileUpload,
+    photoInput: CreatePhotoInput
+  ): Observable<HoldingEntity> {
     return this.findHoldingById(holdingId).pipe(
       switchMap((holding: HoldingEntity) => {
         return this.photoService.createPhoto(photoInput, file).pipe(
@@ -126,9 +135,9 @@ export class HoldingService {
 
             holding.profilePhoto = photo.url;
             return from(this.holdingRepository.save(holding));
-          }),
+          })
         );
-      }),
+      })
     );
   }
 }
