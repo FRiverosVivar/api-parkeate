@@ -15,4 +15,6 @@ export class TransbankModel {
     card_type: string;
     @Field(() => String)
     card_number: string;
+    @Field(() => Boolean, {nullable: true})
+    isActive: boolean;
 }

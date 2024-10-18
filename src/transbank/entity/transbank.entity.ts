@@ -26,6 +26,10 @@ export class TransbankEntity {
   card_number: string;
   
   @ManyToOne(() => UserEntity, (u) => u.tbkId)
-  @Field(() => String)
-  user: string;
+  @Field(() => UserEntity)
+  user: UserEntity;
+
+  @Column({ nullable: true })
+  @Field(() => Boolean)
+  isActive: boolean;
 }
