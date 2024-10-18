@@ -7,8 +7,9 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DateTime } from "luxon";
-import { from, Observable, of, switchMap } from "rxjs";
+import { from, map, Observable, of, switchMap } from "rxjs";
 import { TransbankEntity } from "src/transbank/entity/transbank.entity";
+import { TransbankModel } from "src/transbank/model/transbank.model";
 import { UserEntity } from "src/user/entity/user.entity";
 import { UpdateUserInput } from "src/user/model/dto/update-user.input";
 import { UserService } from "src/user/service/user.service";
@@ -70,6 +71,37 @@ export class TransbankService {
       url ?? "http://parkeateapp.com/"
     );
   }
+  getClientCardsData(user: UserEntity): Observable<TransbankModel[]> {    
+    return from(this.userService.findUserById(user.id)).pipe(
+      switchMap((user) => {
+        if (!user) {
+          throw new NotFoundException();
+        }        
+        return from(this.transbankRepository.find({
+          where: {
+            user: {id: user.id},
+            isActive: true
+            
+          }
+        })).pipe(
+          map((t) => {
+            return t.map((tbk) => {
+              return {
+                id: tbk.id,
+                tbk_user: tbk.tbk_user,
+                authorization_code: tbk.authorization_code,
+                card_type: tbk.card_type,
+                card_number: tbk.card_number,
+                isActive: tbk.isActive
+              }
+            })
+          })
+        )
+      })
+    );
+    
+  }
+
   transactionStatus(token: string): Promise<any> {
     const tx = new WebpayPlus.Transaction(
       new Options(
@@ -121,14 +153,14 @@ export class TransbankService {
             const badResponse = response.response_code < 0;
             if (badResponse) {
                 throw new BadRequestException(); //TODO: create a custom exception
-            }
-  
+            }            
             const newTransbankRecord = this.transbankRepository.create({
               tbk_user: response.tbk_user,
               authorization_code: response.authorization_code,
               card_type: response.card_type,
               card_number: response.card_number.replace(/X/g, ""),
-              user: user.id,
+              user: user,
+              isActive: true
             });
             return from(this.transbankRepository.save(newTransbankRecord)).pipe(
               switchMap((t) => {

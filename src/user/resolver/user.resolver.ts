@@ -34,10 +34,16 @@ import {
   OutputCreateUserInput,
 } from "../model/dto/create-user.input";
 import { UserBatchResponse } from "../model/dto/user-batch.response";
+import { TransbankModel } from "src/transbank/model/transbank.model";
+import { TransbankService } from "src/utils/transbank/transbank.service";
 
 @Resolver(() => UserEntity)
 export class UserResolver {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly transbankService: TransbankService
+  
+  ) {}
 
   @Query(() => [UserEntity], { name: "users" })
   @UseGuards(JwtAuthGuard)
@@ -140,6 +146,13 @@ export class UserResolver {
       })
     );
   }
+  @Query(() => [TransbankModel])
+  @UseGuards(JwtAuthGuard)
+  getTbkClientCardData(@CurrentUser() user: UserEntity): Observable<any[]> {
+    return this.transbankService.getClientCardsData(user);
+  }
+
+
   @Query(() => String)
   @UseGuards(JwtAuthGuard)
   addCardToClient(@CurrentUser() user: UserEntity): Observable<any> {

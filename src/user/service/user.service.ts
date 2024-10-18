@@ -409,6 +409,7 @@ export class UserService {
       })
     );
   }
+
   addCardToClient(user: UserEntity) {
     const paykuApi = "https://app.payku.cl";
     return this.findUserById(user.id).pipe(
