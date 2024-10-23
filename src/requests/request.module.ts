@@ -10,13 +10,13 @@ import { RequestStatusEnum } from "./enum/request-status.enum";
 import { RequestTypeEnum } from "./enum/request-type.enum";
 import { ExcelService } from "../utils/excel/excel.service";
 registerEnumType(RequestParkingTypeEnum, {
-  name: 'RequestParkingTypeEnum',
+  name: "RequestParkingTypeEnum",
 });
 registerEnumType(RequestStatusEnum, {
-  name: 'RequestStatusEnum',
+  name: "RequestStatusEnum",
 });
 registerEnumType(RequestTypeEnum, {
-  name: 'RequestTypeEnum',
+  name: "RequestTypeEnum",
 });
 @Global()
 @Module({

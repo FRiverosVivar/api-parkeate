@@ -6,7 +6,7 @@ import { registerEnumType } from "@nestjs/graphql";
 import { ScheduleDaysEnum } from "./enum/schedule-days.enum";
 import { ScheduleResolver } from "./resolver/schedule.resolver";
 registerEnumType(ScheduleDaysEnum, {
-  name: 'ScheduleDaysEnum',
+  name: "ScheduleDaysEnum",
 });
 @Global()
 @Module({

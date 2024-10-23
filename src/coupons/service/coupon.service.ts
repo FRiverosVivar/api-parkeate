@@ -9,7 +9,11 @@ import { UUIDBadFormatException } from "src/utils/exceptions/UUIDBadFormat.excep
 import * as uuid from "uuid";
 import { UserService } from "src/user/service/user.service";
 import * as _ from "lodash";
-import { PageDto, PageOptionsDto, PaginationMeta } from "src/utils/interfaces/pagination.type";
+import {
+  PageDto,
+  PageOptionsDto,
+  PaginationMeta,
+} from "src/utils/interfaces/pagination.type";
 import { UserCouponEntity } from "../user-coupons/entity/user-coupons.entity";
 import { DateTime, Settings } from "luxon";
 import { UpdateUserCouponInput } from "../model/update-user-coupon.input";
@@ -69,9 +73,8 @@ export class CouponService implements OnModuleInit {
     if (!uuid.validate(id)) {
       throw new UUIDBadFormatException();
     }
-    const uc = await this.getUserCouponFromRepository(id)
-    if (uc)
-      return uc;
+    const uc = await this.getUserCouponFromRepository(id);
+    if (uc) return uc;
 
     throw new NotFoundException();
   }

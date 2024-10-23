@@ -17,7 +17,8 @@ import {
   PageOptionsDto,
   ParkingBlockedUsersPaginated,
   ParkingCouponAssignedUsersPaginated,
-  ParkingsPaginated, UsersPaginated
+  ParkingsPaginated,
+  UsersPaginated,
 } from "../../utils/interfaces/pagination.type";
 import { CurrentUser } from "../../auth/decorator/current-user.decorator";
 import { ClientEntity } from "../../client/entity/client.entity";
@@ -28,10 +29,21 @@ import { type } from "os";
 import { Any } from "typeorm";
 import { Card, PaykuCustomer } from "../model/payku.model";
 import { RecoverPasswordCodeAndClientId } from "../../client/model/recover-password.response";
+import {
+  CreateUserInput,
+  OutputCreateUserInput,
+} from "../model/dto/create-user.input";
+import { UserBatchResponse } from "../model/dto/user-batch.response";
+import { TransbankModel } from "src/transbank/model/transbank.model";
+import { TransbankService } from "src/utils/transbank/transbank.service";
 
 @Resolver(() => UserEntity)
 export class UserResolver {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly transbankService: TransbankService
+  
+  ) {}
 
   @Query(() => [UserEntity], { name: "users" })
   @UseGuards(JwtAuthGuard)
@@ -134,6 +146,13 @@ export class UserResolver {
       })
     );
   }
+  @Query(() => [TransbankModel])
+  @UseGuards(JwtAuthGuard)
+  getTbkClientCardData(@CurrentUser() user: UserEntity): Observable<any[]> {
+    return this.transbankService.getClientCardsData(user);
+  }
+
+
   @Query(() => String)
   @UseGuards(JwtAuthGuard)
   addCardToClient(@CurrentUser() user: UserEntity): Observable<any> {
@@ -151,14 +170,25 @@ export class UserResolver {
   @UseGuards(JwtAuthGuard, UserTypeGuard)
   getPaginatedUsers(
     @Args("paginationOptions") paginationOptions: PageOptionsDto,
-    @Args("text", {  type: () => String, nullable: true }) text: string,
+    @Args("text", { type: () => String, nullable: true }) text: string
   ) {
     return this.userService.fingPaginatedUsers(paginationOptions, text);
   }
-  @Mutation( () => UserEntity )
+  @Mutation(() => UserEntity)
   @UserType(UserTypesEnum.ADMIN)
   @UseGuards(JwtAuthGuard, UserTypeGuard)
   deleteUser(@Args("id") id: string) {
     return this.userService.deleteUser(id);
+  }
+  @Mutation(() => UserBatchResponse)
+  @UserType(UserTypesEnum.ADMIN)
+  @UseGuards(JwtAuthGuard, UserTypeGuard)
+  createUsersBatch(
+    @Args("createUserInputs", {
+      type: () => [CreateUserInput],
+    })
+    createUserInputs: CreateUserInput[]
+  ) {
+    return this.userService.createUsersBatch(createUserInputs);
   }
 }

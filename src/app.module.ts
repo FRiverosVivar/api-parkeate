@@ -2,7 +2,7 @@ import { Module } from "@nestjs/common";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { ConfigModule } from "@nestjs/config";
-import { TypeOrmModule } from "@nestjs/typeorm";
+import { TypeOrmModule, TypeOrmModuleOptions } from "@nestjs/typeorm";
 import { GraphQLModule } from "@nestjs/graphql";
 import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
 import { ApolloServerPluginLandingPageLocalDefault } from "apollo-server-core";
@@ -34,14 +34,44 @@ import { UserService } from "./user/service/user.service";
 import { EventModule } from "./event/event.module";
 import { ParkingGuardModule } from "./parkingGuard/parkingGuard.module";
 import { TransbankService } from "./utils/transbank/transbank.service";
+import { TransbankModule } from "./transbank/transbank.module";
+const getTypeOrmConfig = () => {
+  let baseConfig: TypeOrmModuleOptions = {
+    keepConnectionAlive: true,
+    type: "postgres",
+    host: process.env.PG_HOST,
+    port: parseInt(<string>process.env.PG_PORT),
+    username: process.env.PG_USER,
+    password: process.env.PG_PASSWORD,
+    database: process.env.PG_DB,
+    autoLoadEntities: true,
+    synchronize: true,
+    subscribers: [LiquidationSubscriber, BookingSubscriber],
+  };
+  if (
+    process.env.NODE_ENV === "prod" ||
+    process.env.NODE_ENV === "development"
+  ) {
+    baseConfig = {
+      ssl: {
+        ca: fs.readFileSync("./develop.pem"),
+      },
+      extra: {
+        ssl: {
+          rejectUnauthorized: false,
+        },
+      },
+      ...baseConfig,
+    };
+  }
 
+  return baseConfig;
+};
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: `${process.cwd()}/src/environments/${
-        process.env.NODE_ENV
-      }.env`,
+      envFilePath: `.env`,
       load: [FileConfig],
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
@@ -51,28 +81,7 @@ import { TransbankService } from "./utils/transbank/transbank.service";
       playground: false,
       plugins: [ApolloServerPluginLandingPageLocalDefault()],
     }),
-    TypeOrmModule.forRoot({
-      keepConnectionAlive: true,
-      type: "postgres",
-      host: process.env.PG_HOST,
-      port: parseInt(<string>process.env.PG_PORT),
-      username: process.env.PG_USER,
-      password: process.env.PG_PASSWORD,
-      database: process.env.PG_DB,
-      autoLoadEntities: true,
-      synchronize: true,
-      subscribers: [LiquidationSubscriber, BookingSubscriber],
-      // logger: "simple-console",
-      // logging: ["query"],
-      ssl: {
-        ca: fs.readFileSync("./develop.pem"),
-      },
-      extra: {
-        ssl: {
-          rejectUnauthorized: false,
-        },
-      },
-    }),
+    TypeOrmModule.forRoot(getTypeOrmConfig()),
     FileModule.forRoot(config()),
     EventModule,
     PhotoModule,
@@ -92,8 +101,9 @@ import { TransbankService } from "./utils/transbank/transbank.service";
     CouponModule,
     HttpModule,
     ParkingGuardModule,
+    TransbankModule,
   ],
   controllers: [AppController],
-  providers: [AppService, EmailService, TransbankService],
+  providers: [AppService, EmailService],
 })
 export class AppModule {}

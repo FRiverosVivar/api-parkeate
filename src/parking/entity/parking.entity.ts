@@ -91,10 +91,11 @@ export class ParkingEntity extends BaseEntityWithIdAbstract {
   @Field(() => [ScheduleEntity])
   schedule?: ScheduleEntity[];
   @ManyToOne(() => BuildingEntity, (b) => b.parkingList, {
-    onDelete: "CASCADE"})
+    onDelete: "CASCADE",
+  })
   @Field(() => BuildingEntity)
   building: BuildingEntity;
-  @OneToMany(() => BookingEntity, (b) => b.parking, {onDelete: "SET NULL"})
+  @OneToMany(() => BookingEntity, (b) => b.parking, { onDelete: "SET NULL" })
   @Field(() => [BookingEntity])
   bookings: BookingEntity[];
   @Column({ nullable: true })

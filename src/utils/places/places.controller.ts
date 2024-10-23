@@ -9,7 +9,9 @@ export class PlacesController {
   constructor(private readonly placesService: PlacesService) {}
 
   @Post()
-  getPlacesByText(@Body('text') text: string): Observable<GooglePlacesResponse | AxiosResponse<any, any>> {
-    return this.placesService.getPlacesByText(text)
+  getPlacesByText(
+    @Body("text") text: string
+  ): Observable<GooglePlacesResponse | AxiosResponse<any, any>> {
+    return this.placesService.getPlacesByText(text);
   }
 }

@@ -1,16 +1,16 @@
 export enum RequestParkingTypeEnum {
   RESIDENTIAL,
   OFFICE,
-  MULTIFAMILY
+  MULTIFAMILY,
 }
 export const RequestParkingTypeNames = [
   "Residencial",
   "Oficina",
-  "Multifamiliar"
-]
+  "Multifamiliar",
+];
 
 export const RequestParkingTypes = [
   RequestParkingTypeEnum.RESIDENTIAL,
   RequestParkingTypeEnum.OFFICE,
-  RequestParkingTypeEnum.MULTIFAMILY
-]
+  RequestParkingTypeEnum.MULTIFAMILY,
+];
