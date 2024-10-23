@@ -194,7 +194,16 @@ export class TransbankService {
     let badResponse = false // testing
     if(badResponse) {
       throw new BadRequestException() //TODO: create a custom exception
-    }  }
+    }
+    
+    let cardResponse = await this.deleteClientCard(userId)
+    if(!cardResponse || cardResponse.isActive){
+      throw new BadRequestException()
+    }
+
+    return response
+  }
+    
 
     //under construction
   async authorizeInscriptionOneClick(token: string, userId: string,amount:number): Promise<any> {
@@ -232,6 +241,25 @@ export class TransbankService {
   
   return response;
 }
+  catch(e){
+    console.log(e)
+    throw new BadRequestException();
+  }
+}
+
+  async deleteClientCard(tbkId: string): Promise<any> {
+    try{
+      const tbk = await this.transbankRepository.findOne({
+        where: {
+          id: tbkId
+        }
+      })
+      if (!tbk) throw new NotFoundException();
+      //update isActive to false
+      tbk.isActive = false
+      await this.transbankRepository.save(tbk)
+      return tbk
+    }
   catch(e){
     console.log(e)
     throw new BadRequestException();
